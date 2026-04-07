@@ -133,7 +133,7 @@ class NEXORA_Login {
     }
 
     // ---------------------------
-    //      RESET OTP
+    //      RESET Password
     // ---------------------------
     public function reset_password() {
 
@@ -254,9 +254,7 @@ class NEXORA_Login {
                             Forgot Password?
                         </button>
                     </div>
-
                 </form>
-
             </div>
         </div>
 

@@ -126,7 +126,7 @@ jQuery(document).ready(function ($) {
             showCancelButton: true,
             allowOutsideClick: false,   // IMPORTANT
             allowEscapeKey: false,      // optional (disable ESC)
-            allowEnterKey: true,         // optional
+            allowEnterKey: true,        // optional
 
             preConfirm: () => {
 
