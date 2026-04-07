@@ -695,7 +695,7 @@ jQuery(document).ready(function ($) {
             title: title,
             html: `
                 <img src="${image}" style="width:100%; margin-bottom:10px; border-radius:10px;">
-                <p style="text-align:left;">${content}</p>
+                <p">${content}</p>
             `,
             width: '600px'
         });
