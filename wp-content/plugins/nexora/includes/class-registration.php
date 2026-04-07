@@ -38,7 +38,7 @@ class NEXORA_Registration {
 
     public function registration_form() {
 
-        // 🔥 LOGIN CHECK HERE
+        // LOGIN CHECK HERE
         if (is_user_logged_in()) {
 
             $current_user = wp_get_current_user();
@@ -145,6 +145,12 @@ class NEXORA_Registration {
             wp_send_json_error('User creation failed');
         }
 
+        // 🔥 SEND ADMIN EMAIL
+        $first_name = sanitize_text_field($data['first_name'] ?? '');
+        $last_name  = sanitize_text_field($data['last_name'] ?? '');
+        $full_name = trim($first_name . ' ' . $last_name);
+        $this->nexora_send_admin_notification($user_name, $email, $full_name);
+
         wp_update_user([
             'ID' => $wp_user_id,
             'user_nicename' => $user_name,
@@ -164,8 +170,8 @@ class NEXORA_Registration {
 
         // Save Meta
         update_post_meta($post_id, 'user_name', sanitize_text_field($data['user_name']));
-        update_post_meta($post_id, 'first_name', sanitize_text_field($data['first_name']));
-        update_post_meta($post_id, 'last_name', sanitize_text_field($data['last_name']));
+        update_post_meta($post_id, 'first_name', $first_name);
+        update_post_meta($post_id, 'last_name', $last_name);
         update_post_meta($post_id, 'email', $email);
         update_post_meta($post_id, 'phone', sanitize_text_field($data['phone']));
         update_post_meta($post_id, 'gender', sanitize_text_field($data['gender']));
@@ -184,5 +190,29 @@ class NEXORA_Registration {
             'message' => 'Registration successful',
             'redirect' => home_url('/profile-page/' . $username)
         ]);
+    }
+
+    function nexora_send_admin_notification($user_name, $email, $full_name) {
+
+        $admin_email = get_option('default_admin_mail');
+
+        // fallback (safety)
+        if (empty($admin_email)) {
+            $admin_email = get_option('admin_email');
+        }
+
+        $subject = '🚀 New User Registered on Nexora';
+
+        $message = "
+            <h2>New User Registration</h2>
+            <p><strong>Username:</strong> {$user_name}</p>
+            <p><strong>Name:</strong> {$full_name}</p>
+            <p><strong>Email:</strong> {$email}</p>
+            <p><strong>Time:</strong> " . current_time('mysql') . "</p>
+        ";
+
+        $headers = ['Content-Type: text/html; charset=UTF-8'];
+
+        wp_mail($admin_email, $subject, $message, $headers);
     }
 }

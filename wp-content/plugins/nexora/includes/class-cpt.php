@@ -91,6 +91,7 @@ class NEXORA_CPT {
     public function register_settings() {
         register_setting('profile_settings_group', 'default_profile_image');
         register_setting('profile_settings_group', 'default_cover_image');
+        register_setting('profile_settings_group', 'default_admin_mail');
     }
 
     public function settings_page() {
@@ -125,6 +126,25 @@ class NEXORA_CPT {
                             <input type="hidden" name="default_cover_image" value="<?php echo esc_attr($cover_id); ?>">
                             <button type="button" class="button upload-btn">Upload</button>
                             <button type="button" class="button remove-btn">Remove</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Admin Notification Email</th>
+                        <td>
+                            <?php $admin_email = get_option('default_admin_mail'); ?>
+
+                            <input 
+                                type="email" 
+                                name="default_admin_mail" 
+                                value="<?php echo esc_attr($admin_email); ?>" 
+                                class="regular-text"
+                                placeholder="Enter admin email"
+                            >
+
+                            <p class="description">
+                                All registration notifications will be sent to this email.
+                            </p>
                         </td>
                     </tr>
                 </table>
@@ -465,6 +485,9 @@ class NEXORA_CPT {
         }
     }
 
+    /* ===============================
+       ADD and MANAGE COLUMN
+    =============================== */
     function add_name_column($columns) {
 
         $new_columns = [];
