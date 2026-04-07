@@ -42,6 +42,12 @@ class NEXORA_Page {
 
         add_action('wp_ajax_mark_notification_read', [$this, 'mark_notification_read']);
         add_action('wp_ajax_nopriv_mark_notification_read', [$this, 'mark_notification_read']);
+
+        add_action('wp_ajax_save_user_content', [$this, 'save_user_content']);
+        add_action('wp_ajax_nopriv_save_user_content', [$this, 'save_user_content']);
+
+        add_action('wp_ajax_get_user_content_history', [$this, 'get_user_content_history']);
+        add_action('wp_ajax_nopriv_get_user_content_history', [$this, 'get_user_content_history']);
     }
 
     /* ===============================
@@ -677,6 +683,134 @@ class NEXORA_Page {
     }
 
     /* ===============================
+       ADD NEW CONTENT
+    =============================== */
+    public function save_user_content() {
+
+        check_ajax_referer('profile_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Not logged in');
+        }
+
+        $user_id = get_current_user_id();
+        $profile_id = get_user_meta($user_id, '_profile_id', true);
+
+        $title       = sanitize_text_field($_POST['title']);
+        $description = sanitize_textarea_field($_POST['description']);
+        $image_id    = intval($_POST['image']);
+
+        // Get user name from profile
+        $user_name = get_post_meta($profile_id, 'user_name', true);
+
+        // Create post
+        $post_id = wp_insert_post([
+            'post_type'   => 'user_content',
+            'post_title'  => $title,
+            'post_content'=> $description,
+            'post_status' => 'publish'
+        ]);
+
+        if (!$post_id) {
+            wp_send_json_error('Failed to create post');
+        }
+
+        // Set featured image
+        if ($image_id) {
+            set_post_thumbnail($post_id, $image_id);
+        }
+
+        // Save meta
+        update_post_meta($post_id, 'user_id', $user_id);
+        update_post_meta($post_id, 'user_profile_id', $profile_id);
+        update_post_meta($post_id, 'user_name', $user_name);
+
+        wp_send_json_success('Post created');
+    }
+
+    /* ===============================
+       CONTENT HISTORY
+    =============================== */
+    public function get_user_content_history() {
+
+        check_ajax_referer('profile_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Not logged in');
+        }
+
+        $user_id = get_current_user_id();
+        $profile_id = get_user_meta($user_id, '_profile_id', true);
+
+        // Fetch only current user's content
+        $posts = get_posts([
+            'post_type' => 'user_content',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                [
+                    'key' => 'user_profile_id',
+                    'value' => $profile_id
+                ]
+            ]
+        ]);
+
+        ob_start();
+        ?>
+
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th style="text-align:left; padding:8px;">Title</th>
+                    <th style="text-align:left; padding:8px;">Date</th>
+                    <th style="text-align:left; padding:8px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            <?php if ($posts): foreach ($posts as $post):
+
+                $title = $post->post_title;
+                $content = $post->post_content;
+                $image = get_the_post_thumbnail_url($post->ID, 'medium');
+                $date = get_the_date('Y-m-d H:i', $post->ID);
+            ?>
+
+                <tr>
+                    <td style="padding:8px;"><?php echo esc_html($title); ?></td>
+                    <td style="padding:8px;"><?php echo esc_html($date); ?></td>
+                    <td style="padding:8px;">
+                        
+                        <button 
+                            class="view-content-btn"
+                            data-title="<?php echo esc_attr($title); ?>"
+                            data-content="<?php echo esc_attr($content); ?>"
+                            data-image="<?php echo esc_url($image); ?>"
+                        >
+                            View
+                        </button>
+
+                    </td>
+                </tr>
+
+            <?php endforeach; else: ?>
+
+                <tr>
+                    <td colspan="3" style="text-align:center;">No content found</td>
+                </tr>
+
+            <?php endif; ?>
+
+            </tbody>
+        </table>
+
+        <?php
+
+        $html = ob_get_clean();
+
+        wp_send_json_success($html);
+    }
+
+    /* ===============================
        RENDER PROFILE
     =============================== */
     public function render_profile() {
@@ -839,6 +973,8 @@ class NEXORA_Page {
                     <button class="tab-btn" data-tab="connections">Connections</button>
                     <?php if ($is_owner): ?>
                         <button class="tab-btn" data-tab="security">Security</button>
+
+                        <button class="tab-btn" data-tab="content">Content</button>
 
                         <button class="tab-btn" data-tab="notifications">
                             Notifications
@@ -1092,9 +1228,7 @@ class NEXORA_Page {
                                         Mutual
                                     </button>
                                 </div>
-
                             <?php endif; ?>
-
                         </div>
 
                         <div id="connection-established">
@@ -1323,6 +1457,83 @@ class NEXORA_Page {
 
                         <?php endif; ?>
 
+                    </div>
+
+                    <!-- CONTENT -->
+                    <div class="tab-content" id="content">
+                        <div class="content-header">
+                            <div class="content-left">
+                                <h3>Content</h3>
+                                <span class="content-sub">See Content of Other Users</span>
+                            </div>
+
+                            <div class="content-right">
+                                <button class="content-tab" data-type="add">Add New</button>
+                                <button class="content-tab" data-type="history">History</button>
+                            </div>
+                        </div>
+
+                        <div class="content-box">
+
+                            <?php
+                            $current_user_id = get_current_user_id();
+                            $current_profile_id = get_user_meta($current_user_id, '_profile_id', true);
+
+                            $posts = get_posts([
+                                'post_type' => 'user_content',
+                                'posts_per_page' => -1
+                            ]);
+
+                            if ($posts):
+
+                                foreach ($posts as $post):
+
+                                    $author_profile_id = get_post_meta($post->ID, 'user_profile_id', true);
+                                    if ($author_profile_id == $current_profile_id) continue;
+
+                                    $image   = get_the_post_thumbnail_url($post->ID, 'medium');
+                                    $title   = $post->post_title;
+                                    $content = $post->post_content;
+
+                                    $user_name  = get_post_meta($post->ID, 'user_name', true);
+                                    $first_name = get_post_meta($author_profile_id, 'first_name', true);
+                                    $last_name  = get_post_meta($author_profile_id, 'last_name', true);
+
+                                    $full_name = $first_name . ' ' . $last_name;
+                                    $date = get_the_date('Y-m-d H:i', $post->ID);
+
+                                    $profile_link = site_url('/profile-page/' . $user_name);
+                            ?>
+
+                            <div class="content-card"
+                                data-title="<?php echo esc_attr($title); ?>"
+                                data-content="<?php echo esc_attr($content); ?>"
+                                data-image="<?php echo esc_url($image); ?>"
+                                data-username="<?php echo esc_attr($user_name); ?>"
+                                data-fullname="<?php echo esc_attr($full_name); ?>"
+                                data-date="<?php echo esc_attr($date); ?>"
+                                data-profile="<?php echo esc_url($profile_link); ?>"
+                            >
+
+                                <img src="<?php echo esc_url($image); ?>" class="content-img">
+
+                                <div class="content-body">
+                                    <a href="<?php echo esc_url($profile_link); ?>" 
+                                        class="content-user" target="_blank"
+                                        onclick="event.stopPropagation();">
+                                        <?php echo esc_html($user_name); ?>
+                                    </a>
+
+                                    <h4 class="content-title view-post"><?php echo esc_html($title); ?></h4>
+                                </div>
+
+                            </div>
+
+                            <?php endforeach; else: ?>
+                                <p>No content found</p>
+                            <?php endif; ?>
+
+                        </div>
                     </div>
                 </div>
             </div>

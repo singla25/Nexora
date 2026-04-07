@@ -289,14 +289,14 @@ body {
 }
 
 /* HEADER */
-.connection-header {
+.connection-header, .content-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
 }
 
-.conn-left h3 {
+.conn-left h3, .content-left {
     font-size: 22px;
     font-weight: 700;
     margin: 0;
@@ -307,18 +307,18 @@ body {
     text-align: center;
 }
 
-.conn-sub {
+.conn-sub, .content-sub {
     font-size: 13px;
     color: #94a3b8;
 }
 
 /* BUTTON GROUP */
-.conn-right {
+.conn-right, .content-right {
     display: flex;
     gap: 10px;
 }
 
-.conn-tab {
+.conn-tab, .content-tab {
     padding: 8px 18px;
     border-radius: 999px;
     border: 1px solid #e2e8f0;
@@ -328,12 +328,12 @@ body {
     transition: 0.3s;
 }
 
-.conn-tab:hover {
+.conn-tab:hover, .content-tab:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 12px rgba(0,0,0,0.08);
 }
 
-.conn-tab.active {
+.conn-tab.active, .content-tab.active {
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: #fff;
     border: none;
@@ -848,6 +848,296 @@ body {
     background: #d1d5db;
     box-shadow: none;
 }
+
+/* Content Box */
+/* .content-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+} */
+
+/* =========================
+   CONTENT CARD (MODERN 🔥)
+========================= */
+
+.content-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 25px;
+}
+
+/* CARD */
+.content-card {
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    transition: 0.3s;
+    cursor: default;
+    position: relative;
+}
+
+.content-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 25px 50px rgba(59,130,246,0.15);
+}
+
+/* IMAGE */
+.content-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+/* BODY */
+.content-body {
+    padding: 15px;
+    position: relative;
+}
+
+/* TITLE (CENTER + BOLD 🔥) */
+.content-title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 10px 0;
+}
+
+/* USERNAME (BOTTOM RIGHT 🔥) */
+.content-user {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.content-user:hover {
+    text-decoration: underline;
+}
+
+.content-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.content-img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.content-body {
+    padding: 10px;
+}
+
+/* .content-user {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2563eb;
+    margin-bottom: 5px;
+    text-decoration: none;
+} */
+
+/* .content-user:hover {
+    text-decoration: underline;
+} */
+
+.content-title {
+    padding: 10px;
+    font-size: 14px;
+    color: #111827;
+}
+
+/* ADD NEW CONTENT (POPUP) */
+.content-popup {
+    border-radius: 16px !important;
+    padding: 20px !important;
+}
+
+/* FORM */
+.content-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* GROUP */
+.form-group label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* INPUTS */
+.content-form input,
+.content-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.content-form input:focus,
+.content-form textarea:focus {
+    border-color: #2563eb;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* TEXTAREA */
+.content-form textarea {
+    min-height: 100px;
+    resize: none;
+}
+
+/* UPLOAD BOX */
+.upload-box {
+    border: 2px dashed #d1d5db;
+    padding: 15px;
+    text-align: center;
+    border-radius: 10px;
+    background: #f9fafb;
+}
+
+.upload-box img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: none;
+}
+
+/* BUTTON */
+.upload-content-image {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* SUBMIT */
+.submit-btn {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.submit-btn:hover {
+    background: #15803d;
+}
+
+.swal2-popup table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.swal2-popup th {
+    background: #f3f4f6;
+    padding: 10px;
+}
+
+.swal2-popup td {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.view-content-btn {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.swal2-cancel {
+    background: #ef4444 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+}
+
+.view-post {
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.view-post:hover {
+    color: #2563eb;
+}
+
+/* =========================
+   MODERN POPUP 🔥
+========================= */
+
+/* BODY */
+.modern-post-body {
+    padding: 20px;
+}
+
+/* TITLE */
+.modern-post-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #111827;
+}
+
+/* DESCRIPTION */
+.modern-post-desc {
+    font-size: 14px;
+    color: #374151;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+/* META ROW 🔥 */
+.modern-post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+/* USERNAME (LEFT) */
+.meta-username {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.meta-username:hover {
+    text-decoration: underline;
+}
+
+/* FULL NAME (CENTER) */
+.meta-fullname {
+    color: #6b7280;
+    text-align: center;
+}
+
+/* DATE (RIGHT) */
+.meta-date {
+    color: #9ca3af;
+    font-size: 12px;
+}
+
 
 /* =========================
    MOBILE

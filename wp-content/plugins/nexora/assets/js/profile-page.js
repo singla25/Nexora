@@ -455,19 +455,6 @@ jQuery(document).ready(function ($) {
     // ===============================
     // VIEW NOTIFICATION
     // ===============================
-    $(document).on('click', '.notification-view[data-type="view-receive-noti"]', function () {
-        $.post(profilePageData.ajaxUrl, {
-            action: 'update_notification_is_read',
-            nonce: profilePageData.nonce
-        }, function (res) {
-
-            
-        });
-    });
-
-    // ===============================
-    // VIEW NOTIFICATION (COMMON)
-    // ===============================
     $(document).on('click', '.notification-view', function (e) {
 
         e.stopPropagation(); // prevent parent click
@@ -508,4 +495,211 @@ jQuery(document).ready(function ($) {
             });
         }
     });
+
+    // ===============================
+    // VIEW POST CONTENT
+    // ===============================
+    $(document).on('click', '.view-post', function (e) {
+
+        e.stopPropagation(); // prevent parent click
+
+        let card = $(this).closest('.content-card');
+
+        let title = card.data('title');
+        let content = card.data('content');
+        let image = card.data('image');
+        let username = card.data('username');
+        let fullname = card.data('fullname');
+        let date = card.data('date');
+        let profile = card.data('profile');
+
+        Swal.fire({
+            html: `
+                <div class="modern-post">
+
+                    <img src="${image}" class="modern-post-img">
+
+                    <div class="modern-post-body">
+
+                        <!-- TITLE -->
+                        <h2 class="modern-post-title">${title}</h2>
+
+                        <!-- DESCRIPTION -->
+                        <p class="modern-post-desc">${content}</p>
+
+                        <!-- USER ROW -->
+                        <div class="modern-post-meta">
+
+                            <a href="${profile}" target="_blank" class="meta-username">
+                                ${username}
+                            </a>
+
+                            <span class="meta-fullname">
+                                ${fullname}
+                            </span>
+
+                            <span class="meta-date">
+                                ${date}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            `,
+            width: '550px',
+            showConfirmButton: false,
+            customClass: {
+                popup: 'modern-popup'
+            }
+        });
+    });
+
+    // ===============================
+    // ADD NEW CONTENT
+    // ===============================
+    $(document).on('click', '.content-tab[data-type="add"]', function () {
+
+        let html = `
+            <form id="add-content-form" class="content-form">
+
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" placeholder="Enter Title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" placeholder="Write something..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Image</label>
+
+                    <div class="upload-box">
+                        <input type="hidden" name="image" id="content_image">
+
+                        <img id="content_preview">
+
+                        <button type="button" class="upload-content-image">Choose Image</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Post Content</button>
+
+            </form>
+        `;
+
+        Swal.fire({
+            title: 'Add New Content',
+            html: html,
+            showConfirmButton: false,
+            width: '500px',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            showConfirmButton: false,
+            allowOutsideClick: false,   // ❌ click outside disabled
+            allowEscapeKey: false,      // ❌ ESC disabled
+            customClass: {
+                popup: 'content-popup'
+            }
+        });
+    });
+
+    $(document).on('click', '.upload-content-image', function (e) {
+
+        e.preventDefault();
+
+        let frame = wp.media({
+            title: 'Select Image',
+            button: { text: 'Use this image' },
+            multiple: false
+        });
+
+        frame.on('select', function () {
+
+            let attachment = frame.state().get('selection').first().toJSON();
+
+            $('#content_image').val(attachment.id);
+            $('#content_preview').attr('src', attachment.url).show();
+        });
+
+        frame.open();
+    });
+
+    $(document).on('submit', '#add-content-form', function (e) {
+
+        e.preventDefault();
+
+        let formData = new FormData(this);
+
+        formData.append('action', 'save_user_content');
+        formData.append('nonce', profilePageData.nonce);
+
+        $.ajax({
+            url: profilePageData.ajaxUrl,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+
+            success: function (res) {
+
+                if (res.success) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Posted!',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload(); // refresh feed
+                    });
+
+                } else {
+                    Swal.fire('Error', res.data, 'error');
+                }
+            }
+        });
+    });
+
+    // ===============================
+    // CONTENT HISTORY
+    // ===============================
+    $(document).on('click', '.content-tab[data-type="history"]', function () {
+
+        $.post(profilePageData.ajaxUrl, {
+            action: 'get_user_content_history',
+            nonce: profilePageData.nonce
+        }, function (res) {
+
+            if (res.success) {
+
+                Swal.fire({
+                    title: 'Your Content History',
+                    html: res.data,
+                    width: '700px'
+                });
+            }
+        });
+    });
+
+    $(document).on('click', '.view-content-btn', function () {
+
+        let title = $(this).data('title');
+        let content = $(this).data('content');
+        let image = $(this).data('image');
+
+        Swal.fire({
+            title: title,
+            html: `
+                <img src="${image}" style="width:100%; margin-bottom:10px; border-radius:10px;">
+                <p style="text-align:left;">${content}</p>
+            `,
+            width: '600px'
+        });
+    });
+
+    
 });

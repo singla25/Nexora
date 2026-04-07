@@ -21,6 +21,9 @@ class NEXORA_CPT {
 
         add_filter('manage_user_connections_posts_columns', [$this, 'add_status_column']);
         add_action('manage_user_connections_posts_custom_column', [$this, 'manage_status_column'], 10, 2);
+
+        add_filter('manage_user_content_posts_columns', [$this, 'add_user_name_column']);
+        add_action('manage_user_content_posts_custom_column', [$this, 'manage_user_name_column'], 10, 2);
     }
 
     public function enqueue_admin_scripts() {
@@ -84,6 +87,15 @@ class NEXORA_CPT {
             'show_in_menu' => 'profile-system',
             'menu_icon' => 'dashicons-groups',
         ]);
+
+        register_post_type('user_content', [
+            'label' => 'User Content',
+            'public' => false,
+            'show_ui' => true,
+            'supports' => ['title', 'editor', 'thumbnail'],
+            'show_in_menu' => 'profile-system',
+            'menu_icon' => 'dashicons-groups',
+        ]);
     }
 
     public function add_meta_boxes() {
@@ -93,8 +105,11 @@ class NEXORA_CPT {
         add_meta_box('user_work_details', 'User Work Details', [$this, 'user_work_details'], 'user_profile');
         add_meta_box('user_document_details', 'User Document Details', [$this, 'user_document_details'], 'user_profile');
         add_meta_box('user_connection_details', 'User Connection Details', [$this, 'user_connection_details'], 'user_profile');
+        add_meta_box('user_content_details', 'User Content Details', [$this, 'user_content_details'], 'user_profile');
 
         add_meta_box('user_connection_meta_box', 'User Connection Details', [$this, 'user_connection_meta_box'], 'user_connections');
+
+        add_meta_box('user_content_meta_box', 'User Content Info', [$this, 'render_user_content_meta_box'], 'user_content');
     }
 
     public function register_settings() {
@@ -167,7 +182,6 @@ class NEXORA_CPT {
     public function notifications_page() {
 
         $notification = new NEXORA_Notification();
-
         $notifications = $notification->get_all();
 
         ?>
@@ -437,6 +451,68 @@ class NEXORA_CPT {
     }
 
     /* ===============================
+       USER CONTENT DETAIL
+    =============================== */
+    public function user_content_details($post) {
+
+        $profile_id = $post->ID;
+
+        // Fetch user content
+        $args = [
+            'post_type'      => 'user_content',
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                [
+                    'key'   => 'user_profile_id',
+                    'value' => $profile_id,
+                    'compare' => '='
+                ]
+            ]
+        ];
+
+        $contents = get_posts($args);
+        ?>
+
+        <table class="widefat striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            <?php if ($contents): foreach ($contents as $content): ?>
+
+                <tr>
+                    <td><?php echo esc_html($content->post_title); ?></td>
+
+                    <td><?php echo esc_html(get_the_date('Y-m-d H:i:s', $content->ID)); ?></td>
+
+                    <td>
+                        <a href="<?php echo admin_url('post.php?post=' . $content->ID . '&action=edit'); ?>" 
+                        class="button button-primary">
+                        View
+                        </a>
+                    </td>
+                </tr>
+
+            <?php endforeach; else: ?>
+
+                <tr>
+                    <td colspan="3" style="text-align:center;">No content found</td>
+                </tr>
+
+            <?php endif; ?>
+
+            </tbody>
+        </table>
+
+        <?php
+    }
+
+    /* ===============================
        USER CONNECTIONS META BOX
     =============================== */
     public function user_connection_meta_box($post) {
@@ -502,46 +578,97 @@ class NEXORA_CPT {
     }
 
     /* ===============================
+       USER CONNECTIONS META BOX
+    =============================== */
+    public function render_user_content_meta_box($post) {
+
+        $user_id          = get_post_meta($post->ID, 'user_id', true);
+        $user_profile_id  = get_post_meta($post->ID, 'user_profile_id', true);
+        $user_name        = get_post_meta($post->ID, 'user_name', true);
+        ?>
+
+        <table class="form-table">
+
+            <tr>
+                <th>User ID</th>
+                <td><input type="number" name="user_id" value="<?php echo esc_attr($user_id); ?>" class="regular-text"></td>
+            </tr>
+
+            <tr>
+                <th>User Profile ID</th>
+                <td><input type="number" name="user_profile_id" value="<?php echo esc_attr($user_profile_id); ?>" class="regular-text"></td>
+            </tr>
+
+            <tr>
+                <th>User Name</th>
+                <td><input type="text" name="user_name" value="<?php echo esc_attr($user_name); ?>" class="regular-text"></td>
+            </tr>
+
+        </table>
+
+        <?php
+    }
+
+    /* ===============================
        SAVE DATA
     =============================== */
     public function save_meta_boxes($post_id) {
 
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 
-        $fields = [
-            // PROFILE FIELDS...
-            'user_name','first_name','last_name','email','phone','linkedin_id','bio','gender','birthdate',
+        $post_type = get_post_type($post_id);
 
-            // ADDRESS
-            'perm_address','perm_city','perm_state','perm_pincode',
-            'corr_address','corr_city','corr_state','corr_pincode',
+        // ===============================
+        // USER PROFILE SAVE
+        // ===============================
+        if ($post_type === 'user_profile') {
 
-            // WORK
-            'company_name','designation','company_email','company_phone','company_address',
+            $fields = [
+                'user_name','first_name','last_name','email','phone','linkedin_id','bio','gender','birthdate',
+                'perm_address','perm_city','perm_state','perm_pincode',
+                'corr_address','corr_city','corr_state','corr_pincode',
+                'company_name','designation','company_email','company_phone','company_address',
+                'profile_image','cover_image','aadhaar_card','driving_license','company_id_card'
+            ];
 
-            // IMAGES
-            'profile_image','cover_image','aadhaar_card','driving_license','company_id_card',
+            foreach ($fields as $field) {
+                if (isset($_POST[$field])) {
 
-            // CONNECTION FIELDS
-            'sender_user_id','sender_profile_id','sender_user_name','receiver_user_id','receiver_profile_id','receiver_user_name','status'
-        ];
-
-        foreach ($fields as $field) {
-
-            if (isset($_POST[$field])) {
-
-                // Image fields
-                if (in_array($field, ['profile_image','cover_image','aadhaar_card','driving_license','company_id_card'])) {
-                    update_post_meta($post_id, $field, intval($_POST[$field]));
+                    if (in_array($field, ['profile_image','cover_image','aadhaar_card','driving_license','company_id_card'])) {
+                        update_post_meta($post_id, $field, intval($_POST[$field]));
+                    } else {
+                        update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+                    }
                 }
+            }
+        }
 
-                // Status
-                elseif ($field === 'status') {
+        // ===============================
+        // USER CONTENT SAVE
+        // ===============================
+        if ($post_type === 'user_content') {
+
+            $fields = ['user_id', 'user_profile_id', 'user_name'];
+
+            foreach ($fields as $field) {
+                if (isset($_POST[$field])) {
                     update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
-                } 
+                }
+            }
+        }
 
-                // Normal text
-                else {
+        // ===============================
+        // USER CONNECTION SAVE
+        // ===============================
+        if ($post_type === 'user_connections') {
+
+            $fields = [
+                'sender_user_id','sender_profile_id','sender_user_name',
+                'receiver_user_id','receiver_profile_id','receiver_user_name','status'
+            ];
+
+            foreach ($fields as $field) {
+                if (isset($_POST[$field])) {
                     update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
                 }
             }
@@ -617,6 +744,36 @@ class NEXORA_CPT {
             } else {
                 echo '<span style="color: orange; font-weight: 600;">Pending</span>';
             }
+        }
+    }
+
+    function add_user_name_column($columns) {
+
+        $new_columns = [];
+
+        foreach ($columns as $key => $value) {
+
+            $new_columns[$key] = $value;
+
+            // Add after Title column
+            if ($key === 'title') {
+                $new_columns['user_name'] = 'Name';
+            }
+        }
+
+        return $new_columns;
+    }
+
+    function manage_user_name_column($column, $post_id) {
+
+        if ($column === 'user_name') {
+
+            $user_profile_id = get_post_meta($post_id, 'user_profile_id', true);
+            $first_name = get_post_meta($user_profile_id, 'first_name', true);
+            $last_name  = get_post_meta($user_profile_id, 'last_name', true);
+            $full_name  = $first_name . ' ' . $last_name;
+
+            echo $full_name;
         }
     }
 }

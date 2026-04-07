@@ -95,23 +95,6 @@ class NEXORA_Notification {
         );
     }
 
-    // FETCH BY USER (Show Received and Send Notification)
-    // public function get_by_user($user_id) {
-
-    //     global $wpdb;
-
-    //     return $wpdb->get_results(
-    //         $wpdb->prepare(
-    //             "SELECT * FROM {$this->table}
-    //             WHERE receiver_user_id = %d OR sender_user_id = %d
-    //             ORDER BY is_read ASC, created_at DESC
-    //             LIMIT 50",
-    //             $user_id,
-    //             $user_id
-    //         )
-    //     );
-    // }
-
     // RECEIVED
     public function get_received($user_id) {
         global $wpdb;
@@ -151,19 +134,6 @@ class NEXORA_Notification {
             $this->table,
             ['is_read' => 1],
             ['id' => $id]
-        );
-    }
-
-    public function mark_all_as_read($user_id) {
-        global $wpdb;
-
-        $wpdb->query(
-            $wpdb->prepare(
-                "UPDATE {$this->table}
-                SET is_read = 1
-                WHERE receiver_user_id = %d",
-                $user_id
-            )
         );
     }
 }
