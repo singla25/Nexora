@@ -30,6 +30,43 @@ Instead of relying on WordPress default systems, Nexora implements **custom auth
 
 ---
 
+### 🔔 Notification System
+- Real-time notification system for user interactions  
+- Covers:
+  - Connection requests  
+  - Accepted / Rejected connections  
+
+- Features:
+  - Notification badge for unread updates  
+  - Popup-based notification view  
+  - Status tracking (seen / unseen)  
+
+- Optimized logic:
+  - Sender action does NOT mark notification as read  
+  - Receiver controls read status (important UX improvement)  
+
+- Built using AJAX + custom database handling  
+
+---
+
+### 📧 Email Notification System
+- SMTP-based email notification system  
+
+- Triggered on:
+  - New user registration (Admin alert)  
+
+- Features:
+  - Admin receives instant email when a new user registers  
+  - Helps in monitoring platform activity  
+  - Ensures reliable email delivery using SMTP  
+
+- Scalable for:
+  - User email verification  
+  - System alerts & reminders  
+  - Future user-based notifications  
+
+---
+
 ### 👤 User Profile System
 - Dynamic profile dashboard
 - Sticky profile header with:
