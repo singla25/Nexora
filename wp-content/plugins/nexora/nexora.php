@@ -38,6 +38,7 @@ class NEXORA_System {
         // LOGIN FLOW
         add_filter('login_redirect', [$this, 'login_redirect'], 10, 3);
 
+        // ACTIVATION
         register_activation_hook(__FILE__, [$this, 'notification_table']);
     }
 
@@ -63,10 +64,13 @@ class NEXORA_System {
     }
 
     // ===============================
-    // HIDE ADMIN BAR
+    // HIDE ADMIN BAR (ONLY ADMIN CAN SEE)
     // ===============================
     public function hide_admin_bar() {
-        show_admin_bar(false);
+
+        if (!current_user_can('manage_options')) {
+            show_admin_bar(false);
+        }
     }
 
     // ===============================
@@ -85,25 +89,48 @@ class NEXORA_System {
         // allow REST
         if (defined('REST_REQUEST') && REST_REQUEST) return;
 
-        // block ALL users (including admin)
-        if (is_admin()) {
+        // Not logged in
+        if (!is_user_logged_in()) {
             wp_redirect(home_url('/login-page'));
             exit;
         }
+
+        // Logged in but NOT admin
+        if (!current_user_can('manage_options') && is_admin()) {
+            wp_redirect(home_url('/profile-page'));
+            exit;
+        }
+
+        // ✅ Admin allowed
     }
 
     // ===============================
-    // BLOCK WP LOGIN PAGE
+    // BLOCK WP-LOGIN
     // ===============================
     public function block_wp_login() {
 
-        // allow emergency access
+        // VERY IMPORTANT: Allow logout action
+        if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+            return;
+        }
+
         if (isset($_GET['admin_access']) && $_GET['admin_access'] === 'true') {
             return;
         }
 
-        // block wp-login.php
+        // Only target wp-login.php
         if (strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false) {
+
+            if (is_user_logged_in()) {
+
+                if (current_user_can('manage_options')) {
+                    return;
+                }
+
+                wp_redirect(home_url('/profile-page'));
+                exit;
+            }
+
             wp_redirect(home_url('/login-page'));
             exit;
         }
@@ -114,6 +141,12 @@ class NEXORA_System {
     // ===============================
     public function login_redirect($redirect_to, $request, $user) {
 
+        // Admin → dashboard
+        if (isset($user->roles) && in_array('administrator', $user->roles)) {
+            return admin_url();
+        }
+
+        // Other users → profile page
         return home_url('/profile-page');
     }
 

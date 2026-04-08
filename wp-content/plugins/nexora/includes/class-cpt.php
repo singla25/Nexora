@@ -116,6 +116,7 @@ class NEXORA_CPT {
         register_setting('profile_settings_group', 'default_profile_image');
         register_setting('profile_settings_group', 'default_cover_image');
         register_setting('profile_settings_group', 'default_admin_mail');
+        register_setting('profile_settings_group', 'default_home_cover_image');
     }
 
     public function settings_page() {
@@ -148,6 +149,19 @@ class NEXORA_CPT {
                                 style="max-width:150px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_cover_image" value="<?php echo esc_attr($cover_id); ?>">
+                            <button type="button" class="button upload-btn">Upload</button>
+                            <button type="button" class="button remove-btn">Remove</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Default Home Cover Image</th>
+                        <td>
+                            <?php $home_cover_id = get_option('default_home_cover_image'); ?>
+                            <img src="<?php echo $home_cover_id ? wp_get_attachment_url($home_cover_id) : ''; ?>" 
+                                style="max-width:150px; display:block; margin-bottom:10px;">
+
+                            <input type="hidden" name="default_home_cover_image" value="<?php echo esc_attr($home_cover_id); ?>">
                             <button type="button" class="button upload-btn">Upload</button>
                             <button type="button" class="button remove-btn">Remove</button>
                         </td>

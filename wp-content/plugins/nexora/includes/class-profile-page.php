@@ -1166,11 +1166,6 @@ class NEXORA_Page {
                                 <div class="info-grid">
 
                                     <div class="info-item">
-                                        <span class="info-label">Full Name</span>
-                                        <span class="info-value"><?php echo esc_html($name); ?></span>
-                                    </div>
-
-                                    <div class="info-item">
                                         <span class="info-label">Username</span>
                                         <span class="info-value"><?php echo esc_html($username); ?></span>
                                     </div>
@@ -1178,11 +1173,6 @@ class NEXORA_Page {
                                     <div class="info-item">
                                         <span class="info-label">Email</span>
                                         <span class="info-value"><?php echo esc_html($email); ?></span>
-                                    </div>
-
-                                    <div class="info-item">
-                                        <span class="info-label">Phone</span>
-                                        <span class="info-value"><?php echo esc_html($phone); ?></span>
                                     </div>
 
                                     <div class="info-item">
@@ -1205,6 +1195,11 @@ class NEXORA_Page {
                                         <span class="info-value"><?php echo esc_html(get_post_meta($profile_id,'birthdate',true)); ?></span>
                                     </div>
 
+                                    <div class="info-item">
+                                        <span class="info-label">Phone</span>
+                                        <span class="info-value"><?php echo esc_html($phone); ?></span>
+                                    </div>
+                                    
                                     <div class="info-item">
                                         <span class="info-label">LinkedIn</span>
                                         <span class="info-value"><?php echo esc_html(get_post_meta($profile_id,'linkedin_id',true)); ?></span>

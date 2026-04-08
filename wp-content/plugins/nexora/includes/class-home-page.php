@@ -9,60 +9,143 @@ class Nexora_Home_Page {
     }
 
     function render_home_page() {
+
+        $home_cover_id = get_option('default_cover_image');
+
         ob_start();
         ?>
-        
-        <div class="nexora-home">
+
+        <div class="nexora">
 
             <!-- HERO -->
-            <section class="hero">
+            <section class="nx-hero">
+                <div class="nx-container nx-hero-inner">
 
-                <div class="hero-content">
-                    <h1>
-                        Connect. Grow. <span>Discover.</span>
-                    </h1>
+                    <div class="nx-hero-content">
+                        <h1 class="nx-title">
+                            Connect. <span>Grow.</span> Discover.
+                        </h1>
 
-                    <p>Build meaningful connections and grow your network on Nexora</p>
+                        <p class="nx-subtitle">
+                            Nexora helps you connect, share, and grow your network in real-time.
+                        </p>
 
-                    <div class="hero-buttons">
-                        <a href="<?php echo home_url('/registration-page'); ?>" class="btn primary">Get Started</a>
-                        <a href="<?php echo home_url('/login-page'); ?>" class="btn secondary">Login</a>
+                        <div class="nx-cta">
+                            <a href="<?php echo site_url('/registration-page'); ?>" class="nx-btn nx-primary">Get Started</a>
+                            <a href="<?php echo site_url('/login-page'); ?>" class="nx-btn nx-outline">Login</a>
+                        </div>
+                    </div>
+
+                    <div class="nx-hero-preview">
+                        <div class="nx-glass-card">
+                            <img src="<?php echo $home_cover_id ? wp_get_attachment_url($home_cover_id) : ''; ?>" alt="Preview">
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- STATS -->
+            <section class="nx-section nx-stats">
+                <div class="nx-container">
+                    <div class="nx-stats-grid">
+                        <div class="nx-stat-box">
+                            <h3>10K+</h3>
+                            <p>Users</p>
+                        </div>
+                        <div class="nx-stat-box">
+                            <h3>5K+</h3>
+                            <p>Connections</p>
+                        </div>
+                        <div class="nx-stat-box">
+                            <h3>1K+</h3>
+                            <p>Daily Posts</p>
+                        </div>
                     </div>
                 </div>
-
-                <div class="hero-bg"></div>
-
             </section>
 
             <!-- FEATURES -->
-            <section class="features">
-                <div class="feature-card">
-                    <h3>Create Profile</h3>
-                    <p>Show your identity and skills</p>
-                </div>
+            <section class="nx-section nx-features">
+                <div class="nx-container">
+                    <h2 class="nx-section-title center">Powerful Features</h2>
 
-                <div class="feature-card">
-                    <h3>Make Connections</h3>
-                    <p>Connect with like-minded people</p>
-                </div>
-
-                <div class="feature-card">
-                    <h3>Discover Users</h3>
-                    <p>Explore new profiles easily</p>
+                    <div class="nx-grid">
+                        <div class="nx-card"><span>👤</span><h4>Create Profile</h4><p>Showcase your identity.</p></div>
+                        <div class="nx-card"><span>🤝</span><h4>Connections</h4><p>Build meaningful network.</p></div>
+                        <div class="nx-card"><span>📝</span><h4>Share Content</h4><p>Post and engage.</p></div>
+                        <div class="nx-card"><span>🔔</span><h4>Notifications</h4><p>Stay updated instantly.</p></div>
+                        <div class="nx-card"><span>💬</span><h4>Chat</h4><p>Real-time messaging.</p></div>
+                    </div>
                 </div>
             </section>
 
-            <!-- STEPS -->
-            <section class="steps">
-                <div>1. Sign Up</div>
-                <div>2. Build Profile</div>
-                <div>3. Connect</div>
+            <!-- HOW IT WORKS -->
+            <section class="nx-section nx-steps">
+                <div class="nx-container">
+                    <h2 class="nx-section-title center">How It Works</h2>
+
+                    <div class="nx-steps-grid">
+                        <div class="nx-step"><span>1</span><p>Sign Up</p></div>
+                        <div class="nx-step"><span>2</span><p>Build Profile</p></div>
+                        <div class="nx-step"><span>3</span><p>Connect</p></div>
+                        <div class="nx-step"><span>4</span><p>Share & Chat</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DEMO -->
+            <section class="nx-section nx-demo">
+                <div class="nx-container">
+                    <h2 class="nx-section-title center">Live Preview</h2>
+
+                    <div class="nx-demo-grid">
+                        <div class="nx-glass-card">Feed UI</div>
+                        <div class="nx-glass-card">Connections</div>
+                        <div class="nx-glass-card">Notifications</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TESTIMONIALS -->
+            <section class="nx-section nx-testimonials">
+                <div class="nx-container">
+
+                    <h2 class="nx-section-title center">Loved by Users</h2>
+
+                    <div class="nx-test-grid">
+
+                        <div class="nx-test-card">
+                            <div class="nx-test-top">
+                                <img src="https://i.pravatar.cc/50?img=1">
+                                <div>
+                                    <strong>Rahul Sharma</strong>
+                                    <span>Entrepreneur</span>
+                                </div>
+                            </div>
+                            <p>“Nexora helped me grow my network faster than ever.”</p>
+                        </div>
+
+                        <div class="nx-test-card">
+                            <div class="nx-test-top">
+                                <img src="https://i.pravatar.cc/50?img=2">
+                                <div>
+                                    <strong>Sahil</strong>
+                                    <span>Developer</span>
+                                </div>
+                            </div>
+                            <p>“Clean UI and super smooth experience.”</p>
+                        </div>
+
+                    </div>
+
+                </div>
             </section>
 
             <!-- CTA -->
-            <section class="cta">
-                <h2>Ready to build your network?</h2>
-                <a href="<?php echo home_url('/registration-page'); ?>" class="btn primary">Join Nexora</a>
+            <section class="nx-final-cta">
+                <h2>Join Nexora Today</h2>
+                <a href="<?php echo site_url('/registration-page'); ?>" class="nx-btn nx-primary">Get Started</a>
             </section>
 
         </div>
