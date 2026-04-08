@@ -30,12 +30,12 @@ class NEXORA_System {
 
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
 
-        // 🔥 ACCESS CONTROL
+        // ACCESS CONTROL
         add_action('after_setup_theme', [$this, 'hide_admin_bar']);
         add_action('admin_init', [$this, 'block_wp_admin']);
         add_action('init', [$this, 'block_wp_login']);
 
-        // 🔥 LOGIN FLOW
+        // LOGIN FLOW
         add_filter('login_redirect', [$this, 'login_redirect'], 10, 3);
 
         register_activation_hook(__FILE__, [$this, 'notification_table']);
@@ -74,7 +74,7 @@ class NEXORA_System {
     // ===============================
     public function block_wp_admin() {
 
-        // ✅ Emergency access
+        // Emergency access
         if (isset($_GET['admin_access']) && $_GET['admin_access'] === 'true') {
             return;
         }
@@ -85,7 +85,7 @@ class NEXORA_System {
         // allow REST
         if (defined('REST_REQUEST') && REST_REQUEST) return;
 
-        // ❌ block ALL users (including admin)
+        // block ALL users (including admin)
         if (is_admin()) {
             wp_redirect(home_url('/login-page'));
             exit;

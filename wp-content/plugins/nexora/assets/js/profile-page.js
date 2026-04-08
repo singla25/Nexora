@@ -638,6 +638,8 @@ jQuery(document).ready(function ($) {
             title: 'Notification',
             text: message,
             icon: 'info'
+        }).then(() => {
+            location.reload(); // reload after OK
         });
 
         // ===============================

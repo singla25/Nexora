@@ -1129,6 +1129,7 @@ class NEXORA_Page {
 
                 <!-- CONTENT -->
                 <div class="profile-content">
+                    
                     <!-- User Information -->
                     <div class="tab-content active" id="user-info">
                         <div class="user-info-header">
