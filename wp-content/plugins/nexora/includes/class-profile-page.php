@@ -1,6 +1,6 @@
 <?php
 
-class NEXORA_Page {
+class NEXORA_PROFILE_PAGE {
 
     public function __construct() {
 

@@ -26,7 +26,7 @@ class NEXORA_System {
         new NEXORA_Registration();
         new NEXORA_Login();
         new NEXORA_CPT();
-        new NEXORA_Page();
+        new NEXORA_PROFILE_PAGE();
         new Nexora_Home_Page();
         new Nexora_CHAT_Page();
 
