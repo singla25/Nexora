@@ -1471,7 +1471,17 @@ class NEXORA_Page {
                                             </div>
                                         <?php endforeach; ?>
                                     <?php else : ?>
-                                        <p>No connections found</p>
+                                        <div class="empty-content">
+                                            <div class="empty-icon">🤝</div>
+                                            <h3>No Connections Yet</h3>
+                                            <p>
+                                                You haven’t connected with anyone yet.<br>
+                                                Start building your network by sending connection requests 🚀
+                                            </p>
+                                            <button class="conn-tab" data-type="add">
+                                                + Find People
+                                            </button>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
                             <?php else: ?>

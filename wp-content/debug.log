@@ -2930,3 +2930,10 @@
 [09-Apr-2026 10:47:08 UTC] PHP Warning:  Trying to access array offset on value of type null in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1386
 [09-Apr-2026 10:47:08 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1708
 [09-Apr-2026 11:06:39 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1707
+[09-Apr-2026 11:08:47 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1707
+[09-Apr-2026 11:08:56 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1707
+[09-Apr-2026 11:09:22 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1707
+[09-Apr-2026 11:15:56 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1717
+[09-Apr-2026 11:17:11 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1717
+[09-Apr-2026 11:18:11 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1717
+[09-Apr-2026 11:18:14 UTC] PHP Warning:  Undefined variable $has_other_posts in /var/www/html/82/nexora/wp-content/plugins/nexora/includes/class-profile-page.php on line 1717

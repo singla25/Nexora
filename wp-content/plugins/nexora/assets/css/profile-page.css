@@ -879,10 +879,21 @@ body {
     overflow: hidden;
 }
 
-/* remove default swal padding */
-.swal2-html-container {
-    margin: 0 !important;
-    padding: 0 !important;
+.empty-content button {
+    margin-top: 15px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+.empty-content button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59,130,246,0.3);
 }
 
 
