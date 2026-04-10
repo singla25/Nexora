@@ -1,0 +1,18 @@
+# WordPress uploads
+wp-content/uploads/
+
+# Backup plugin
+wp-content/ai1wm-backups/
+
+# Migration plugin storage
+wp-content/plugins/all-in-one-wp-migration/storage/
+
+# Cache
+wp-content/cache/
+
+# Logs
+wp-content/debug.log
+
+# OS files
+.DS_Store
+Thumbs.db
