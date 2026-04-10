@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Nexora
- * Description: Handles User Registration and Log In, Profile Dashboard and Connection between two other User
+ * Description: Handles User Registration, Login, Profile Dashboard and User Connections
  * Version: 1.0
  * Author: Sahil Singla
  */
@@ -23,6 +23,7 @@ class NEXORA_System {
 
     public function __construct() {
 
+        // INIT MODULES
         new NEXORA_Registration();
         new NEXORA_Login();
         new NEXORA_CPT();
@@ -45,7 +46,7 @@ class NEXORA_System {
     }
 
     // ===============================
-    // ASSETS
+    // GLOBAL ASSETS
     // ===============================
     public function enqueue_assets() {
 
@@ -66,7 +67,7 @@ class NEXORA_System {
     }
 
     // ===============================
-    // HIDE ADMIN BAR (ONLY ADMIN CAN SEE)
+    // HIDE ADMIN BAR (ONLY ADMIN)
     // ===============================
     public function hide_admin_bar() {
 
@@ -76,80 +77,73 @@ class NEXORA_System {
     }
 
     // ===============================
-    // BLOCK WP-ADMIN
+    // BLOCK WP-ADMIN (NON-ADMINS)
     // ===============================
     public function block_wp_admin() {
 
-        // Emergency access
-        if (isset($_GET['admin_access']) && $_GET['admin_access'] === 'true') {
-            return;
-        }
-
-        // allow AJAX
+        // Allow AJAX
         if (defined('DOING_AJAX') && DOING_AJAX) return;
 
-        // allow REST
+        // Allow REST
         if (defined('REST_REQUEST') && REST_REQUEST) return;
 
-        // Not logged in
+        // Not logged in → redirect to login page
         if (!is_user_logged_in()) {
             wp_redirect(home_url('/login-page'));
             exit;
         }
 
-        // Logged in but NOT admin
+        // Logged in but NOT admin → block wp-admin
         if (!current_user_can('manage_options') && is_admin()) {
-            wp_redirect(home_url('/profile-page'));
+            wp_redirect(home_url('/profile-page/' . wp_get_current_user()->user_login));
             exit;
         }
 
-        // ✅ Admin allowed
+        // ✅ Admin allowed freely
     }
 
     // ===============================
-    // BLOCK WP-LOGIN
+    // BLOCK WP-ADMIN (NON-ADMINS)
     // ===============================
     public function block_wp_login() {
 
-        // VERY IMPORTANT: Allow logout action
+        // Allow logout
         if (isset($_GET['action']) && $_GET['action'] === 'logout') {
             return;
         }
 
-        if (isset($_GET['admin_access']) && $_GET['admin_access'] === 'true') {
+        // Allow admin to access wp-login if already logged in
+        if (is_user_logged_in() && current_user_can('manage_options')) {
             return;
         }
 
-        // Only target wp-login.php
+        // Target wp-login.php
         if (strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false) {
 
-            if (is_user_logged_in()) {
-
-                if (current_user_can('manage_options')) {
-                    return;
-                }
-
-                wp_redirect(home_url('/profile-page'));
+            // If NOT logged in → redirect to custom login
+            if (!is_user_logged_in()) {
+                wp_redirect(home_url('/login-page'));
                 exit;
             }
 
-            wp_redirect(home_url('/login-page'));
-            exit;
+            // If logged in but non-admin
+            if (!current_user_can('manage_options')) {
+                wp_redirect(home_url('/profile-page'));
+                exit;
+            }
         }
     }
 
     // ===============================
-    // LOGIN REDIRECT
+    // LOGIN REDIRECT (WP DEFAULT)
     // ===============================
     public function login_redirect($redirect_to, $request, $user) {
 
-        // Admin → dashboard
         if (isset($user->roles) && in_array('administrator', $user->roles)) {
-            return admin_url();
+            return home_url('/profile-page'); // Admin UI
         }
 
-        // Other users → profile page
-        return home_url('/profile-page');
+        return home_url('/profile-page/' . $user->user_login);
     }
 
     // ===============================

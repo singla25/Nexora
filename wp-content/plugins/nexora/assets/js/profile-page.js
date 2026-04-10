@@ -929,4 +929,17 @@ jQuery(document).ready(function ($) {
             }
         });
     });
+
+    // ===============================
+    // Logout Button Click
+    // =============================== 
+    // 1. Logout click
+    $(document).on('click', '.logout-btn', function () {
+        localStorage.removeItem('activeTab');
+    });
+
+    // 2. Login page load safety
+    if (window.location.pathname.includes('login-page')) {
+        localStorage.removeItem('activeTab');
+    }
 });

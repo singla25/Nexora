@@ -293,11 +293,24 @@ class NEXORA_Login {
             wp_send_json_error('Invalid credentials');
         }
 
+        $user = wp_signon($creds, is_ssl());
+
+        if (!is_wp_error($user)) {
+            wp_set_current_user($user->ID);
+            wp_set_auth_cookie($user->ID);
+        }
+
         // ✅ Correct way to get username
         $username = $user->user_login;
 
+        if (in_array('administrator', $user->roles)) {
+            $redirect = home_url('/profile-page');
+        } else {
+            $redirect = home_url('/profile-page/' . $user->user_login);
+        }
+
         wp_send_json_success([
-            'redirect' => home_url('/profile-page/' . $username)
+            'redirect' => $redirect
         ]);
     }
 }

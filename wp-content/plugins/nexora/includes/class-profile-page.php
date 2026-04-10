@@ -1104,7 +1104,7 @@ class NEXORA_PROFILE_PAGE {
                     </p>
 
                     <!-- BUTTON -->
-                    <a href="' . esc_url(admin_url()) . '" 
+                    <a href="' . esc_url(admin_url() . '?admin_access=true') . '"
                     style="
                         display:inline-block;
                         padding:12px 24px;
@@ -1765,12 +1765,15 @@ class NEXORA_PROFILE_PAGE {
                                 'posts_per_page' => -1
                             ]);
 
+                            $has_other_posts = false;
+
                             if ($posts):
 
                                 foreach ($posts as $post):
 
                                     $author_profile_id = get_post_meta($post->ID, 'user_profile_id', true);
                                     if ($author_profile_id == $current_profile_id) continue;
+                                    $has_other_posts = true;
 
                                     $image   = get_the_post_thumbnail_url($post->ID, 'medium');
                                     $title   = $post->post_title;
@@ -1827,22 +1830,21 @@ class NEXORA_PROFILE_PAGE {
 
                                 <!-- OPTIONAL: if literally no posts exist at all -->
                                 <div class="empty-content">
-                                    <h3>No Content Available</h3>
+                                    <div class="empty-icon">📭</div>
+                                    <h3>No Content Yet</h3>
+                                    <p>No one else has posted anything yet.</p>
                                 </div>
 
                             <?php endif; ?>
-
                         </div>
                     </div>
-
-                    
                 </div>
             </div>
 
             <!-- LOG OUT -->
             <?php if ($is_owner): ?>                    
                 <div style="text-align:center; margin-top:30px;">
-                    <a href="<?php echo wp_logout_url(home_url('/login-page')); ?>" 
+                    <a class="logout-btn" href="<?php echo wp_logout_url(home_url('/login-page')); ?>" 
                     style="display:inline-block; padding:12px 25px; background:#ef4444; color:#fff; border-radius:10px; text-decoration:none;">
                         Logout
                     </a>
