@@ -1,18 +1,31 @@
-# WordPress uploads
+# ----------------------------
+# WordPress Core Ignore Rules
+# ----------------------------
+
+# Uploads (user files)
 wp-content/uploads/
 
-# Backup plugin
+# Backup plugin files
 wp-content/ai1wm-backups/
 
-# Migration plugin storage
+# Migration plugin temp storage
 wp-content/plugins/all-in-one-wp-migration/storage/
 
 # Cache
 wp-content/cache/
 
-# Logs
+# Debug logs
 wp-content/debug.log
+*.log
 
-# OS files
+# System files
 .DS_Store
 Thumbs.db
+
+# Environment specific
+.htaccess
+wp-config.php
+
+# Node / build (future use)
+node_modules/
+dist/
