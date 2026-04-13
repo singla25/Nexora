@@ -293,6 +293,9 @@ class NEXORA_Login {
             wp_send_json_error('Invalid credentials');
         }
 
+        // is_ssl()is a WordPress conditional function that checks if the current page is loaded over HTTPS or via port 443.
+        // It returns true if the connection is secure and false otherwise [1, 3]. 
+        // It is essential for ensuring that scripts, stylesheets, and site URLs use the https protocol to avoid mixed content errors.
         $user = wp_signon($creds, is_ssl());
 
         if (!is_wp_error($user)) {
