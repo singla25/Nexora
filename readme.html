@@ -1,340 +1,382 @@
-# 🚀 Nexora – Custom Social Networking Platform (WordPress Based)
+# 🚀 Nexora – Custom Social Networking Platform (WordPress Engineered)
 
 ## 📌 Project Overview
 
-**Nexora** is a custom-built social networking platform developed using **WordPress + Core PHP + AJAX**, focused on delivering a highly dynamic, scalable, and customizable user experience.
+Nexora is a fully custom-built social networking platform developed using WordPress (as a base) + Core PHP + AJAX, engineered for scalability, performance, and modular growth.
 
-Instead of relying on WordPress default systems, Nexora implements **custom authentication, networking logic, and AJAX-driven architecture**, giving full control over performance, scalability, and feature expansion.
+Unlike traditional WordPress solutions, Nexora does not rely on default WP authentication or plugins for core features. Instead, it implements custom systems from scratch, giving full control over:
 
----
-
-## 🎯 Key Features
-
-### 🔐 Advanced Authentication System
-
-* Fully custom user registration & login system
-* Secure session handling (without default WP auth)
-* Input validation & error handling
-* Forgot Password with OTP verification (Email-based)
-* Automatic login after password reset
+- System architecture  
+- Performance optimization  
+- Data flow & relationships  
+- Feature extensibility  
 
 ---
 
-### 🔑 OTP-Based Password Recovery
+## 🎯 Key Highlights
 
-* Email-based OTP verification system
-
-**Flow:**
-
-* User submits email/username
-
-* OTP sent via SMTP
-
-* OTP validation
-
-* Password reset
-
-* Scalable for future:
-
-  * Email verification
-  * Two-Factor Authentication (2FA)
+- Custom Authentication (No WP default auth)  
+- Fully AJAX-driven architecture  
+- Modular plugin-based system  
+- Custom database design  
+- Chat system built from scratch  
+- Scalable & production-ready structure  
 
 ---
 
-### 💬 Chat System (Plugin-Based Integration)
+## 🔐 Advanced Authentication System (Custom Built)
 
-* Integrated **custom chat system using a modular plugin architecture**
-* Designed to work tightly with Nexora’s **connection system**
-
-#### ⚙️ Core Logic:
-
-* Only **connected users** can chat with each other
-* Chat list dynamically shows:
-
-  * Accepted connections only
-  * Active relationships
-
-#### 💡 Features:
-
-* One-to-one private messaging
-* AJAX-based messaging system
-* Near real-time updates (Polling / Long Polling in progress)
-* Clean messaging UI (mobile-style layout planned)
-* Message structure includes:
-
-  * Sender / Receiver
-  * Timestamp
-
-#### 🧠 Smart Restrictions:
-
-* ❌ No connection → No chat
-* ✅ Only mutual connections allowed
-* Prevents spam and enforces meaningful interactions
-
-#### 🗄️ Architecture:
-
-* Built as a **separate plugin module**
-* Custom database tables:
-
-  * Messages
-  * Conversations
-* Decoupled system → easy to scale and upgrade
-
-#### 🚧 Status:
-
-* Backend structure in development
-* Evaluating:
-
-  * AJAX Polling
-  * Long Polling
-  * WebSockets (future upgrade)
+- Fully custom login & registration system  
+- Secure session handling (without WP auth)  
+- Input validation & error handling  
+- OTP-based password recovery (email verification)  
+- Auto-login after password reset  
 
 ---
 
-### 🔔 Notification System
+## 🔑 OTP-Based Password Recovery
 
-* Real-time notification system for user interactions
+Flow:
 
-**Covers:**
+1. User submits email / username  
+2. OTP sent via SMTP  
+3. OTP verification  
+4. Password reset  
+5. Automatic login  
 
-* Connection requests
-* Accepted / Rejected connections
+Future Ready For:
 
-**Features:**
-
-* Notification badge
-* Popup-based UI
-* Seen / Unseen tracking
-
-**Logic Improvement:**
-
-* Sender actions do NOT mark notifications as read
-* Receiver controls read state
+- Email verification  
+- Two-Factor Authentication (2FA)  
 
 ---
 
-### 📧 Email Notification System
+## 💬 Chat System (Built From Scratch)
 
-* SMTP-based email notifications
+⚠️ Not using any third-party chat plugin  
+✅ Fully custom-engineered chat system  
 
-**Triggered on:**
+### 🧠 Core Concept
 
-* New user registration
+Chat is tightly integrated with Nexora’s connection system:
 
-**Features:**
-
-* Admin alerts
-* Reliable email delivery
-* Scalable for future alerts & reminders
+- No connection → No chat  
+- Only mutual connections allowed  
 
 ---
 
-### 👤 User Profile System
+### ⚙️ Core Features
 
-* Dynamic profile dashboard
-
-* Sticky profile header:
-
-  * Profile Image
-  * Cover Image
-  * Name & Username
-
-* AJAX-based tab navigation
-
-* Dynamic profile routing
+- One-to-one private messaging  
+- AJAX-based messaging system  
+- Near real-time communication  
+- Dynamic chat list (only accepted connections)  
+- Clean and scalable message structure  
 
 ---
 
-### 📝 Dynamic Forms (AJAX Powered)
+### 🗄️ Custom Architecture
 
-* Real-time form submission
-* No page reload
-* Reusable architecture
-* Built for scalability
+- Built as a separate plugin module  
+- Designed with decoupled architecture  
 
----
+Custom Tables:
 
-### 🤝 Connections System (Core Networking Feature)
+- messages  
+- conversations  
 
-* Add / Remove / Manage connections
+Message Structure Includes:
 
-**Handles states:**
-
-* Pending
-* Accepted
-* Rejected
-* Removed
-
-**Smart UI behavior based on:**
-
-* Guest users
-* Profile owner
-* Logged-in users
+- Sender ID  
+- Receiver ID  
+- Message content  
+- Timestamp  
 
 ---
 
-### 🔗 Mutual Connections System
+### ⚡ Real-Time Strategy (R&D)
 
-* Displays shared connections
-* Improves networking discovery
-
----
-
-### 💬 Modal-Based Connection Management
-
-* Dynamic modals for:
-
-  * New Connections
-  * Requests
-  * History
-  * All Connections
-  * Mutual Connections
-
-* Fully AJAX-powered
+- AJAX Polling  
+- Long Polling  
+- WebSockets (planned upgrade)  
 
 ---
 
-### 🌐 Routing & URL Management
+### 🚧 Status
 
-* Clean profile URLs
-* Custom routing logic
-* Handles edge cases (homepage conflicts, etc.)
-
----
-
-### 🎨 Modern UI/UX
-
-* Responsive layout
-* Smooth AJAX interactions
-* Improved usability:
-
-  * Show/Hide password
-  * Interactive UI components
+- Backend architecture implemented  
+- Message flow designed  
+- Optimization & real-time improvements in progress  
 
 ---
 
-### 🗄️ Custom Data Architecture
+## 🔔 Notification System
 
-* Custom Post Types:
+- Real-time notification handling  
 
-  * user_profile
-  * user_connection
+Covers:
 
-* Optimized relational queries
+- Connection requests  
+- Accept / Reject actions  
 
-* Custom admin columns
+Features:
 
----
+- Notification badge  
+- Popup UI  
+- Seen / Unseen tracking  
 
-### ⚙️ Admin Control Panel
+Smart Logic:
 
-* Set default profile image
-* Set default cover image
-* Centralized configuration
-
----
-
-### 🔒 Secure File Handling
-
-* Secure uploads
-* File validation
-* Access control
+- Sender actions do NOT mark as read  
+- Receiver controls read state  
 
 ---
 
-### ⚡ AJAX-Based Architecture
+## 📧 Email Notification System
 
-* Multiple AJAX endpoints
-* Fast and seamless UX
-* No unnecessary reloads
+- SMTP-based email integration  
 
----
+Triggers:
 
-### 🐞 Debugging & Optimization
+- New user registration  
 
-* Fixed:
+Features:
 
-  * URL conflicts
-  * Redirect issues
-  * Data inconsistencies
-
-* Techniques used:
-
-  * Hook tracing
-  * echo/die debugging
+- Admin alerts  
+- Reliable delivery  
+- Future-ready for system-wide notifications  
 
 ---
 
-## 🧩 Plugin-Based Modular Architecture
+## 👤 User Profile System
 
-Nexora follows a **modular architecture**, where major features are built as independent systems.
+- Dynamic profile dashboard  
+- Sticky profile header:
+  - Profile image  
+  - Cover image  
+  - Name & username  
 
-### Modules:
+- AJAX-based tab navigation  
+- Custom profile routing system  
 
-* Authentication System
-* Networking System
-* Notification System
-* Chat System (Plugin-Based)
+---
 
-### Benefits:
+## 📝 Dynamic Forms (AJAX Powered)
 
-* Scalable system design
-* Easy feature upgrades
-* Clean separation of concerns
-* Production-ready architecture
+- Real-time submissions  
+- No page reload  
+- Reusable architecture  
+- Scalable form handling system  
+
+---
+
+## 🤝 Connections System (Core Feature)
+
+- Add / Remove / Manage connections  
+
+States handled:
+
+- Pending  
+- Accepted  
+- Rejected  
+- Removed  
+
+Dynamic UI Behavior Based On:
+
+- Guest users  
+- Logged-in users  
+- Profile owner  
+
+---
+
+## 🔗 Mutual Connections System
+
+- Displays shared connections  
+- Enhances networking discovery  
+
+---
+
+## 💬 Modal-Based System
+
+Dynamic AJAX-powered modals for:
+
+- New connections  
+- Requests  
+- History  
+- All connections  
+- Mutual connections  
+
+---
+
+## 🌐 Routing & URL Management
+
+- Clean profile URLs  
+- Custom routing logic  
+- Handles edge cases (homepage conflicts, etc.)  
+
+---
+
+## 🎨 Modern UI/UX
+
+- Responsive design  
+- Smooth AJAX interactions  
+
+Enhanced usability:
+
+- Show/Hide password  
+- Interactive components  
+
+---
+
+## 🗄️ Custom Data Architecture
+
+Custom Post Types:
+
+- user_profile  
+- user_connection  
+
+Database Approach:
+
+- Optimized relational queries  
+- Custom admin columns  
+- Structured data flow  
+
+---
+
+## ⚙️ Admin Control Panel
+
+- Default profile image  
+- Default cover image  
+- Centralized configuration  
+
+---
+
+## 🔒 Secure File Handling
+
+- Secure uploads  
+- File validation  
+- Access control  
+
+---
+
+## ⚡ AJAX-Based Architecture
+
+- Multiple AJAX endpoints  
+- Fast UX (no reloads)  
+- Efficient request handling  
+
+---
+
+## 🐞 Debugging & Optimization
+
+Issues Resolved:
+
+- URL conflicts  
+- Redirect bugs  
+- Data inconsistencies  
+
+Techniques Used:
+
+- Hook tracing  
+- echo/die debugging  
+- Step-by-step flow validation  
+
+---
+
+## 🧩 Modular Plugin Architecture
+
+Nexora is designed as a modular system, where each feature is independent.
+
+Modules:
+
+- Authentication System  
+- Networking System  
+- Notification System  
+- Chat System (Custom Plugin)  
+
+---
+
+## ✅ Benefits
+
+- Scalable architecture  
+- Clean separation of concerns  
+- Easy upgrades & maintenance  
+- Production-ready structure  
 
 ---
 
 ## 🆕 Latest Updates
 
-* ✅ OTP-Based Password Recovery
-* ✅ SMTP Email Integration
-* ✅ Chat System Architecture Started
-* ✅ Improved UX (Password Toggle, UI Enhancements)
-* ✅ Deep understanding of:
+- OTP-Based Password Recovery  
+- SMTP Email Integration  
+- Chat System Built From Scratch  
+- AJAX Architecture Optimization  
+- Improved UI/UX  
 
-  * SQL (CRUD operations)
-  * PHP arrays
-  * WordPress functions
+Strong foundation in:
+
+- SQL (CRUD operations)  
+- PHP arrays  
+- WordPress core functions  
 
 ---
 
 ## 📊 Current Status
 
-✔ Core platform functional
-✔ Authentication system completed
-✔ Networking system working
-✔ AJAX architecture established
-✔ Chat system under development
+- Core platform functional  
+- Authentication completed  
+- Networking system working  
+- AJAX architecture stable  
+- Chat system in active development  
 
 ---
 
 ## 🚧 Future Scope
 
-* 💬 Chat Enhancements
+### 💬 Chat Enhancements
 
-  * WebSocket integration
-  * Typing indicators
-  * Seen / Delivered status
-  * Media sharing
-  * Group chats
+- WebSocket integration  
+- Typing indicators  
+- Seen / Delivered status  
+- Media sharing  
+- Group chats  
 
-* 🔐 Email Verification / 2FA
+---
 
-* ⚡ Performance optimization
+### 🔐 Security Enhancements
 
-* 📱 Mobile responsiveness improvements
+- Email verification  
+- Two-Factor Authentication (2FA)  
 
-* 🔔 Advanced notification system
+---
+
+### ⚡ Performance
+
+- Query optimization  
+- Caching strategies  
+
+---
+
+### 📱 UI Improvements
+
+- Mobile-first design  
+- Better responsiveness  
+
+---
+
+### 🔔 Notifications
+
+- Advanced real-time system  
+- Multi-event notifications  
 
 ---
 
 ## 🛠️ Tech Stack
 
-* WordPress (Custom Development)
-* Core PHP
-* AJAX (jQuery)
-* MySQL
+- WordPress (Custom Engineered Usage)  
+- Core PHP  
+- AJAX (jQuery)  
+- MySQL  
 
 ---
 
@@ -342,29 +384,38 @@ Nexora follows a **modular architecture**, where major features are built as ind
 
 ### 1️⃣ Clone Repository
 
-```bash
 git clone https://github.com/singla25/Nexora-In-Wordpress-.git
-```
 
 ### 2️⃣ Setup WordPress
 
-* Install WordPress locally (XAMPP / LocalWP)
-* Place project inside `/wp-content/plugins/` or theme directory
+- Install WordPress (XAMPP / LocalWP)  
+- Place project inside:
+
+/wp-content/plugins/
+
+---
 
 ### 3️⃣ Configure Database
 
-* Import database if required
-* Update `wp-config.php`
+- Import DB (if required)  
+- Update wp-config.php  
+
+---
 
 ### 4️⃣ Run Project
 
-* Start server
-* Open in browser
+- Start server  
+- Open browser  
 
 ---
 
 ## 📌 Final Note
 
-Nexora is not just a WordPress project — it is a **custom-built scalable social networking system**, designed with real-world architecture principles, modular development, and performance-focused engineering.
+Nexora is not just a WordPress project.
 
----
+It is a custom-engineered social networking platform built with:
+
+- Real-world architecture principles  
+- Modular development approach  
+- Scalable backend design  
+- Performance-focused engineering  
