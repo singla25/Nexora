@@ -3,6 +3,10 @@ body {
     background: #f5f7fb;
 }
 
+* {
+    transition: all 0.25s ease;
+}
+
 .nexora {
     font-family: 'Inter', sans-serif;
     color: #1a1a1a;
@@ -24,7 +28,7 @@ body {
 }
 
 .nx-section {
-    margin-top: 120px;
+    margin-top: 140px;
 }
 
 /* HERO */
@@ -63,6 +67,8 @@ body {
 }
 
 .nx-primary {
+    font-weight: 600;
+    letter-spacing: 0.3px;
     background: linear-gradient(90deg, #2575fc, #6a11cb);
     color: #fff;
     box-shadow: 0 10px 20px rgba(37,117,252,0.3);
@@ -97,8 +103,15 @@ body {
 }
 
 /* STATS */
+.nx-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
 .nx-stat-box {
-    background: #fff;
+    background: linear-gradient(135deg, #ffffff, #f1f5ff);
+    border: 1px solid #e6ebff;
     padding: 35px;
     border-radius: 20px;
     text-align: center;
@@ -106,12 +119,30 @@ body {
     transition: 0.3s;
 }
 
+.nx-stat-box h3 {
+    font-size: 32px;
+    color: #2575fc;
+}
+
 .nx-stat-box:hover {
     transform: translateY(-5px);
 }
 
 /* FEATURES */
+.nx-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.nx-features .nx-grid {
+    grid-template-columns: repeat(5, 1fr);
+    text-align: center;
+}
+
 .nx-card {
+    position: relative;
+    overflow: hidden;
     padding: 30px;
     border-radius: 20px;
     background: #fff;
@@ -120,28 +151,87 @@ body {
     transition: 0.3s;
 }
 
+.nx-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #2575fc, #6a11cb);
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.nx-card:hover::before {
+    opacity: 0.08;
+}
+
 .nx-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
 .nx-card span {
-    font-size: 28px;
+    font-size: 36px;
 }
 
 /* STEPS */
+.nx-steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    position: relative;
+}
+
+.nx-steps-grid::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(90deg, #2575fc, #6a11cb);
+    z-index: 0;
+}
+
+.nx-step {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
 .nx-step span {
     display: inline-block;
     background: linear-gradient(90deg, #2575fc, #6a11cb);
     color: #fff;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    line-height: 40px;
+    line-height: 50px;
     margin-bottom: 10px;
+    font-weight: bold;
+    box-shadow: 0 10px 20px rgba(37,117,252,0.3);
 }
 
 /* DEMO */
+.nx-demo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.nx-demo-card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+}
+
+.nx-demo-card img {
+    width: 100%;
+    border-radius: 15px;
+    margin-bottom: 10px;
+}
+
 .nx-demo-grid .nx-glass-card {
     height: 120px;
     display: flex;
@@ -150,13 +240,38 @@ body {
     font-weight: 500;
 }
 
+.nx-demo-grid img {
+    width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
 /* TESTIMONIAL */
+.nx-test-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
 .nx-test-card {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
     background: #fff;
     padding: 25px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     transition: 0.3s;
+}
+
+.nx-test-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nx-test-top img {
+    border-radius: 50%;
 }
 
 .nx-test-card:hover {
@@ -197,9 +312,28 @@ body {
 
 .nx-hero-preview img {
     width: 100%;
-    max-width: 500px;
+    max-width: 520px;
     border-radius: 20px;
-    transform: perspective(1000px) rotateY(-10deg);
+    box-shadow: 0 30px 80px rgba(37,117,252,0.25);
+    transform: perspective(1200px) rotateY(-8deg) rotateX(2deg);
+    transition: 0.3s;
+}
+
+.nx-hero-preview img:hover {
+    transform: perspective(1200px) rotateY(0deg) scale(1.02);
+}
+
+.nx-section .nx-grid .nx-card {
+    text-align: left;
+    padding: 25px;
+}
+
+.nx-card h4 {
+    margin-bottom: 10px;
+}
+
+.nx-title span {
+    text-shadow: 0 10px 30px rgba(106,17,203,0.4);
 }
 
 /* RESPONSIVE */

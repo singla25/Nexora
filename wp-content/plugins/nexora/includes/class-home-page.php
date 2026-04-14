@@ -45,6 +45,28 @@ class Nexora_Home_Page {
                 </div>
             </section>
 
+            <!-- Why Nexora -->
+            <section class="nx-section">
+                <div class="nx-container">
+                    <h2 class="nx-section-title">Why Nexora?</h2>
+
+                    <div class="nx-grid">
+                        <div class="nx-card">
+                            <h4>⚡ Real-time Chat</h4>
+                            <p>Instant conversations with subject-based threads.</p>
+                        </div>
+                        <div class="nx-card">
+                            <h4>🔗 Smart Connections</h4>
+                            <p>Build meaningful network, not random followers.</p>
+                        </div>
+                        <div class="nx-card">
+                            <h4>🧠 Organized Conversations</h4>
+                            <p>Email-style chat threads with subjects.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- STATS -->
             <section class="nx-section nx-stats">
                 <div class="nx-container">
@@ -100,9 +122,20 @@ class Nexora_Home_Page {
                     <h2 class="nx-section-title center">Live Preview</h2>
 
                     <div class="nx-demo-grid">
-                        <div class="nx-glass-card">Feed UI</div>
-                        <div class="nx-glass-card">Connections</div>
-                        <div class="nx-glass-card">Notifications</div>
+                        <div class="nx-demo-card">
+                            <img src="YOUR_FEED_SCREENSHOT.png">
+                            <p>Feed Experience</p>
+                        </div>
+
+                        <div class="nx-demo-card">
+                            <img src="YOUR_CHAT_SCREENSHOT.png">
+                            <p>Real-time Chat</p>
+                        </div>
+
+                        <div class="nx-demo-card">
+                            <img src="YOUR_CONNECTIONS.png">
+                            <p>Smart Connections</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -124,6 +157,7 @@ class Nexora_Home_Page {
                                 </div>
                             </div>
                             <p>“Nexora helped me grow my network faster than ever.”</p>
+                            <p>⭐⭐⭐⭐⭐</p>
                         </div>
 
                         <div class="nx-test-card">
@@ -135,6 +169,7 @@ class Nexora_Home_Page {
                                 </div>
                             </div>
                             <p>“Clean UI and super smooth experience.”</p>
+                            <p>⭐⭐⭐⭐⭐</p>
                         </div>
 
                     </div>
