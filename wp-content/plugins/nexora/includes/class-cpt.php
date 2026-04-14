@@ -60,6 +60,15 @@ class NEXORA_CPT {
 
         add_submenu_page(
             'nexora-system',
+            'Nexora Chat',
+            'Nexora Chat',
+            'manage_options',
+            'nexora-chat',
+            [$this, 'nexora_user_chat']
+        );
+
+        add_submenu_page(
+            'nexora-system',
             'Settings',
             'Settings',
             'manage_options',
@@ -118,6 +127,172 @@ class NEXORA_CPT {
         register_setting('profile_settings_group', 'default_document_image');
         register_setting('profile_settings_group', 'default_home_cover_image');
         register_setting('profile_settings_group', 'default_admin_mail');
+    }
+
+    public function notifications_page() {
+
+        $notification = new NEXORA_Notification();
+        $notifications = $notification->get_all();
+
+        ?>
+        <div class="wrap">
+            <h1>🔔 Notifications</h1>
+
+            <table class="widefat striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Sender</th>
+                        <th>Receiver</th>
+                        <th>Type</th>
+                        <th>Message</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                <?php if ($notifications): foreach ($notifications as $n): ?>
+
+                    <tr>
+                        <td><?php echo esc_html($n->id); ?></td>
+                        <td><?php echo esc_html($n->sender_user_name); ?></td>
+                        <td><?php echo esc_html($n->receiver_user_name); ?></td>
+                        <td><?php echo esc_html($n->type); ?></td>
+                        <td><?php echo esc_html($n->message); ?></td>
+                        <td>
+                            <?php if ($n->is_read): ?>
+                                <span style="color: grey; font-weight: 600;">Read</span>
+                            <?php else: ?>
+                                <span style="color: green; font-weight: 600;">Unread</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo esc_html($n->created_at); ?></td>
+                    </tr>
+
+                <?php endforeach; else: ?>
+
+                    <tr><td colspan="7" style="text-align: center;">No notifications found</td></tr>
+
+                <?php endif; ?>
+
+                </tbody>
+            </table>
+        </div>
+        <?php
+    }
+
+    /* ===============================
+       CHAT
+    =============================== */
+    public function nexora_user_chat() {
+
+        $chat_db = new NEXORA_CHAT_DB();
+        $threads = $chat_db->get_all_threads_with_last_message();
+        ?>
+
+        <div class="wrap">
+            <h1>💬 Nexora Chat (Admin)</h1>
+
+            <table class="widefat striped">
+                <thead>
+                    <tr>
+                        <th>Thread ID</th>
+                        <th>User 1</th>
+                        <th>User 2</th>
+                        <th>Subject</th>
+                        <th>Last Message</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                <?php if ($threads): foreach ($threads as $thread): 
+
+                    // PARTICIPANTS (NAMES)
+                    $user_ids = explode(',', $thread->participants);
+
+                    $user1 = '-';
+                    $user2 = '-';
+
+                    if (isset($user_ids[0])) {
+                        $u1 = get_userdata($user_ids[0]);
+                        $user1 = $u1 ? $u1->display_name : '-';
+                    }
+
+                    if (isset($user_ids[1])) {
+                        $u2 = get_userdata($user_ids[1]);
+                        $user2 = $u2 ? $u2->display_name : '-';
+                    }
+
+                    // LAST MESSAGE
+                    $last_message = $thread->last_message ? wp_trim_words($thread->last_message, 10) : '-';
+
+                    // Find other user
+                    $other_user = null; 
+                    
+                    foreach ($user_ids as $uid) { 
+                        if ($uid != get_current_user_id()) { 
+                            $other_user = $uid; 
+                            break; 
+                        } 
+                    }
+
+                    ?>
+
+                    <tr>
+                        <td><?php echo esc_html($thread->id); ?></td>
+                        <td><?php echo esc_html($user1); ?></td>
+                        <td><?php echo esc_html($user2); ?></td>
+                        <td><?php echo esc_html($thread->subject ?: '-'); ?></td>
+                        <td><?php echo esc_html($last_message); ?></td>
+
+                        <td>
+                            <!-- <button class="button button-primary nexora-open-chat" data-thread="<?php echo $thread->id; ?>">
+                                View Chat
+                            </button> -->
+                            <!-- <button class="button button-primary nexora-open-chat" 
+                                    data-thread="<?php echo esc_attr($thread->id); ?>" 
+                                    data-user="<?php echo esc_attr($other_user); ?>" > 
+                                View Chat 
+                            </button> -->
+                            <button 
+                                class="button button-primary nexora-open-chat"
+                                data-thread="<?php echo esc_attr($thread->id); ?>"
+                                data-user="<?php echo esc_attr($other_user); ?>"
+                                data-name="<?php echo esc_attr($user1 . ' and ' . $user2); ?>"
+                            >
+                                View Chat
+                            </button>
+                        </td>
+                    </tr>
+
+                <?php endforeach; else: ?>
+
+                    <tr>
+                        <td colspan="5" style="text-align:center;">No chats found</td>
+                    </tr>
+
+                <?php endif; ?>
+
+                </tbody>
+            </table>
+        </div>
+
+        <?php
+    }
+
+    public function get_user_names($user_ids = []) {
+        $names = [];
+
+        foreach ($user_ids as $id) {
+            $user = get_userdata($id);
+            if ($user) {
+                $names[] = $user->display_name;
+            }
+        }
+
+        return implode(', ', $names);
     }
 
     public function settings_page() {
@@ -203,59 +378,6 @@ class NEXORA_CPT {
 
                 <?php submit_button(); ?>
             </form>
-        </div>
-        <?php
-    }
-
-    public function notifications_page() {
-
-        $notification = new NEXORA_Notification();
-        $notifications = $notification->get_all();
-
-        ?>
-        <div class="wrap">
-            <h1>🔔 Notifications</h1>
-
-            <table class="widefat striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Sender</th>
-                        <th>Receiver</th>
-                        <th>Type</th>
-                        <th>Message</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                <?php if ($notifications): foreach ($notifications as $n): ?>
-
-                    <tr>
-                        <td><?php echo esc_html($n->id); ?></td>
-                        <td><?php echo esc_html($n->sender_user_name); ?></td>
-                        <td><?php echo esc_html($n->receiver_user_name); ?></td>
-                        <td><?php echo esc_html($n->type); ?></td>
-                        <td><?php echo esc_html($n->message); ?></td>
-                        <td>
-                            <?php if ($n->is_read): ?>
-                                <span style="color: grey; font-weight: 600;">Read</span>
-                            <?php else: ?>
-                                <span style="color: green; font-weight: 600;">Unread</span>
-                            <?php endif; ?>
-                        </td>
-                        <td><?php echo esc_html($n->created_at); ?></td>
-                    </tr>
-
-                <?php endforeach; else: ?>
-
-                    <tr><td colspan="7" style="text-align: center;">No notifications found</td></tr>
-
-                <?php endif; ?>
-
-                </tbody>
-            </table>
         </div>
         <?php
     }

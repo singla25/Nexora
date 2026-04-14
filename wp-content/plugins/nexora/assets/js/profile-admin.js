@@ -57,4 +57,15 @@ jQuery(document).ready(function ($) {
         $(this).hide();
     });
 
+
+    // Open Chat (In common Js chat.js)
+    // $(document).on('click', '.nexora-open-chat', function () {
+
+    //     let threadId = $(this).data('thread');
+
+    //     // Call global function (from chat.js)
+    //     if (typeof openChat === 'function') {
+    //         openChat(threadId);
+    //     }
+    // });
 });

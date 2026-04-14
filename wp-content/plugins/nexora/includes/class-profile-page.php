@@ -1632,9 +1632,9 @@ class NEXORA_PROFILE_PAGE {
                         </div>
 
                         <!-- CHAT -->
-                        <div id="connection-chat" style="display:none;">
-                            <?php echo do_shortcode('[better_messages]'); ?>
-                        </div>
+                        <!-- <div id="connection-chat" style="display:none;">
+                            <?php // echo do_shortcode('[better_messages]'); ?>
+                        </div> -->
                     </div>
 
                     <!-- NOTIFICATION -->

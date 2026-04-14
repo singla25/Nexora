@@ -634,21 +634,29 @@ jQuery(document).ready(function ($) {
         });
     });
 
+    // ===============================
+    // Chat (In common Js chat.js)
+    // =============================== 
+    // $(document).on('click', '[data-type="chat"]', function(){
+    //     openChat(); // no thread id
+    //     loadUserThreads(); // sidebar load
+    // });
+
     // Chat
-    $(document).on('click', '.conn-tab[data-type="chat"]', function () {
-        $('#connection-established').hide();   // existing section hide
-        $('#connection-chat').show();          // chat show
-    });
+    // $(document).on('click', '.conn-tab[data-type="chat"]', function () {
+    //     $('#connection-established').hide();   // existing section hide
+    //     $('#connection-chat').show();          // chat show
+    // });
 
-    $(document).on('click', '.conn-tab:not([data-type="chat"])', function () {
-        $('#connection-chat').hide();
-        $('#connection-established').show();
-    });
+    // $(document).on('click', '.conn-tab:not([data-type="chat"])', function () {
+    //     $('#connection-chat').hide();
+    //     $('#connection-established').show();
+    // });
 
-    $(document).on('click', '#conn-heading', function () {
-        $('#connection-chat').hide();
-        $('#connection-established').show();
-    });
+    // $(document).on('click', '#conn-heading', function () {
+    //     $('#connection-chat').hide();
+    //     $('#connection-established').show();
+    // });
 
 
     // ===============================

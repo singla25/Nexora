@@ -17,7 +17,9 @@ require_once NEXORA_PATH . 'includes/class-profile-page.php';
 require_once NEXORA_PATH . 'includes/class-login.php';
 require_once NEXORA_PATH . 'includes/class-home-page.php';
 require_once NEXORA_PATH . 'includes/class-notification.php';
-require_once NEXORA_PATH . 'includes/class-chat.php';
+require_once NEXORA_PATH . 'includes/class-better-message-chat.php';
+
+require_once NEXORA_PATH . 'chat/class-chat-core.php';
 
 class NEXORA_System {
 
@@ -29,8 +31,10 @@ class NEXORA_System {
         new NEXORA_CPT();
         new NEXORA_PROFILE_PAGE();
         new Nexora_Home_Page();
-        new Nexora_CHAT_Page();
+        new Nexora_Better_Message_CHAT_Page();
+        new NEXORA_CHAT_CORE();
 
+        // GLOBAL ASSETS
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
 
         // ACCESS CONTROL
@@ -42,7 +46,7 @@ class NEXORA_System {
         add_filter('login_redirect', [$this, 'login_redirect'], 10, 3);
 
         // ACTIVATION
-        register_activation_hook(__FILE__, [$this, 'notification_table']);
+        register_activation_hook(__FILE__, [$this, 'create_new_tables']);
     }
 
     // ===============================
@@ -149,9 +153,16 @@ class NEXORA_System {
     // ===============================
     // CREATE NOTIFICATION TABLE
     // ===============================
-    public function notification_table() {
+    public function create_new_tables() {
+
+        // Notification Table
         $notification = new NEXORA_Notification();
         $notification->create_table();
+
+        // Chat Tables
+        require_once NEXORA_PATH . 'chat/class-chat-db.php';
+        $chat_db = new NEXORA_CHAT_DB();
+        $chat_db->create_table();
     }
 }
 

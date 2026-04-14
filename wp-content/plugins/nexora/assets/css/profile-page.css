@@ -869,7 +869,7 @@ body {
     line-height: 1.6;
 }
 
-.chat-popup {
+/* .chat-popup {
     padding: 0 !important;
     border-radius: 12px;
 }
@@ -877,7 +877,7 @@ body {
 .chat-popup-wrapper {
     height: 500px;
     overflow: hidden;
-}
+} */
 
 .empty-content button {
     margin-top: 15px;
