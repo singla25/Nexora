@@ -11,6 +11,9 @@ class Nexora_Home_Page {
     function render_home_page() {
 
         $home_cover_id = get_option('default_home_cover_image');
+        $feed_experience_id = get_option('default_feed_experience_image');
+        $real_time_chat_id = get_option('default_real_time_chat_image');
+        $smart_connections_id = get_option('default_smart_connections_image');
 
         ob_start();
         ?>
@@ -123,17 +126,17 @@ class Nexora_Home_Page {
 
                     <div class="nx-demo-grid">
                         <div class="nx-demo-card">
-                            <img src="YOUR_FEED_SCREENSHOT.png">
+                            <img src="<?php echo $feed_experience_id ? wp_get_attachment_url($feed_experience_id) : ''; ?>" alt="Preview">
                             <p>Feed Experience</p>
                         </div>
 
                         <div class="nx-demo-card">
-                            <img src="YOUR_CHAT_SCREENSHOT.png">
+                            <img src="<?php echo $real_time_chat_id ? wp_get_attachment_url($real_time_chat_id) : ''; ?>" alt="Preview">
                             <p>Real-time Chat</p>
                         </div>
 
                         <div class="nx-demo-card">
-                            <img src="YOUR_CONNECTIONS.png">
+                            <img src="<?php echo $smart_connections_id ? wp_get_attachment_url($smart_connections_id) : ''; ?>" alt="Preview">
                             <p>Smart Connections</p>
                         </div>
                     </div>

@@ -126,6 +126,9 @@ class NEXORA_CPT {
         register_setting('profile_settings_group', 'default_cover_image');
         register_setting('profile_settings_group', 'default_document_image');
         register_setting('profile_settings_group', 'default_home_cover_image');
+        register_setting('profile_settings_group', 'default_feed_experience_image');
+        register_setting('profile_settings_group', 'default_real_time_chat_image');
+        register_setting('profile_settings_group', 'default_smart_connections_image');
         register_setting('profile_settings_group', 'default_admin_mail');
     }
 
@@ -351,6 +354,45 @@ class NEXORA_CPT {
                                 style="max-width:150px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_home_cover_image" value="<?php echo esc_attr($home_cover_id); ?>">
+                            <button type="button" class="button upload-btn">Upload</button>
+                            <button type="button" class="button remove-btn">Remove</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Default Feed Experience Image</th>
+                        <td>
+                            <?php $feed_id = get_option('default_feed_experience_image'); ?>
+                            <img src="<?php echo $feed_id ? wp_get_attachment_url($feed_id) : ''; ?>" 
+                                style="max-width:150px; display:block; margin-bottom:10px;">
+
+                            <input type="hidden" name="default_feed_experience_image" value="<?php echo esc_attr($feed_id); ?>">
+                            <button type="button" class="button upload-btn">Upload</button>
+                            <button type="button" class="button remove-btn">Remove</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Default Real-Time Chat Image</th>
+                        <td>
+                            <?php $chat_id = get_option('default_real_time_chat_image'); ?>
+                            <img src="<?php echo $chat_id ? wp_get_attachment_url($chat_id) : ''; ?>" 
+                                style="max-width:150px; display:block; margin-bottom:10px;">
+
+                            <input type="hidden" name="default_real_time_chat_image" value="<?php echo esc_attr($chat_id); ?>">
+                            <button type="button" class="button upload-btn">Upload</button>
+                            <button type="button" class="button remove-btn">Remove</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Default Smart Connections Image</th>
+                        <td>
+                            <?php $conn_id = get_option('default_smart_connections_image'); ?>
+                            <img src="<?php echo $conn_id ? wp_get_attachment_url($conn_id) : ''; ?>" 
+                                style="max-width:150px; display:block; margin-bottom:10px;">
+
+                            <input type="hidden" name="default_smart_connections_image" value="<?php echo esc_attr($conn_id); ?>">
                             <button type="button" class="button upload-btn">Upload</button>
                             <button type="button" class="button remove-btn">Remove</button>
                         </td>
