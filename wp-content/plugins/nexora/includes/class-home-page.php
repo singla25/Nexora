@@ -10,7 +10,7 @@ class Nexora_Home_Page {
 
     function render_home_page() {
 
-        $home_cover_id = get_option('default_cover_image');
+        $home_cover_id = get_option('default_home_cover_image');
 
         ob_start();
         ?>
