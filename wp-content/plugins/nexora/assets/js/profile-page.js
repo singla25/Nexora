@@ -5,7 +5,7 @@ jQuery(document).ready(function ($) {
     // ===============================
     let savedTab = localStorage.getItem('activeTab');
 
-    // ✅ Only owner should restore tab
+    // Only owner should restore tab
     if (savedTab && profilePageData.roleType === 'owner') {
 
         $('.tab-btn').removeClass('active');
@@ -28,7 +28,6 @@ jQuery(document).ready(function ($) {
         $('.tab-content').removeClass('active');
         $('#' + tab).addClass('active');
     });
-
 
     // ===============================
     // UPDATE INFORMATION
@@ -664,48 +663,40 @@ jQuery(document).ready(function ($) {
     // ===============================
     $(document).on('click', '.notification-view', function (e) {
 
-        e.stopPropagation(); // prevent parent click
+        e.stopPropagation();
 
         let btn = $(this);
-        let item = btn.closest('.notification-item');
         let id = btn.data('id');
-        let type = btn.data('type');
+        let isReceived = btn.data('type') === 'received';
 
+        console.log(id);
+        console.log(isReceived);
+        console.log(profilePageData.current_user_id);
+
+        let item = btn.closest('.notification-item');
         let message = item.find('.noti-content').text();
 
-        // SHOW POPUP (COMMON FOR BOTH)
         Swal.fire({
             title: 'Notification',
             text: message,
             icon: 'info'
         }).then(() => {
-            localStorage.setItem('activeTab', 'notifications');
-            location.reload(); // reload after OK
+
+            // ✅ ONLY CALL BACKEND
+            if (isReceived) {
+                $.post(profilePageData.ajaxUrl, {
+                    action: 'mark_notification_read',
+                    id: id,
+                    nonce: profilePageData.nonce
+                });
+            }
+
+            // ✅ JUST RELOAD (backend decides everything)
+            // localStorage.setItem('activeTab', 'notifications');
+            // location.reload();
         });
 
-        // ===============================
-        // ONLY FOR RECEIVER → AJAX
-        // ===============================
-        if (type === 'view-receive-noti') {
-
-            $.post(profilePageData.ajaxUrl, {
-                action: 'mark_notification_read',
-                id: id,
-                nonce: profilePageData.nonce
-            }, function (res) {
-
-                if (res.success) {
-
-                    // UI update
-                    item.removeClass('unread').addClass('read');
-
-                    // badge remove (simple)
-                    $('.noti-badge').fadeOut();
-                }
-            });
-        }
     });
-
     
     // ===============================
     // CONTENT TAB

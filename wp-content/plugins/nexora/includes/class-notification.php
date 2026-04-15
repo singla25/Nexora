@@ -28,6 +28,7 @@ class NEXORA_Notification {
             receiver_user_name VARCHAR(100) NOT NULL,
 
             type VARCHAR(50) NOT NULL,
+            actor_user_id BIGINT NOT NULL,  -- mainly store id of user who remove connection
             reference_id BIGINT DEFAULT NULL,
 
             message TEXT,
@@ -61,9 +62,10 @@ class NEXORA_Notification {
                 'receiver_profile_id' => $data['receiver_profile_id'],
                 'receiver_user_name'  => $data['receiver_user_name'],
 
-                'type'         => $data['type'],
-                'reference_id' => $data['reference_id'] ?? null,
-                'message'      => $data['message'] ?? '',
+                'type'          => $data['type'],
+                'actor_user_id' => $data['actor_user_id'],
+                'reference_id'  => $data['reference_id'] ?? null,
+                'message'       => $data['message'] ?? '',
 
                 'is_read' => 0
             ]
@@ -88,38 +90,55 @@ class NEXORA_Notification {
         return $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$this->table}
-                WHERE receiver_user_id = %d
-                AND is_read = 0",
+                WHERE 
+                    (receiver_user_id = %d OR actor_user_id = %d)
+                    AND is_read = 0",
+                $user_id,
                 $user_id
             )
         );
     }
 
     // RECEIVED
-    public function get_received($user_id) {
-        global $wpdb;
+    // public function get_received($user_id) {
+    //     global $wpdb;
 
-        return $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT * FROM {$this->table}
-                WHERE receiver_user_id = %d
-                ORDER BY is_read ASC, created_at DESC
-                LIMIT 50",
-                $user_id
-            )
-        );
-    }
+    //     return $wpdb->get_results(
+    //         $wpdb->prepare(
+    //             "SELECT * FROM {$this->table}
+    //             WHERE receiver_user_id = %d
+    //             ORDER BY is_read ASC, created_at DESC
+    //             LIMIT 50",
+    //             $user_id
+    //         )
+    //     );
+    // }
 
     // SENT
-    public function get_sent($user_id) {
+    // public function get_sent($user_id) {
+    //     global $wpdb;
+
+    //     return $wpdb->get_results(
+    //         $wpdb->prepare(
+    //             "SELECT * FROM {$this->table}
+    //             WHERE sender_user_id = %d
+    //             ORDER BY created_at DESC
+    //             LIMIT 50",
+    //             $user_id
+    //         )
+    //     );
+    // }
+
+    public function get_notifications($user_id) {
         global $wpdb;
 
         return $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT * FROM {$this->table}
-                WHERE sender_user_id = %d
+                WHERE sender_user_id = %d OR receiver_user_id = %d
                 ORDER BY created_at DESC
                 LIMIT 50",
+                $user_id,
                 $user_id
             )
         );
