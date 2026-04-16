@@ -1124,6 +1124,11 @@ body {
     color: #111827;
 }
 
+.noti-popup-time {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 15px;
+}
 
 /* =========================
    CONTENT CARD

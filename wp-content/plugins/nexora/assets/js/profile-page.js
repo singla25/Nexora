@@ -684,6 +684,10 @@ jQuery(document).ready(function ($) {
                         ${message}
                     </div>
 
+                    <div class="noti-popup-time">
+                        ${item.find('.noti-time').text()}
+                    </div>
+
                 </div>
             `,
             confirmButtonText: 'OK',
