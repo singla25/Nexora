@@ -46,13 +46,7 @@ class NEXORA_PROFILE_PAGE {
 
         wp_enqueue_script('sweetalert2','https://cdn.jsdelivr.net/npm/sweetalert2@11',[],null,true);
 
-        wp_enqueue_script(
-            'profile-page-js',
-            NEXORA_URL . 'assets/js/profile-page.js',
-            ['jquery','sweetalert2'],
-            null,
-            true
-        );
+        wp_enqueue_script('profile-page-js', NEXORA_URL . 'assets/js/profile-page.js', ['jquery','sweetalert2'], null, true);
 
         wp_enqueue_media(); // To upload Media by Using wp.media()
 
@@ -419,17 +413,14 @@ class NEXORA_PROFILE_PAGE {
         update_post_meta($post_id, 'status', 'pending');
 
         $data = [
-            'sender_user_id'      => $sender_user_id,
-            'sender_profile_id'   => $sender_profile_id,
-            'sender_user_name'    => $sender_user_name,
+            'actor_user_id'     => $sender_user_id,
+            'actor_user_name'   => $sender_user_name,
 
             'receiver_user_id'    => $receiver_user_id,
-            'receiver_profile_id' => $receiver_profile_id,
             'receiver_user_name'  => $receiver_user_name,
 
             'type' => 'request',
-            'actor_user_id' => $sender_user_id,
-            'reference_id' => $post_id,
+            'connection_id' => $post_id,
 
             'message' => "{$sender_user_name} sent a connection request to {$receiver_user_name}"
         ];
@@ -493,52 +484,55 @@ class NEXORA_PROFILE_PAGE {
 
         update_post_meta($connection_id, 'status', $status);
 
-        // Fetch connection data
+        // Fetch connection data (here sender and reciever are from user_connection cpt)
         $sender_user_id      = get_post_meta($connection_id, 'sender_user_id', true);
-        $sender_profile_id   = get_post_meta($connection_id, 'sender_profile_id', true);
         $sender_user_name    = get_post_meta($connection_id, 'sender_user_name', true);
 
         $receiver_user_id    = get_post_meta($connection_id, 'receiver_user_id', true);
-        $receiver_profile_id = get_post_meta($connection_id, 'receiver_profile_id', true);
         $receiver_user_name  = get_post_meta($connection_id, 'receiver_user_name', true);
 
-        $is_sender_actor = ($current_user_id == $sender_user_id);
+        if ($current_user_id == $sender_user_id) {
 
-        // MESSAGE BASED ON STATUS
+            $actor_user_id = $sender_user_id;
+            $actor_user_name = $sender_user_name;
+
+            $receiver_user_id = $receiver_user_id;
+            $receiver_user_name = $receiver_user_name;
+
+        } else {
+
+            $actor_user_id = $receiver_user_id;
+            $actor_user_name = $receiver_user_name;
+
+            $receiver_user_id = $sender_user_id;
+            $receiver_user_name = $sender_user_name;
+        }
+        
         if ($status === 'accepted') {
-            $message = "{$receiver_user_name} accepted {$sender_user_name} connection request";
+            $message = "{$actor_user_name} accepted {$receiver_user_name} connection request";
         } elseif ($status === 'rejected') {
-            $message = "{$receiver_user_name} rejected {$sender_user_name} connection request";
+            $message = "{$actor_user_name} rejected {$receiver_user_name} connection request";
         } elseif ($status === 'removed') {
-            if ($is_sender_actor) {
-                $message = "{$sender_user_name} removed connection with {$receiver_user_name}";
+            if ($sender_user_id === $current_user_id) {
+                $message = "{$receiver_user_name} removed connection with {$actor_user_name}";
             } else {
-                $message = "{$receiver_user_name} removed connection with {$sender_user_name}";
+                $message = "{$actor_user_name} removed connection with {$receiver_user_name}";
             }
         } else {
             $message = "Connection status updated";
         }
 
-        if ($is_sender_actor) {
-            $actor_user_id = $sender_user_id;
-        } else {
-            $actor_user_id = $receiver_user_id;
-        }
-
         $data = [
-            'sender_user_id'      => $sender_user_id,
-            'sender_profile_id'   => $sender_profile_id,
-            'sender_user_name'    => $sender_user_name,
+            'actor_user_id'     => $actor_user_id,
+            'actor_user_name'   => $actor_user_name,
 
             'receiver_user_id'    => $receiver_user_id,
-            'receiver_profile_id' => $receiver_profile_id,
             'receiver_user_name'  => $receiver_user_name,
 
             'type' => $status,
-            'actor_user_id' => $actor_user_id,
-            'reference_id' => $connection_id,
+            'connection_id' => $connection_id,
 
-            'message' => $message
+            'message' => $message,
         ];
         
         $notification = new NEXORA_Notification();
@@ -596,12 +590,12 @@ class NEXORA_PROFILE_PAGE {
 
                 <?php if ($received): foreach ($received as $conn):
 
-                    $sender_id = get_post_meta($conn->ID, 'sender_profile_id', true);
                     $status = get_post_meta($conn->ID, 'status', true);
-
+                    $sender_id = get_post_meta($conn->ID, 'sender_profile_id', true);
+                    
                     $username = get_post_meta($sender_id,'user_name',true);
-                    $name = get_post_meta($sender_id,'first_name',true) . ' ' . get_post_meta($sender_id,'last_name',true);
-                    $image = $this->get_profile_image($sender_id);
+                    $name     = get_post_meta($sender_id,'first_name',true) . ' ' . get_post_meta($sender_id,'last_name',true);
+                    $image    = $this->get_profile_image($sender_id);
 
                     $date = get_the_date('d M Y', $conn->ID);
                     $time = get_the_time('h:i A', $conn->ID);
@@ -647,12 +641,12 @@ class NEXORA_PROFILE_PAGE {
 
                 <?php if ($sent): foreach ($sent as $conn):
 
-                    $receiver_id = get_post_meta($conn->ID, 'receiver_profile_id', true);
                     $status = get_post_meta($conn->ID, 'status', true);
-
+                    $receiver_id = get_post_meta($conn->ID, 'receiver_profile_id', true);
+                   
                     $username = get_post_meta($receiver_id,'user_name',true);
-                    $name = get_post_meta($receiver_id,'first_name',true) . ' ' . get_post_meta($receiver_id,'last_name',true);
-                    $image = $this->get_profile_image($receiver_id);
+                    $name     = get_post_meta($receiver_id,'first_name',true) . ' ' . get_post_meta($receiver_id,'last_name',true);
+                    $image    = $this->get_profile_image($receiver_id);
 
                     $date = get_the_date('d M Y', $conn->ID);
                     $time = get_the_time('h:i A', $conn->ID);
@@ -687,9 +681,7 @@ class NEXORA_PROFILE_PAGE {
                 <?php endforeach; else: ?>
                     <p class="history-empty">No sent requests</p>
                 <?php endif; ?>
-
             </div>
-
         </div>
 
         <?php
@@ -888,8 +880,6 @@ class NEXORA_PROFILE_PAGE {
     =============================== */
     public function mark_notification_read() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
-
         if (!is_user_logged_in()) {
             wp_send_json_error('Not logged in');
         }
@@ -897,31 +887,14 @@ class NEXORA_PROFILE_PAGE {
         $id = intval($_POST['id']);
         $user_id = get_current_user_id();
 
-        // echo $id;
-        // echo "<br>";
-        // echo $user_id;
-        // echo "<br>";
+        $notification = new NEXORA_Notification();
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'nexora_notifications';
+        $row = $notification->get_row($id);
 
-        $row = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM $table WHERE id = %d", $id)
-        );
-
-        // echo $row->actor_user_id;
-        // echo "<br>";
-        // echo $row->receiver_user_id;
-
-        
-        if (
-            !$row ||
-            ($row->sender_user_id != $user_id && $row->receiver_user_id != $user_id)
-        ) {
+        if (!$row || $row->receiver_user_id != $user_id) {
             wp_send_json_error('Unauthorized');
         }
 
-        $notification = new NEXORA_Notification();
         $notification->mark_as_read($id);
 
         wp_send_json_success([
@@ -1080,20 +1053,16 @@ class NEXORA_PROFILE_PAGE {
             return '';
         }
 
-        $username = get_query_var('username');
-        $current_user_id = get_current_user_id();
+        $username = get_query_var('username');  // From URL
 
-        if (!$current_user_id && !$username) {
+        $current_user_id = get_current_user_id();
+        $current_profile_id = get_user_meta($current_user_id, '_profile_id', true);
+        $current_user_name = get_post_meta($current_profile_id, 'user_name', true);
+
+        // CASE 1: Guest User
+        if (!$username && !$current_user_id) {
             return '
-                <div style="
-                    max-width:500px;
-                    margin:100px auto;
-                    text-align:center;
-                    padding:40px;
-                    background:#fff;
-                    border-radius:12px;
-                    box-shadow:0 10px 30px rgba(0,0,0,0.1);
-                ">
+                <div style="max-width:500px;margin:100px auto;text-align:center;padding:40px;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1);">
                     <h2 style="margin-bottom:10px;">🔒 Access Restricted</h2>
                     <p style="color:#6b7280; margin-bottom:20px;">
                         Please login or sign up to access your profile
@@ -1112,67 +1081,32 @@ class NEXORA_PROFILE_PAGE {
             ';
         }
 
+        // CASE 2: Admin User
         if (is_user_logged_in() && current_user_can('manage_options')) {
 
             $current_user = wp_get_current_user();
 
             return '
-                <div style="
-                    max-width:520px;
-                    margin:120px auto;
-                    text-align:center;
-                    padding:50px 40px;
-                    background:#ffffff;
-                    border-radius:16px;
-                    box-shadow:0 20px 50px rgba(0,0,0,0.08);
-                    font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
-                ">
+                <div style="max-width:520px;margin:120px auto;text-align:center;padding:50px 40px;background:#ffffff;
+                border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.08);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
                     
-                    <!-- ICON -->
                     <div style="font-size:40px; margin-bottom:10px;">⚙️</div>
 
-                    <!-- TITLE -->
-                    <h2 style="
-                        margin-bottom:8px;
-                        font-size:22px;
-                        font-weight:600;
-                        color:#111827;
-                    ">
+                    <h2 style="margin-bottom:8px;font-size:22px;font-weight:600;color:#111827;">
                         Welcome back, ' . esc_html($current_user->display_name) . ' 👋
                     </h2>
 
-                    <!-- SUB TEXT (DULL) -->
-                    <p style="
-                        color:#9ca3af;
-                        font-size:14px;
-                        margin-bottom:6px;
-                    ">
+                    <p style="color:#9ca3af;font-size:14px;margin-bottom:6px;">
                         You are currently in admin mode
                     </p>
 
-                    <!-- MAIN MESSAGE -->
-                    <p style="
-                        color:#4b5563;
-                        font-size:15px;
-                        margin-bottom:25px;
-                    ">
+                    <p style="color:#4b5563;font-size:15px;margin-bottom:25px;">
                         Manage users, content and system settings from your dashboard.
                     </p>
 
-                    <!-- BUTTON -->
                     <a href="' . esc_url(admin_url() . '?admin_access=true') . '"
-                    style="
-                        display:inline-block;
-                        padding:12px 24px;
-                        background:linear-gradient(135deg,#2563eb,#4f46e5);
-                        color:#fff;
-                        border-radius:10px;
-                        text-decoration:none;
-                        font-size:14px;
-                        font-weight:500;
-                        box-shadow:0 8px 20px rgba(37,99,235,0.3);
-                        transition:all 0.2s ease;
-                    ">
+                    style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;
+                    border-radius:10px;text-decoration:none;font-size:14px;font-weight:500;box-shadow:0 8px 20px rgba(37,99,235,0.3);transition:all 0.2s ease;">
                         Go to Dashboard →
                     </a>
 
@@ -1180,7 +1114,7 @@ class NEXORA_PROFILE_PAGE {
             ';
         }
 
-        // CASE 1: Own profile (/profile-page)
+        // CASE 3: Own profile (/profile-page)
         if (!$username) {
 
             if (!$current_user_id) {
@@ -1188,15 +1122,10 @@ class NEXORA_PROFILE_PAGE {
             }
 
             $profile_id = get_user_meta($current_user_id, '_profile_id', true);
-
-            if (!$profile_id) {
-                return "<p>No profile found</p>";
-            }
-
             $owner_user_id = $current_user_id;
         }
 
-        // CASE 2: Other user's profile (/profile-page/username)
+        // CASE 4: Other user's profile (/profile-page/username)
         else {
 
             $query = new WP_Query([
@@ -1213,62 +1142,27 @@ class NEXORA_PROFILE_PAGE {
 
             if (!$query->have_posts()) {
                 return '
-                    <div style="
-                        max-width:520px;
-                        margin:120px auto;
-                        text-align:center;
-                        padding:50px 40px;
-                        background:#ffffff;
-                        border-radius:16px;
-                        box-shadow:0 20px 50px rgba(0,0,0,0.08);
-                        font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
-                    ">
+                    <div style="max-width:520px;margin:120px auto;text-align:center;padding:50px 40px;background:#ffffff;border-radius:16px;
+                        box-shadow:0 20px 50px rgba(0,0,0,0.08);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
                         
-                        <!-- ICON -->
                         <div style="font-size:42px; margin-bottom:12px;">🔍</div>
 
-                        <!-- TITLE -->
-                        <h2 style="
-                            margin-bottom:8px;
-                            font-size:22px;
-                            font-weight:600;
-                            color:#111827;
-                        ">
+                        <h2 style="margin-bottom:8px;font-size:22px;font-weight:600;color:#111827;">
                             User not found
                         </h2>
 
-                        <!-- SUB TEXT -->
-                        <p style="
-                            color:#9ca3af;
-                            font-size:14px;
-                            margin-bottom:6px;
-                        ">
+                        <p style="color:#9ca3af;font-size:14px;margin-bottom:6px;">
                             We couldn’t find the profile you’re looking for
                         </p>
 
-                        <!-- MAIN MESSAGE -->
-                        <p style="
-                            color:#4b5563;
-                            font-size:15px;
-                            margin-bottom:25px;
-                        ">
+                        <p style="color:#4b5563;font-size:15px;margin-bottom:25px;">
                             The username might be incorrect, or the user may have removed their profile.
                         </p>
 
-                        <!-- BUTTON -->
                         <a href="' . esc_url(home_url()) . '"
-                        style="
-                            display:inline-block;
-                            padding:12px 24px;
-                            background:linear-gradient(135deg,#2563eb,#4f46e5);
-                            color:#fff;
-                            border-radius:10px;
-                            text-decoration:none;
-                            font-size:14px;
-                            font-weight:500;
-                            box-shadow:0 8px 20px rgba(37,99,235,0.3);
-                            transition:all 0.2s ease;
-                        ">
+                        style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#2563eb,#4f46e5);
+                            color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:500;
+                            box-shadow:0 8px 20px rgba(37,99,235,0.3);transition:all 0.2s ease;">
                             Go to Home →
                         </a>
 
@@ -1761,139 +1655,102 @@ class NEXORA_PROFILE_PAGE {
 
                         <?php
                         $notification = new NEXORA_Notification();
+                        $notifications = $notification->get_notifications($current_user_id);
 
-                        $all_notifications = $notification->get_notifications($current_user_id);
+                        // 🔥 Helper function (UI transformation)
+                        function nexora_format_message($noti) {
 
-                        $received = [];
-                        $sent = [];
+                            $actor = esc_html($noti->actor_user_name); 
 
-                        foreach ($all_notifications as $n) {
-                            if ($n->actor_user_id == $current_user_id) {
-                                $sent[] = $n;
-                            } else {
-                                $received[] = $n;
+                            switch ($noti->type) {
+
+                                case 'request':
+                                    return "{$actor} sent you a connection request";
+
+                                case 'accepted':
+                                    return "{$actor} accepted your connection request";
+
+                                case 'rejected':
+                                    return "{$actor} rejected your connection request";
+
+                                case 'removed':
+                                    return "{$actor} removed the connection with you";
+
+                                case 'content':
+                                    return "{$actor} uploaded new content";
+
+                                default:
+                                    return esc_html($noti->message); // fallback
                             }
                         }
                         ?>
 
                         <div class="notification-wrapper">
 
-                            <!-- 🔵 RECEIVED -->
-                            <h3>📥 Received Notifications</h3>
+                            <div class="notification-header">
+                                <h3>🔔 Notifications</h3>
+                            </div>
 
                             <div class="notification-list">
 
-                                <?php if ($received): foreach ($received as $n): ?>
+                                <?php if ($notifications): foreach ($notifications as $noti): ?>
 
                                     <?php
-                                    $is_actor = ($n->actor_user_id == $current_user_id);
-
-                                    $other_user_id = ($n->sender_user_id == $current_user_id)
-                                        ? $n->receiver_user_id
-                                        : $n->sender_user_id;
-
-                                    $other_user_name = ($n->sender_user_id == $current_user_id)
-                                        ? $n->receiver_user_name
-                                        : $n->sender_user_name;
+                                        $formatted_message = nexora_format_message($noti, $current_user_id);
+                                        $is_unread = !$noti->is_read;
                                     ?>
 
-                                    <div class="notification-item <?php echo $n->is_read ? 'read' : 'unread'; ?>">
+                                    <div class="notification-item <?php echo !$noti->is_read ? 'unread' : ''; ?>">
 
+                                        <!-- LEFT AVATAR -->
+                                        <div class="noti-avatar">
+                                            <img src="<?php echo esc_url($this->get_profile_image(get_user_meta($noti->actor_user_id, '_profile_id',true))); ?>">
+                                        </div>
+
+                                        <!-- CONTENT -->
                                         <div class="noti-content">
-                                            <?php
-                                            if ($n->type == 'request') {
-                                                echo "<b>{$other_user_name}</b> sent you a request";
-                                            }
 
-                                            elseif ($n->type == 'accepted') {
-                                                echo "<b>{$other_user_name}</b> accepted your request";
-                                            }
+                                            <div class="noti-top">
+                                                <span class="noti-message">
+                                                    <?php echo esc_html($formatted_message); ?>
+                                                </span>
 
-                                            elseif ($n->type == 'rejected') {
-                                                echo "<b>{$other_user_name}</b> rejected your request";
-                                            }
+                                                <span class="noti-status <?php echo !$noti->is_read ? 'new' : 'read'; ?>">
+                                                    <?php echo !$noti->is_read ? 'New' : 'Read'; ?>
+                                                </span>
+                                            </div>
 
-                                            elseif ($n->type == 'removed') {
-                                                echo "<b>{$other_user_name}</b> removed connection with you";
-                                            }
-                                            ?>
+                                            <div class="noti-time">
+                                                <?php echo esc_html(date('d M Y • h:i A', strtotime($noti->created_at))); ?>
+                                            </div>
+
                                         </div>
 
-                                        <div class="noti-meta">
-                                            <button class="notification-view" data-id="<?php echo $n->id; ?>" data-type="received">
-                                                View
-                                            </button>
-                                            <small><?php echo esc_html($n->created_at); ?></small>
-                                        </div>
+                                        <!-- ACTION -->
+                                        <button 
+                                            class="notification-view"
+                                            data-id="<?php echo $noti->id; ?>"
+                                            data-type="received"
+                                        >
+                                            View
+                                        </button>
 
                                     </div>
 
                                 <?php endforeach; else: ?>
-                                    <p>No received notifications</p>
-                                <?php endif; ?>
 
-                            </div>
-
-
-                            <!-- 🟢 SENT -->
-                            <h3 style="margin-top:30px;">📤 Sent Notifications</h3>
-
-                            <div class="notification-list">
-
-                                <?php if ($sent): foreach ($sent as $n): ?>
-
-                                    <?php
-                                    $is_actor = ($n->actor_user_id == $current_user_id);
-
-                                    $other_user_name = ($n->sender_user_id == $current_user_id)
-                                        ? $n->receiver_user_name
-                                        : $n->sender_user_name;
-                                    ?>
-
-                                    <div class="notification-item read">
-
-                                        <div class="noti-content">
-                                            <?php
-                                            if ($n->type == 'request') {
-                                                echo "You sent a request to <b>{$other_user_name}</b>";
-                                            }
-
-                                            elseif ($n->type == 'accepted') {
-                                                echo "You accepted <b>{$other_user_name}</b>'s request";
-                                            }
-
-                                            elseif ($n->type == 'rejected') {
-                                                echo "You rejected <b>{$other_user_name}</b>'s request";
-                                            }
-
-                                            elseif ($n->type == 'removed') {
-                                                echo "You removed connection with <b>{$other_user_name}</b>";
-                                            }
-                                            ?>
-                                        </div>
-
-                                        <div class="noti-meta">
-                                            <button class="notification-view" 
-                                                    data-id="<?php echo $n->id; ?>">
-                                                View
-                                            </button>
-                                            <small><?php echo esc_html($n->created_at); ?></small>
-                                        </div>
-
+                                    <div class="empty-notification">
+                                        <div class="empty-icon">🔕</div>
+                                        <p>No notifications yet</p>
                                     </div>
 
-                                <?php endforeach; else: ?>
-                                    <p>No sent notifications</p>
                                 <?php endif; ?>
-
                             </div>
-
                         </div>
 
                         <?php else: ?>
                             <p>Access restricted</p>
                         <?php endif; ?>
-
                     </div>
 
                     <!-- CONTENT -->

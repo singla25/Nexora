@@ -669,17 +669,26 @@ jQuery(document).ready(function ($) {
         let id = btn.data('id');
         let isReceived = btn.data('type') === 'received';
 
-        console.log(id);
-        console.log(isReceived);
-        console.log(profilePageData.current_user_id);
-
         let item = btn.closest('.notification-item');
-        let message = item.find('.noti-content').text();
+        let message = item.find('.noti-message').text().trim();
+        let avatar = item.find('.noti-avatar img').attr('src');
 
         Swal.fire({
             title: 'Notification',
-            text: message,
-            icon: 'info'
+            html: `
+                <div class="noti-popup">
+
+                    <img src="${avatar}" class="noti-popup-avatar">
+
+                    <div class="noti-popup-message">
+                        ${message}
+                    </div>
+
+                </div>
+            `,
+            confirmButtonText: 'OK',
+            allowOutsideClick: false,  
+            allowEscapeKey: false      
         }).then(() => {
 
             // ✅ ONLY CALL BACKEND
@@ -691,11 +700,15 @@ jQuery(document).ready(function ($) {
                 });
             }
 
-            // ✅ JUST RELOAD (backend decides everything)
-            // localStorage.setItem('activeTab', 'notifications');
-            // location.reload();
-        });
+            // 🔥 FORCE CLOSE EVERYTHING
+            Swal.close();
 
+            // 🔥 SMALL DELAY (VERY IMPORTANT)
+            setTimeout(() => {
+                localStorage.setItem('activeTab', 'notifications');
+                window.location.reload(true);
+            }, 200);
+        });
     });
     
     // ===============================

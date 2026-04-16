@@ -163,7 +163,8 @@ class NEXORA_Registration {
             'post_type' => 'user_profile',
             'post_title' => $user_name,
             'post_name'  => sanitize_title($user_name),
-            'post_status' => 'publish'
+            'post_status' => 'publish',
+            'post_author' => $wp_user_id
         ]);
 
         update_post_meta($post_id, '_wp_user_id', $wp_user_id);

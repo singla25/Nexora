@@ -1000,125 +1000,128 @@ body {
     font-weight: 600;
 }
 
-/* WRAPPER */
+/* ===============================
+   PREMIUM NOTIFICATION UI
+=============================== */
+
 .notification-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
-
-/* SECTION HEADINGS */
-.notification-wrapper h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #111827;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 6px;
-}
-
-/* LIST */
-.notification-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    max-width: 750px;
+    margin: auto;
 }
 
 /* CARD */
 .notification-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 14px 16px;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
+    gap: 15px;
+    padding: 16px 18px;
+    border-radius: 16px;
     background: #ffffff;
-    transition: all 0.2s ease;
-    cursor: pointer;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    transition: 0.3s;
+    border-left: 4px solid transparent;
 }
 
-/* HOVER EFFECT */
+/* HOVER */
 .notification-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
 }
 
 /* UNREAD */
 .notification-item.unread {
-    background: #eff6ff;
+    background: #eef2ff;
     border-left: 4px solid #2563eb;
 }
 
-/* READ */
-.notification-item.read {
-    opacity: 0.7;
+/* AVATAR */
+.noti-avatar img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
+/* CONTENT */
 .noti-content {
-    font-size: 14px;
-    color: #111827;
-    line-height: 1.4;
+    flex: 1;
 }
 
-/* USER NAME HIGHLIGHT */
-.noti-content b {
-    color: #2563eb;
-    font-weight: 600;
-}
-
-/* META DATE */
-.noti-meta {
-    font-size: 12px;
-    color: #6b7280;
-    white-space: nowrap;
-    margin-left: 10px;
+/* TOP ROW */
+.noti-top {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* EMPTY STATE */
-.notification-list p {
-    padding: 15px;
-    text-align: center;
-    color: #6b7280;
-    background: #f9fafb;
-    border-radius: 8px;
-    border: 1px dashed #e5e7eb;
-}
-
-/* VIEW BUTTON */
-.notification-view {
-    background: #2563eb;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 6px;
+/* MESSAGE */
+.noti-message {
+    font-size: 14px;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    color: #111827;
 }
 
-/* HOVER */
-.notification-view:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+/* TIME */
+.noti-time {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
 }
 
-/* ACTIVE CLICK */
-.notification-view:active {
-    transform: scale(0.95);
+/* STATUS BADGE */
+.noti-status {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 500;
 }
 
-/* OPTIONAL: SENT BUTTON STYLE (lighter) */
-.notification-view[data-type="view-sending-noti"] {
+/* NEW */
+.noti-status.new {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+/* READ */
+.noti-status.read {
     background: #e5e7eb;
     color: #374151;
 }
 
-.notification-view[data-type="view-sending-noti"]:hover {
-    background: #d1d5db;
-    box-shadow: none;
+/* BUTTON */
+.notification-view {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.notification-view:hover {
+    transform: scale(1.05);
+}
+
+.noti-popup {
+    text-align: center;
+    padding: 10px;
+}
+
+.noti-popup-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    object-fit: cover;
+    border: 3px solid #2563eb;
+}
+
+.noti-popup-message {
+    font-size: 15px;
+    color: #111827;
 }
 
 
@@ -1313,7 +1316,6 @@ body {
 }
 
 /* MODERN POPUP For View Post */
-
 .modern-post-body {
     padding: 20px;
 }

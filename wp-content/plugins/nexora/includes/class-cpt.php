@@ -145,7 +145,7 @@ class NEXORA_CPT {
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Sender</th>
+                        <th>Actor</th>
                         <th>Receiver</th>
                         <th>Type</th>
                         <th>Message</th>
@@ -159,7 +159,7 @@ class NEXORA_CPT {
 
                     <tr>
                         <td><?php echo esc_html($n->id); ?></td>
-                        <td><?php echo esc_html($n->sender_user_name); ?></td>
+                        <td><?php echo esc_html($n->actor_user_name); ?></td>
                         <td><?php echo esc_html($n->receiver_user_name); ?></td>
                         <td><?php echo esc_html($n->type); ?></td>
                         <td><?php echo esc_html($n->message); ?></td>
