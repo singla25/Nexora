@@ -38,7 +38,8 @@ class Nexora_ReCaptcha {
             return '';
         }
 
-        return '<div class="g-recaptcha" data-sitekey="' . esc_attr($this->site_key) . '"></div>';
+        return '<div class="g-recaptcha" style="margin: 15px 0;display: flex;justify-content: center;" 
+                data-sitekey="' . esc_attr($this->site_key) . '"></div>';
     }
 
     // 🔹 Enqueue script (call once globally)

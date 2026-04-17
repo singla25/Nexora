@@ -31,6 +31,33 @@ Unlike traditional WordPress solutions, Nexora does not rely on default WP authe
 - Input validation & error handling  
 - OTP-based password recovery (email verification)  
 - Auto-login after password reset  
+- Google reCAPTCHA integration for bot protection  
+
+---
+
+## 🛡️ Security Enhancement (reCAPTCHA Integration)
+
+To enhance platform security and prevent automated attacks, Nexora integrates Google reCAPTCHA into its custom authentication system.
+
+### 🔍 Implemented On:
+
+- Login Form  
+- Registration Form  
+
+### ⚙️ How It Works:
+
+1. User submits login/register form  
+2. reCAPTCHA verifies human interaction  
+3. Token is generated on frontend  
+4. Token is validated via Google reCAPTCHA API (server-side)  
+5. Request proceeds only after successful verification  
+
+### ✅ Benefits:
+
+- Prevents bot-based login attempts  
+- Blocks spam registrations  
+- Protects against brute-force attacks  
+- Strengthens overall authentication security  
 
 ---
 
@@ -83,7 +110,9 @@ Chat is tightly integrated with Nexora’s connection system:
 Custom Tables:
 
 - messages  
-- conversations  
+- message_meta
+- thread
+- thread_participants  
 
 Message Structure Includes:
 
@@ -99,14 +128,6 @@ Message Structure Includes:
 - AJAX Polling  
 - Long Polling  
 - WebSockets (planned upgrade)  
-
----
-
-### 🚧 Status
-
-- Backend architecture implemented  
-- Message flow designed  
-- Optimization & real-time improvements in progress  
 
 ---
 
@@ -312,6 +333,7 @@ Modules:
 - Chat System Built From Scratch  
 - AJAX Architecture Optimization  
 - Improved UI/UX  
+- Google ReCaptcha Implementation
 
 Strong foundation in:
 
@@ -327,7 +349,7 @@ Strong foundation in:
 - Authentication completed  
 - Networking system working  
 - AJAX architecture stable  
-- Chat system in active development  
+- Chat system functional
 
 ---
 
