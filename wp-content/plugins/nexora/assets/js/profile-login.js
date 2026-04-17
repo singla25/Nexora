@@ -11,12 +11,18 @@ jQuery(document).ready(function ($) {
         formData.append('action', 'profile_login');
 
         // 🔥 Add captcha
-        let captcha = grecaptcha.getResponse();
+        let captcha = '';
+        if (typeof grecaptcha !== 'undefined') {
+            captcha = grecaptcha.getResponse();
+        }
         formData.append('g-recaptcha-response', captcha);
 
-        if (!captcha) {
-            alert("Please complete captcha");
-            return;
+        // Only validate if captcha exists
+        if (typeof grecaptcha !== 'undefined') {
+            if (!captcha) {
+                alert("Please complete captcha");
+                return;
+            }
         }
 
         $.ajax({
@@ -31,7 +37,9 @@ jQuery(document).ready(function ($) {
                     window.location.href = res.data.redirect;
                 } else {
                     alert(res.data);
-                    grecaptcha.reset();
+                    if (typeof grecaptcha !== 'undefined') {
+                        grecaptcha.reset();
+                    }
                 }
             }
         });

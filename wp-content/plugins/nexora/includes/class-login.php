@@ -279,6 +279,7 @@ class NEXORA_Login {
         $result = $captcha->verify($_POST['g-recaptcha-response'] ?? '');
 
         if (!$result['success']) {
+            error_log($result['message']); // debug
             wp_send_json_error($result['message']);
         }
 

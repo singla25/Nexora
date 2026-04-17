@@ -12,6 +12,16 @@ class Nexora_ReCaptcha {
         $this->enabled    = get_option('recaptcha_enabled');
     }
 
+    public function is_local() {
+        $host = $_SERVER['HTTP_HOST'];
+
+        return (
+            strpos($host, 'localhost') !== false ||
+            strpos($host, '.local') !== false ||   // 🔥 this handles your case
+            in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])
+        );
+    }
+
     // 🔹 Check if captcha is enabled
     public function is_enabled() {
         return !empty($this->enabled) && !empty($this->site_key) && !empty($this->secret_key);
@@ -19,6 +29,10 @@ class Nexora_ReCaptcha {
 
     // 🔹 Render captcha HTML (Frontend)
     public function render() {
+
+        if ($this->is_local()) {
+            return ''; // ❌ hide captcha on local
+        }
 
         if (!$this->is_enabled()) {
             return '';
@@ -29,6 +43,8 @@ class Nexora_ReCaptcha {
 
     // 🔹 Enqueue script (call once globally)
     public function enqueue_script() {
+
+        if ($this->is_local()) return;
 
         if (!$this->is_enabled()) return;
 
@@ -43,6 +59,11 @@ class Nexora_ReCaptcha {
 
     // 🔹 Verify captcha (Backend)
     public function verify($captcha_response) {
+
+        // 🔥 BYPASS ON LOCAL
+        if ($this->is_local()) {
+            return ['success' => true];
+        }
 
         // If disabled → skip validation
         if (!$this->is_enabled()) {
