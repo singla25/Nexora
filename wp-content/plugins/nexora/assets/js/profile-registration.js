@@ -6,6 +6,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const form = this;
 
+        // 🔥 Add captcha
+        let captcha = '';
+        if (typeof grecaptcha !== 'undefined') {
+            captcha = grecaptcha.getResponse();
+        }
+
+        // 🔥 Validate captcha (only if exists)
+        if (typeof grecaptcha !== 'undefined') {
+            if (!captcha) {
+                alert("Please complete captcha");
+                return;
+            }
+        }
+        
         Swal.fire({
             title: 'Create Account?',
             icon: 'question',
@@ -20,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(form);
             formData.append('action', 'profile_register');
             formData.append('nonce', profileData.nonce);
+            formData.append('g-recaptcha-response', captcha); // ✅ correct place
 
             jQuery.ajax({
                 url: profileData.ajaxUrl,
@@ -39,6 +54,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     } else {
                         Swal.fire('Error', res.data, 'error');
+                        if (typeof grecaptcha !== 'undefined') {
+                            grecaptcha.reset();
+                        }
                     }
                 },
 

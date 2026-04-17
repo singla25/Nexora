@@ -102,6 +102,11 @@ class NEXORA_Registration {
 
                 </div>
 
+                <?php
+                $captcha = new Nexora_ReCaptcha();
+                echo $captcha->render();
+                ?>
+
                 <button type="submit" class="profile-registration-form-btn">Create Account</button>
 
                 <div class="profile-registration-extra">
@@ -118,6 +123,15 @@ class NEXORA_Registration {
     public function registration_form_handle() {
 
         check_ajax_referer('profile_nonce', 'nonce');
+
+        $captcha = new Nexora_ReCaptcha();
+
+        $result = $captcha->verify($_POST['g-recaptcha-response'] ?? '');
+
+        if (!$result['success']) {
+            error_log($result['message']); // debug
+            wp_send_json_error($result['message']);
+        }
 
         $data = $_POST;
 
