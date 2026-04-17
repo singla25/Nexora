@@ -1739,9 +1739,16 @@ class NEXORA_PROFILE_PAGE {
 
                                 <?php endforeach; else: ?>
 
-                                    <div class="empty-notification">
-                                        <div class="empty-icon">🔕</div>
-                                        <p>No notifications yet</p>
+                                    <div class="empty-notification empty-content">
+
+                                        <div class="empty-icon">🔔</div>
+
+                                        <h3>No Notifications Yet</h3>
+
+                                        <p>
+                                            You're all caught up 🎉 <br>
+                                            Notifications will appear here when you get updates
+                                        </p>
                                     </div>
 
                                 <?php endif; ?>

@@ -1130,6 +1130,12 @@ body {
     margin-top: 15px;
 }
 
+.empty-notification {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 /* =========================
    CONTENT CARD
 ========================= */
