@@ -10,6 +10,15 @@ jQuery(document).ready(function ($) {
         let formData = new FormData(this);
         formData.append('action', 'profile_login');
 
+        // 🔥 Add captcha
+        let captcha = grecaptcha.getResponse();
+        formData.append('g-recaptcha-response', captcha);
+
+        if (!captcha) {
+            alert("Please complete captcha");
+            return;
+        }
+
         $.ajax({
             url: profileData.ajaxUrl,
             type: 'POST',
@@ -22,6 +31,7 @@ jQuery(document).ready(function ($) {
                     window.location.href = res.data.redirect;
                 } else {
                     alert(res.data);
+                    grecaptcha.reset();
                 }
             }
         });

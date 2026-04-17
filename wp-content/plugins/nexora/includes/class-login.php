@@ -43,6 +43,9 @@ class NEXORA_Login {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce('profile_nonce')
         ]);
+
+        $captcha = new Nexora_ReCaptcha();
+        $captcha->enqueue_script();
     }
 
     // ---------------------------
@@ -242,6 +245,11 @@ class NEXORA_Login {
 
                     <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('profile_nonce'); ?>">
 
+                    <?php
+                    $captcha = new Nexora_ReCaptcha();
+                    echo $captcha->render();
+                    ?>
+
                     <button type="submit">Login</button>
 
                     <div class="profile-login-extra">
@@ -265,6 +273,14 @@ class NEXORA_Login {
     public function handle_login() {
 
         check_ajax_referer('profile_nonce', 'nonce');
+
+        $captcha = new Nexora_ReCaptcha();
+
+        $result = $captcha->verify($_POST['g-recaptcha-response'] ?? '');
+
+        if (!$result['success']) {
+            wp_send_json_error($result['message']);
+        }
 
         $login_input = sanitize_text_field($_POST['user_name']);
         $password    = $_POST['password'];

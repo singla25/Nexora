@@ -130,6 +130,15 @@ class NEXORA_CPT {
         register_setting('profile_settings_group', 'default_real_time_chat_image');
         register_setting('profile_settings_group', 'default_smart_connections_image');
         register_setting('profile_settings_group', 'default_admin_mail');
+
+        register_setting('profile_settings_group', 'recaptcha_site_key');
+        register_setting('profile_settings_group', 'recaptcha_secret_key');
+        register_setting('profile_settings_group', 'recaptcha_enabled', [
+            'type' => 'boolean',
+            'sanitize_callback' => function($value) {
+                return $value ? 1 : 0;
+            }
+        ]);
     }
 
     public function notifications_page() {
@@ -413,6 +422,61 @@ class NEXORA_CPT {
 
                             <p class="description">
                                 All registration notifications will be sent to this email.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Google reCAPTCHA Site Key</th>
+                        <td>
+                            <?php $site_key = get_option('recaptcha_site_key'); ?>
+
+                            <input 
+                                type="text" 
+                                name="recaptcha_site_key" 
+                                value="<?php echo esc_attr($site_key); ?>" 
+                                class="regular-text"
+                                placeholder="Enter Site Key"
+                            >
+
+                            <p class="description">
+                                Used on frontend (forms).
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Google reCAPTCHA Secret Key</th>
+                        <td>
+                            <?php $secret_key = get_option('recaptcha_secret_key'); ?>
+
+                            <input 
+                                type="password" 
+                                name="recaptcha_secret_key" 
+                                value="<?php echo esc_attr($secret_key ? '************' : ''); ?>" 
+                                class="regular-text"
+                                placeholder="Enter Secret Key"
+                            >
+
+                            <p class="description">
+                                Used for backend verification. Keep it secure.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Enable reCAPTCHA</th>
+                        <td>
+                            <label>
+                                <input 
+                                    type="checkbox" 
+                                    name="recaptcha_enabled" 
+                                    value="1" 
+                                    <?php checked(get_option('recaptcha_enabled'), 1); ?>
+                                >
+                                Enable Google reCAPTCHA
+                            </label>
+
+                            <p class="description">
+                                Enable captcha protection on login, registration and forms.
                             </p>
                         </td>
                     </tr>

@@ -18,6 +18,7 @@ require_once NEXORA_PATH . 'includes/class-login.php';
 require_once NEXORA_PATH . 'includes/class-home-page.php';
 require_once NEXORA_PATH . 'includes/class-notification.php';
 require_once NEXORA_PATH . 'includes/class-better-message-chat.php';
+require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
 
 require_once NEXORA_PATH . 'chat/class-chat-core.php';
 
@@ -33,6 +34,7 @@ class NEXORA_System {
         new Nexora_Home_Page();
         new Nexora_Better_Message_CHAT_Page();
         new NEXORA_CHAT_CORE();
+        new Nexora_ReCaptcha();
 
         // GLOBAL ASSETS
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
