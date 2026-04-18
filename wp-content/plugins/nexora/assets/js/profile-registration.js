@@ -5,20 +5,6 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
 
         const form = this;
-
-        // 🔥 Add captcha
-        let captcha = '';
-        if (typeof grecaptcha !== 'undefined') {
-            captcha = grecaptcha.getResponse();
-        }
-
-        // 🔥 Validate captcha (only if exists)
-        if (typeof grecaptcha !== 'undefined') {
-            if (!captcha) {
-                alert("Please complete captcha");
-                return;
-            }
-        }
         
         Swal.fire({
             title: 'Create Account?',
@@ -29,12 +15,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!result.isConfirmed) return;
 
-            Swal.showLoading();
+            // Add captcha
+            let captcha = '';
+
+            if (typeof grecaptcha !== 'undefined') {
+                captcha = grecaptcha.getResponse();
+            }
+
+            // Validate captcha (only if exists)
+            if (typeof grecaptcha !== 'undefined') {
+                if (!captcha) {
+                    alert("Please complete captcha");
+                    return;
+                }
+            }
+
+            Swal.fire({
+                title: 'Processing...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             const formData = new FormData(form);
             formData.append('action', 'profile_register');
             formData.append('nonce', profileData.nonce);
-            formData.append('g-recaptcha-response', captcha); // ✅ correct place
+            formData.append('g-recaptcha-response', captcha);
 
             jQuery.ajax({
                 url: profileData.ajaxUrl,
@@ -66,6 +73,18 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
         });
+    });
+
+    // 🔥 Toggle both password fields
+    jQuery(document).on('change', '#toggle-passwords', function () {
+
+        let type = jQuery(this).is(':checked') ? 'text' : 'password';
+
+        jQuery('input[name="password"], input[name="confirm_password"]').attr('type', type);
+
+        jQuery('.toggle-label').text(
+            jQuery(this).is(':checked') ? 'Hide Password' : 'Show Password'
+        );
     });
 
 });

@@ -70,8 +70,6 @@ class NEXORA_Registration {
         <div class="profile-registration-form-div">
             <form id="profile-registration-form" class="profile-registration-form" enctype="multipart/form-data">
 
-                <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('profile_nonce'); ?>">
-
                 <h2>Create Your Account</h2>
 
                 <div class="profile-registration-form-grid">
@@ -99,6 +97,15 @@ class NEXORA_Registration {
                     <!-- ROW 4 -->
                     <input type="password" name="password" placeholder="Password *" required>
                     <input type="password" name="confirm_password" placeholder="Confirm Password *" required>
+
+                    <!-- 🔥 Toggle Switch -->
+                    <div class="password-toggle-wrapper full-width">
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-passwords">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">Show Password</span>
+                    </div>
 
                 </div>
 

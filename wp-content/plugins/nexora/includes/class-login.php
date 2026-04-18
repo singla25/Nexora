@@ -243,7 +243,13 @@ class NEXORA_Login {
                     <input type="text" name="user_name" placeholder="Username or Email" required>
                     <input type="password" name="password" placeholder="Password" required>
 
-                    <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('profile_nonce'); ?>">
+                    <div class="password-toggle-wrapper full-width">
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-passwords">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">Show Password</span>
+                    </div>
 
                     <?php
                     $captcha = new Nexora_ReCaptcha();
@@ -322,7 +328,7 @@ class NEXORA_Login {
         if (in_array('administrator', $user->roles)) {
             $redirect = home_url('/profile-page');
         } else {
-            $redirect = home_url('/profile-page/' . $user->user_login);
+            $redirect = home_url('/profile-page/' . $username);
         }
 
         wp_send_json_success([
