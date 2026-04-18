@@ -310,13 +310,11 @@ class NEXORA_Login {
         $user = wp_signon($creds, is_ssl());
 
         if (is_wp_error($user)) {
-            wp_send_json_error('Invalid credentials');
+            wp_send_json_error('Invalid username or password');
         }
 
-        if (!is_wp_error($user)) {
-            wp_set_current_user($user->ID);
-            wp_set_auth_cookie($user->ID);
-        }
+        wp_set_current_user($user->ID);
+        wp_set_auth_cookie($user->ID);
 
         // ✅ Correct way to get username
         $username = $user->user_login;
