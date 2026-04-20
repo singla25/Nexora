@@ -92,7 +92,10 @@ class NEXORA_Registration {
 
                     <!-- ROW 3 -->
                     <input type="text" name="phone" placeholder="Phone *" required>
-                    <input type="date" name="birthdate" required>
+<!--                     <input type="date" name="birthdate" placeholder="Date *" required> -->
+					<input type="text" placeholder="Date of Birth *"
+						   onfocus="(this.type='date')"
+						   onblur="if(!this.value)this.type='text'">
 
                     <!-- ROW 4 -->
                     <input type="password" name="password" placeholder="Password *" required>

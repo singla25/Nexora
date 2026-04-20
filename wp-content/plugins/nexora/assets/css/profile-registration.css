@@ -141,6 +141,10 @@ body {
 
 /* MOBILE */
 @media (max-width: 600px) {
+	
+	.profile-registration-form-grid .full-width {
+		grid-column: span 1;
+	}
 
     .profile-registration-form-grid {
         grid-template-columns: 1fr;
@@ -148,8 +152,8 @@ body {
     }
 
     .profile-registration-form {
-        margin: 30px 15px;
         padding: 25px;
+		margin: 35px auto;
     }
 
     .profile-registration-form-btn {

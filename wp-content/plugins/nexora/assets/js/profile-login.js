@@ -285,8 +285,8 @@ jQuery(document).ready(function ($) {
 
         $('.switch-label').text($(this).is(':checked') ? 'Hide Password' : 'Show Password');
     });
-
-    // 🔥 Login password toggle (inside input)
+	
+	// 🔥 Login password toggle
     jQuery(document).on('change', '#toggle-passwords', function () {
 
         let type = jQuery(this).is(':checked') ? 'text' : 'password';
@@ -297,5 +297,4 @@ jQuery(document).ready(function ($) {
             jQuery(this).is(':checked') ? 'Hide Password' : 'Show Password'
         );
     });
-
 });
