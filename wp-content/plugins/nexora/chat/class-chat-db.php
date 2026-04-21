@@ -29,6 +29,8 @@ class NEXORA_CHAT_DB {
         // THREADS
         $threads = "CREATE TABLE {$this->threads_table} (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            connection_id BIGINT,
+            status VARCHAR(20) DEFAULT 'active',
             type VARCHAR(20) DEFAULT 'private',
             subject VARCHAR(255) NULL,
             last_message_id BIGINT UNSIGNED NULL,
@@ -88,11 +90,13 @@ class NEXORA_CHAT_DB {
     /**
      * Insert New Thread and It's Participants
      */
-    public function create_thread($users, $type = 'private', $subject = '') {
+    public function create_thread($users, $connection_id, $thread_status, $type = 'private', $subject = '') {
 
         global $wpdb;
 
         $wpdb->insert($this->threads_table, [
+            'connection_id' => $connection_id,
+            'status' => $thread_status,
             'type' => $type,
             'subject' => $subject,
             'created_at' => current_time('mysql'),
@@ -112,22 +116,80 @@ class NEXORA_CHAT_DB {
     }
 
     /**
-     * Get thread between 2 users
+     * GET LATEST THREAD BETWEEN USERS
      */
-    public function get_thread_between_users($user1, $user2) {
+    public function get_thread_by_connection($connection_id) {
         global $wpdb;
 
-        $thread_id = $wpdb->get_var($wpdb->prepare("
-            SELECT tp1.thread_id
-            FROM {$this->participants_table} tp1
-            INNER JOIN {$this->participants_table} tp2 
-                ON tp1.thread_id = tp2.thread_id
-            WHERE tp1.user_id = %d 
-            AND tp2.user_id = %d
+        return $wpdb->get_row($wpdb->prepare("
+            SELECT id, status
+            FROM {$this->threads_table}
+            WHERE connection_id = %d
+            ORDER BY updated_at DESC
             LIMIT 1
-        ", $user1, $user2));
+        ", $connection_id));
+    }
 
-        return $thread_id;
+    /**
+     * GET THREAD STATUS
+     */
+    public function get_thread_status($thread_id) {
+        global $wpdb;
+
+        return $wpdb->get_row($wpdb->prepare("
+            SELECT id, status 
+            FROM {$this->threads_table}
+            WHERE id = %d
+        ", $thread_id));
+    }
+
+    /**
+     * GET USER PARTICIPANTS
+     */
+    public function is_user_in_thread($thread_id, $user_id) {
+        global $wpdb;
+
+        return (bool) $wpdb->get_var($wpdb->prepare("
+            SELECT COUNT(*) 
+            FROM {$this->participants_table}
+            WHERE thread_id = %d AND user_id = %d
+        ", $thread_id, $user_id));
+    }
+
+    /**
+     * GET USER THREADS (CHAT LIST)
+     */
+    public function get_user_threads($user_id) {
+        global $wpdb;
+
+        $results = $wpdb->get_results($wpdb->prepare("
+            SELECT 
+                t.*,
+                p.unread_count,
+
+                -- Get other participant
+                tp.user_id AS other_user_id
+
+            FROM {$this->threads_table} t
+
+            INNER JOIN {$this->participants_table} p 
+                ON t.id = p.thread_id AND p.user_id = %d
+
+            INNER JOIN {$this->participants_table} tp 
+                ON t.id = tp.thread_id AND tp.user_id != %d
+
+            ORDER BY t.updated_at DESC
+        ", $user_id, $user_id));
+
+        // 🔥 ADD USER NAME (IMPORTANT)
+        foreach ($results as &$row) {
+
+            $user = get_userdata($row->other_user_id);
+
+            $row->name = $user ? $user->display_name : 'User';
+        }
+
+        return $results;
     }
 
     /**
@@ -179,38 +241,6 @@ class NEXORA_CHAT_DB {
 
         return array_reverse($messages); // ✅ important
     }
-    
-
-    /**
-     * GET OLDER MESSAGES (SCROLL UP)
-     */
-    public function get_older_messages($thread_id, $last_message_id, $limit = 20) {
-        global $wpdb;
-
-        return $wpdb->get_results($wpdb->prepare("
-            SELECT *
-            FROM {$this->messages_table}
-            WHERE thread_id = %d
-            AND id < %d
-            ORDER BY id DESC
-            LIMIT %d
-        ", $thread_id, $last_message_id, $limit));
-    }
-
-    /**
-     * GET NEW MESSAGES (POLLING)
-     */
-    public function get_new_messages($thread_id, $last_message_id) {
-        global $wpdb;
-
-        return $wpdb->get_results($wpdb->prepare("
-            SELECT *
-            FROM {$this->messages_table}
-            WHERE thread_id = %d
-            AND id > %d
-            ORDER BY id ASC
-        ", $thread_id, $last_message_id));
-    }
 
     /**
      * MARK AS READ
@@ -225,43 +255,6 @@ class NEXORA_CHAT_DB {
             'thread_id' => $thread_id,
             'user_id' => $user_id
         ]);
-    }
-
-
-    /**
-     * GET USER THREADS (CHAT LIST)
-     */
-    public function get_user_threads($user_id) {
-        global $wpdb;
-
-        $results = $wpdb->get_results($wpdb->prepare("
-            SELECT 
-                t.*,
-                p.unread_count,
-
-                -- Get other participant
-                tp.user_id AS other_user_id
-
-            FROM {$this->threads_table} t
-
-            INNER JOIN {$this->participants_table} p 
-                ON t.id = p.thread_id AND p.user_id = %d
-
-            INNER JOIN {$this->participants_table} tp 
-                ON t.id = tp.thread_id AND tp.user_id != %d
-
-            ORDER BY t.updated_at DESC
-        ", $user_id, $user_id));
-
-        // 🔥 ADD USER NAME (IMPORTANT)
-        foreach ($results as &$row) {
-
-            $user = get_userdata($row->other_user_id);
-
-            $row->name = $user ? $user->display_name : 'User';
-        }
-
-        return $results;
     }
 
     /**
@@ -305,6 +298,21 @@ class NEXORA_CHAT_DB {
         ");
     }
 
+    public function get_threads_by_connection($connection_id) {
+        global $wpdb;
+
+        return $wpdb->get_results($wpdb->prepare("
+            SELECT t.*, 
+                GROUP_CONCAT(tp.user_id) as participants
+            FROM {$this->threads_table} t
+            LEFT JOIN {$this->participants_table} tp 
+                ON t.id = tp.thread_id
+            WHERE t.connection_id = %d
+            GROUP BY t.id
+            ORDER BY t.updated_at DESC
+        ", $connection_id));
+    }
+
     /**
      * GET THREAD SUBJECT
      */
@@ -332,20 +340,65 @@ class NEXORA_CHAT_DB {
     }
 
     /**
-     * GET LATEST THREAD BETWEEN USERS
+     * UPDATE THREAD STATUS
      */
-    public function get_latest_thread_between_users($user1, $user2) {
+    public function inactive_threads_by_connection($connection_id) {
         global $wpdb;
 
-        return $wpdb->get_var($wpdb->prepare("
-            SELECT t.id
-            FROM {$this->threads_table} t
-            INNER JOIN {$this->participants_table} p1 
-                ON t.id = p1.thread_id AND p1.user_id = %d
-            INNER JOIN {$this->participants_table} p2 
-                ON t.id = p2.thread_id AND p2.user_id = %d
-            ORDER BY t.updated_at DESC
-            LIMIT 1
-        ", $user1, $user2));
+        return $wpdb->update(
+            $this->threads_table,
+            ['status' => 'inactive'],
+            ['connection_id' => $connection_id]
+        );
     }
+
+    /**
+     * Get thread between 2 users
+     */
+    // public function get_thread_between_users($user1, $user2) {
+    //     global $wpdb;
+
+    //     $thread_id = $wpdb->get_var($wpdb->prepare("
+    //         SELECT tp1.thread_id
+    //         FROM {$this->participants_table} tp1
+    //         INNER JOIN {$this->participants_table} tp2 
+    //             ON tp1.thread_id = tp2.thread_id
+    //         WHERE tp1.user_id = %d 
+    //         AND tp2.user_id = %d
+    //         LIMIT 1
+    //     ", $user1, $user2));
+
+    //     return $thread_id;
+    // }
+
+    /**
+     * GET OLDER MESSAGES (SCROLL UP)
+     */
+    // public function get_older_messages($thread_id, $last_message_id, $limit = 20) {
+    //     global $wpdb;
+
+    //     return $wpdb->get_results($wpdb->prepare("
+    //         SELECT *
+    //         FROM {$this->messages_table}
+    //         WHERE thread_id = %d
+    //         AND id < %d
+    //         ORDER BY id DESC
+    //         LIMIT %d
+    //     ", $thread_id, $last_message_id, $limit));
+    // }
+
+    /**
+     * GET NEW MESSAGES (POLLING)
+     */
+    // public function get_new_messages($thread_id, $last_message_id) {
+    //     global $wpdb;
+
+    //     return $wpdb->get_results($wpdb->prepare("
+    //         SELECT *
+    //         FROM {$this->messages_table}
+    //         WHERE thread_id = %d
+    //         AND id > %d
+    //         ORDER BY id ASC
+    //     ", $thread_id, $last_message_id));
+    // }
 }

@@ -6,14 +6,96 @@ class NEXORA_CHAT_AJAX {
 
     public function __construct() {
 
+        add_action('wp_ajax_nexora_search_users', [$this, 'search_users']);
+
         add_action('wp_ajax_nexora_get_messages', [$this, 'get_messages']);
         add_action('wp_ajax_nexora_get_user_threads', [$this, 'get_user_threads']);
         add_action('wp_ajax_nexora_send_message', [$this, 'send_message']);
-        add_action('wp_ajax_nexora_search_users', [$this, 'search_users']);
+        
         add_action('wp_ajax_nexora_create_thread_with_subject', [$this, 'create_thread_with_subject']);
         add_action('wp_ajax_nexora_get_thread_subject', [$this, 'get_thread_subject']);
         add_action('wp_ajax_nexora_update_subject', [$this, 'update_subject']);
         add_action('wp_ajax_nexora_get_latest_thread_between_users', [$this, 'get_latest_thread_between_users']);
+    }
+
+    /* ===============================
+       SEARCH USERS
+    =============================== */
+    public function search_users() {
+
+        check_ajax_referer('nexora_chat_nonce', 'nonce');
+
+        $keyword = sanitize_text_field($_POST['keyword']);
+        $user_id = get_current_user_id();
+
+        $profile_id = get_user_meta($user_id, '_profile_id', true);
+
+        $connections = get_posts([
+            'post_type' => 'user_connections',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                ['key' => 'status', 'value' => 'accepted']
+            ]
+        ]);
+
+        $results = [];
+
+        foreach ($connections as $conn) {
+
+            $sender = get_post_meta($conn->ID, 'sender_profile_id', true);
+            $receiver = get_post_meta($conn->ID, 'receiver_profile_id', true);
+
+            if ($sender == $profile_id) {
+                $other = $receiver;
+            } elseif ($receiver == $profile_id) {
+                $other = $sender;
+            } else {
+                continue;
+            }
+
+            $username = get_post_meta($other, 'user_name', true);
+
+            if (stripos($username, $keyword) !== false) {
+                $wp_user_id = get_post_meta($other, '_wp_user_id', true);
+
+                $results[] = [
+                    'user_id' => $wp_user_id,   
+                    'username' => $username,
+                    'connection_id' => $conn->ID,
+                    'status' => get_post_meta($conn->ID, 'status', true)
+                ];
+            }
+        }
+
+        wp_send_json_success($results);
+    }
+
+    /* ===============================
+       GET LATEST THREAD 
+    =============================== */
+    public function get_latest_thread_between_users() {
+
+        check_ajax_referer('nexora_chat_nonce', 'nonce');
+
+        $user1 = get_current_user_id();
+        $user2 = intval($_POST['user_id']);
+        $connection_id = intval($_POST['connection_id']);
+
+        if (!$user2) {
+            wp_send_json_error();
+        }
+
+        global $wpdb;
+
+        $chat_db = new NEXORA_CHAT_DB();
+
+        // ✅ CLEAN (NO DIRECT QUERY)
+        $thread = $chat_db->get_thread_by_connection($connection_id);
+
+        wp_send_json_success([
+            'thread_id' => $thread ? $thread->id : null,
+            'status'    => $thread ? $thread->status : null
+        ]);
     }
 
     /* ===============================
@@ -63,6 +145,7 @@ class NEXORA_CHAT_AJAX {
 
         check_ajax_referer('nexora_chat_nonce', 'nonce');
 
+        // Auth check
         if (!is_user_logged_in()) {
             wp_send_json_error('Unauthorized');
         }
@@ -71,12 +154,42 @@ class NEXORA_CHAT_AJAX {
         $message   = sanitize_text_field($_POST['message']);
         $user_id   = get_current_user_id();
 
+        // Basic validation
         if (!$thread_id || empty($message)) {
             wp_send_json_error('Invalid data');
         }
 
+        global $wpdb;
         $chat_db = new NEXORA_CHAT_DB();
 
+        /* ===============================
+            CHECK THREAD EXISTS
+        =============================== */
+        $thread = $chat_db->get_thread_status($thread_id);
+
+        if (!$thread) {
+            wp_send_json_error('Thread not found');
+        }
+
+        /* ===============================
+            CHECK THREAD STATUS
+        =============================== */
+        if ($thread->status !== 'active') {
+            wp_send_json_error('This conversation is closed');
+        }
+
+        /* ===============================
+            CHECK USER IS PARTICIPANT
+        =============================== */
+        $is_participant = $chat_db->is_user_in_thread($thread_id, $user_id);
+
+        if (!$is_participant) {
+            wp_send_json_error('Access denied');
+        }
+
+        /* ===============================
+            SEND MESSAGE
+        =============================== */
         $message_id = $chat_db->send_message($thread_id, $user_id, $message);
 
         wp_send_json_success([
@@ -84,55 +197,7 @@ class NEXORA_CHAT_AJAX {
         ]);
     }
 
-    /* ===============================
-       SEARCH USERS
-    =============================== */
-    public function search_users() {
-
-        check_ajax_referer('nexora_chat_nonce', 'nonce');
-
-        $keyword = sanitize_text_field($_POST['keyword']);
-        $user_id = get_current_user_id();
-
-        $profile_id = get_user_meta($user_id, '_profile_id', true);
-
-        $connections = get_posts([
-            'post_type' => 'user_connections',
-            'posts_per_page' => -1,
-            'meta_query' => [
-                ['key' => 'status', 'value' => 'accepted']
-            ]
-        ]);
-
-        $results = [];
-
-        foreach ($connections as $conn) {
-
-            $sender = get_post_meta($conn->ID, 'sender_profile_id', true);
-            $receiver = get_post_meta($conn->ID, 'receiver_profile_id', true);
-
-            if ($sender == $profile_id) {
-                $other = $receiver;
-            } elseif ($receiver == $profile_id) {
-                $other = $sender;
-            } else {
-                continue;
-            }
-
-            $username = get_post_meta($other, 'user_name', true);
-
-            if (stripos($username, $keyword) !== false) {
-                $wp_user_id = get_post_meta($other, '_wp_user_id', true);
-
-                $results[] = [
-                    'user_id' => $wp_user_id,   
-                    'username' => $username
-                ];
-            }
-        }
-
-        wp_send_json_success($results);
-    }
+    
 
     /* ===============================
        GET OR CREATE THREAD
@@ -148,8 +213,13 @@ class NEXORA_CHAT_AJAX {
         $user1 = get_current_user_id();
         $user2 = intval($_POST['user_id']);
         $subject = sanitize_text_field($_POST['subject']);
+        $connection_id = intval($_POST['connection_id']);
 
-        // $user2 = get_post_meta($profile_id_user2, '_wp_user_id', true);
+        // get status from connection
+        $status = get_post_meta($connection_id, 'status', true);
+
+        // thread status logic
+        $thread_status = ($status === 'accepted') ? 'active' : 'inactive';
 
         if (!$user2 || !$subject) {
             wp_send_json_error('Invalid data');
@@ -157,8 +227,8 @@ class NEXORA_CHAT_AJAX {
 
         $chat_db = new NEXORA_CHAT_DB();
 
-        // ✅ ALWAYS CREATE NEW THREAD
-        $thread_id = $chat_db->create_thread([$user1, $user2], 'private', $subject);
+        // ✅ ALWAYS CREATE NEW THREAD $type = 'private', $subject = ''
+        $thread_id = $chat_db->create_thread([$user1, $user2], $connection_id, $thread_status, 'private', $subject);
 
         wp_send_json_success([
             'thread_id' => $thread_id
@@ -175,7 +245,6 @@ class NEXORA_CHAT_AJAX {
         $thread_id = intval($_POST['thread_id']);
 
         $chat_db = new NEXORA_CHAT_DB();
-
         $subject = $chat_db->get_thread_subject($thread_id);
 
         wp_send_json_success([
@@ -198,30 +267,5 @@ class NEXORA_CHAT_AJAX {
         $chat_db->update_thread_subject($thread_id, $subject);
 
         wp_send_json_success();
-    }
-
-    /* ===============================
-       GET LATEST THREAD 
-    =============================== */
-    public function get_latest_thread_between_users() {
-
-        check_ajax_referer('nexora_chat_nonce', 'nonce');
-
-        $user1 = get_current_user_id();
-        $user2 = intval($_POST['user_id']);
-        if (!$user2) {
-            wp_send_json_error();
-        }
-
-        global $wpdb;
-
-        $chat_db = new NEXORA_CHAT_DB();
-
-        // ✅ CLEAN (NO DIRECT QUERY)
-        $thread_id = $chat_db->get_latest_thread_between_users($user1, $user2);
-
-        wp_send_json_success([
-            'thread_id' => $thread_id
-        ]);
     }
 }

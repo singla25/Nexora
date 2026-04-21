@@ -8,6 +8,100 @@ let currentChatUserName = '';
 let currentChatPairName = '';
 
 /* ===============================
+   SEARCH SYSTEM
+=============================== */
+jQuery(document).on('focus', '#chat-search', function(){
+
+    jQuery.post(nexoraChat.ajax_url, {
+        action: 'nexora_search_users',
+        keyword: '',
+        nonce: nexoraChat.nonce
+    }, res => renderSearchList(res.data));
+});
+
+jQuery(document).on('keyup', '#chat-search', function(){
+
+    let val = jQuery(this).val();
+
+    jQuery.post(nexoraChat.ajax_url, {
+        action: 'nexora_search_users',
+        keyword: val,
+        nonce: nexoraChat.nonce
+    }, res => renderSearchList(res.data));
+});
+
+function renderSearchList(users){
+
+    let html = '';
+
+    users.forEach(user => {
+        html += `<div class="chat-user" 
+                    data-user="${user.user_id}"
+                    data-connection-id="${user.connection_id}"
+                    data-status="${user.status}">
+                    ${user.username}
+                </div>`
+        ;
+    });
+
+    jQuery('#chat-search-results').html(html);
+}
+
+jQuery(document).on('click', '.chat-user', function(){
+
+    let userId = jQuery(this).data('user');
+    let username = jQuery(this).text();
+    let connectionId = jQuery(this).data('connection-id');
+    let status = jQuery(this).data('status');
+
+    if (!userId) {
+        console.error("User ID missing in thread");
+    }
+
+    currentChatUserName = username;
+    currentUserContext = null;
+
+    updateChatHeader();
+
+    jQuery.post(nexoraChat.ajax_url, {
+        action: 'nexora_get_latest_thread_between_users',
+        user_id: userId,
+        connection_id: connectionId,
+        nonce: nexoraChat.nonce
+    }, function(res){
+
+        if (res.success && res.data.thread_id) {
+
+            currentThread = res.data.thread_id;
+
+            window.currentThreadStatus = res.data.status; // ✅ FIX
+
+            window.selectedUserForThread = userId;
+            window.selectedConnectionId = connectionId;
+            window.currentConnectionStatus = status;
+
+            openChat(currentThread);
+
+        } else {
+
+            window.selectedUserForThread = userId;
+            window.selectedConnectionId = connectionId;
+            window.currentConnectionStatus = status;
+
+            openChat(null);
+        }
+
+        // ✅ NOW THIS WILL WORK
+        console.log("User:", window.selectedUserForThread);
+        console.log("Connection:", window.selectedConnectionId);
+        console.log("Status:", window.currentConnectionStatus);
+    });
+
+    jQuery('#chat-search').val('');
+    jQuery('#chat-search-results').html('');
+});
+
+/* ===============================
    OPEN / CLOSE CHAT
 =============================== */
 function openChat(threadId = null) {
@@ -17,37 +111,120 @@ function openChat(threadId = null) {
     jQuery('#nexora-chat-modal').fadeIn();
     updateChatHeader();
 
-    // NEW CHAT
+    // 🧹 Always reset UI first
+    jQuery('#chat-messages').html('');
+    jQuery('#chat-subject-area').html('');
+    jQuery('#chat-sub-header').html('');
+    jQuery('.chat-footer').show();
+
+    /* ===============================
+       🟢 NEW CHAT
+    =============================== */
     if (!threadId) {
 
         if (window.selectedUserForThread) {
             renderSubjectUI('', true);
-        } else {
-            jQuery('#chat-subject-area').html('');
         }
-
-        jQuery('#chat-sub-header').html('');
 
         jQuery('#chat-messages').html(`
             <div class="chat-empty-state">
                 <div class="chat-empty-icon">💬</div>
                 <div class="chat-empty-title">Start a Conversation</div>
-                <div class="chat-empty-sub">Select a user and begin chatting</div>
+                <div class="chat-empty-sub">Enter subject & send message</div>
             </div>
         `);
+
+        // ✅ ADD THIS (IMPORTANT)
+        if (window.currentConnectionStatus === 'accepted') {
+
+            jQuery('.chat-footer').html(`
+                <input type="text" id="chat-input" placeholder="Type message..." />
+                <button id="chat-send">Send</button>
+            `).show();
+
+        } else {
+
+            jQuery('.chat-footer').html(`
+                <div class="chat-disabled-msg">
+                    🚫 This conversation is no longer active.<br>
+                    You can only view previous messages.
+                </div>
+            `).show();
+        }
 
         return;
     }
 
-    // EXISTING CHAT
-    loadMessages();
-    renderSubHeader(true);   // Sub header
+    /* ===============================
+       🔵 EXISTING CHAT
+    =============================== */
 
+    // Load messages
+    loadMessages();
+
+    let isInactive = false;
+
+    if (threadId) {
+        isInactive = (window.currentThreadStatus === 'inactive');
+    } else {
+        isInactive = (window.currentConnectionStatus !== 'accepted');
+    }
+
+    if (isInactive) {
+
+        jQuery('.chat-footer').html(`
+            <div class="chat-disabled-msg">
+                🚫 This conversation is no longer active.<br>
+                You can only view previous messages.
+            </div>
+        `);
+
+        jQuery('#chat-sub-header').html('');
+
+    } else {
+
+        jQuery('.chat-footer').html(`
+            <input type="text" id="chat-input" placeholder="Type message..." />
+            <button id="chat-send">Send</button>
+        `);
+
+        renderSubHeader(true);
+    }
+
+    // let statusToCheck = threadId 
+    //     ? window.currentThreadStatus 
+    //     : window.currentConnectionStatus;
+
+    // if (statusToCheck !== 'accepted' && statusToCheck !== 'active') {
+
+    //     jQuery('.chat-footer').html(`
+    //         <div class="chat-disabled-msg">
+    //             🚫 This conversation is no longer active.<br>
+    //             You can only view previous messages.
+    //         </div>
+    //     `);
+
+    //     jQuery('#chat-sub-header').html('');
+
+    // } else {
+
+    //     jQuery('.chat-footer').html(`
+    //         <input type="text" id="chat-input" placeholder="Type message..." />
+    //         <button id="chat-send">Send</button>
+    //     `);
+
+    //     renderSubHeader(true);
+    // }
+
+    /* ===============================
+       📌 LOAD SUBJECT
+    =============================== */
     jQuery.post(nexoraChat.ajax_url, {
         action: 'nexora_get_thread_subject',
         thread_id: threadId,
         nonce: nexoraChat.nonce
     }, function(res){
+
         if (res.success) {
             renderSubjectUI(res.data.subject);
         }
@@ -140,6 +317,7 @@ jQuery(document).on('click', '#chat-send', function(){
         jQuery.post(nexoraChat.ajax_url, {
             action: 'nexora_create_thread_with_subject',
             user_id: window.selectedUserForThread,
+            connection_id: window.selectedConnectionId,
             subject: subject,
             nonce: nexoraChat.nonce
         }, function(res){
@@ -198,7 +376,7 @@ function loadUserThreads() {
                 : '';
 
             html += `
-                <div class="chat-thread" data-thread="${thread.id}" data-user="${thread.other_user_id}">
+                <div class="chat-thread" data-thread="${thread.id}" data-user="${thread.other_user_id}" data-connection-id="${thread.connection_id}" data-status="${thread.status}">
                     <div class="chat-thread-name">${thread.name}</div>
                     <div class="chat-thread-badge">${badge}</div>
                     <div class="chat-thread-last">${subject}</div>
@@ -215,98 +393,25 @@ function loadUserThreads() {
 =============================== */
 jQuery(document).on('click', '.chat-thread', function(){
 
-    jQuery('.chat-thread').removeClass('active');
-    jQuery(this).addClass('active');
-
     let name = jQuery(this).find('.chat-thread-name').text();
     let threadId = jQuery(this).data('thread');
     let userId   = jQuery(this).data('user');
-
-    if (!userId) {
-        console.error("User ID missing in thread");
-    }
+    let status   = jQuery(this).data('status');
+    let connectionId = jQuery(this).data('connection-id'); // ✅
 
     currentChatUserName = name;
     currentUserContext = null;
 
     window.selectedUserForThread = userId;
+    window.currentThreadStatus = status;
+    window.selectedConnectionId = connectionId; // ✅ IMPORTANT
+
+    console.log("Thread Click → Connection:", connectionId);
 
     updateChatHeader();
     openChat(threadId);
-    // loadUserThreads();
 });
 
-/* ===============================
-   SEARCH SYSTEM
-=============================== */
-jQuery(document).on('focus', '#chat-search', function(){
-
-    jQuery.post(nexoraChat.ajax_url, {
-        action: 'nexora_search_users',
-        keyword: '',
-        nonce: nexoraChat.nonce
-    }, res => renderSearchList(res.data));
-});
-
-jQuery(document).on('keyup', '#chat-search', function(){
-
-    let val = jQuery(this).val();
-
-    jQuery.post(nexoraChat.ajax_url, {
-        action: 'nexora_search_users',
-        keyword: val,
-        nonce: nexoraChat.nonce
-    }, res => renderSearchList(res.data));
-});
-
-function renderSearchList(users){
-
-    let html = '';
-
-    users.forEach(user => {
-        html += `<div class="chat-user" data-user="${user.user_id}">${user.username}</div>`;
-    });
-
-    jQuery('#chat-search-results').html(html);
-}
-
-jQuery(document).on('click', '.chat-user', function(){
-
-    let userId = jQuery(this).data('user');
-    let username = jQuery(this).text();
-
-    if (!userId) {
-        console.error("User ID missing in thread");
-    }
-
-    currentChatUserName = username;
-    currentUserContext = null;
-
-    updateChatHeader();
-
-    jQuery.post(nexoraChat.ajax_url, {
-        action: 'nexora_get_latest_thread_between_users',
-        user_id: userId,
-        nonce: nexoraChat.nonce
-    }, function(res){
-
-        if (res.success && res.data.thread_id) {
-
-            currentThread = res.data.thread_id;
-            window.selectedUserForThread = userId;
-
-            openChat(currentThread);
-
-        } else {
-
-            window.selectedUserForThread = userId;
-            openChat(null);
-        }
-    });
-
-    jQuery('#chat-search').val('');
-    jQuery('#chat-search-results').html('');
-});
 
 /* ===============================
    HEADER
@@ -388,10 +493,19 @@ function renderSubHeader(existingThread = false){
     }
 }
 
+/* ===============================
+   START NEW CHAT (USER ONLY)
+=============================== */
 jQuery(document).on('click', '#start-new-chat', function(){
 
     if (!window.selectedUserForThread) {
         alert('User not selected');
+        return;
+    }
+
+    // 🔥 ENSURE CONNECTION DATA EXISTS
+    if (!window.selectedConnectionId) {
+        alert('Connection missing. Please select user again.');
         return;
     }
 
@@ -407,8 +521,11 @@ jQuery(document).on('click', '#start-new-chat', function(){
         </div>
     `);
 
-    console.log("Thread:", currentThread);
-    console.log("Selected User:", window.selectedUserForThread);
+    // ✅ DEBUG
+    console.log("New Chat Context:");
+    console.log("User:", window.selectedUserForThread);
+    console.log("Connection:", window.selectedConnectionId);
+    console.log("Status:", window.currentConnectionStatus);
 });
 
 /* ===============================
@@ -421,31 +538,140 @@ setInterval(() => {
 /* ===============================
    ADMIN: OPEN CHAT 
 =============================== */
+
+// jQuery(document).on('click', '.nexora-open-chat', function () {
+
+//     let threadId = jQuery(this).data('thread');
+//     let userId = jQuery(this).data('user');
+//     let name     = jQuery(this).data('name');
+
+//     if (!userId) {
+//         console.error("User ID missing in thread");
+//     }
+
+//     currentUserContext = userId;
+//     currentChatPairName = name;
+
+//     updateChatHeader();
+
+//     openChat(threadId);
+// });
+
 jQuery(document).on('click', '.nexora-open-chat', function () {
 
     let threadId = jQuery(this).data('thread');
-    let userId = jQuery(this).data('user');
+    let userId   = jQuery(this).data('user');
     let name     = jQuery(this).data('name');
 
-    if (!userId) {
-        console.error("User ID missing in thread");
-    }
+    openAdminChat(threadId, userId, name);
+});
 
+function openAdminChat(threadId, userId, name) {
+
+    if (!threadId) return;
+
+    // set admin context
+    currentThread = threadId;
     currentUserContext = userId;
     currentChatPairName = name;
 
-    updateChatHeader();
+    // open modal
+    jQuery('#nexora-chat-modal').fadeIn();
 
-    openChat(threadId);
-});
+    // header
+    jQuery('#chat-title').text('Chat Between ' + name);
+
+    // ❌ REMOVE EVERYTHING EXTRA
+    jQuery('#chat-subject-area').html('');
+    jQuery('#chat-sub-header').html('');
+    jQuery('.chat-footer').hide();
+
+    // clean messages
+    jQuery('#chat-messages').html('<div class="chat-loading">Loading...</div>');
+
+    // load messages only
+    jQuery.post(nexoraChat.ajax_url, {
+        action: 'nexora_get_messages',
+        thread_id: threadId,
+        nonce: nexoraChat.nonce
+    }, function (res) {
+
+        if (!res.success) return;
+
+        let html = '';
+
+        res.data.forEach(msg => {
+
+            let side = (msg.sender_id == userId) ? 'left' : 'right';
+
+            let time = new Date(msg.created_at).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            html += `
+                <div class="chat-msg ${side}">
+                    <div class="chat-text">
+                        <div class="chat-name">${msg.sender_name || ''}</div>
+                        ${msg.message}
+                        <div class="chat-time">${time}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        jQuery('#chat-messages').html(html);
+
+        let box = document.getElementById('chat-messages');
+        box.scrollTop = box.scrollHeight;
+    });
+}
 
 /* ===============================
    USER: OPEN CHAT SYSTEM
 =============================== */
+// jQuery(document).on('click', '[data-type="chat"]', function(){
+
+//     currentUserContext = null;
+
+//     openChat();          // open empty
+//     loadUserThreads();   // load sidebar
+// });
+
 jQuery(document).on('click', '[data-type="chat"]', function(){
 
+    // ✅ RESET STATE
+    currentThread = null;
     currentUserContext = null;
 
-    openChat();          // open empty
-    loadUserThreads();   // load sidebar
+    window.selectedUserForThread = null;
+    window.selectedConnectionId = null;
+    window.currentThreadStatus = null;
+    window.currentConnectionStatus = null;
+
+    currentChatUserName = '';
+    currentChatPairName = '';
+
+    updateChatHeader();
+
+    // ✅ OPEN CHAT MODAL
+    jQuery('#nexora-chat-modal').fadeIn();
+
+    // ✅ LOAD SIDEBAR (IMPORTANT)
+    loadUserThreads();
+
+    // ✅ EMPTY STATE UI
+    jQuery('#chat-messages').html(`
+        <div class="chat-empty-state">
+            <div class="chat-empty-icon">💬</div>
+            <div class="chat-empty-title">Start a Conversation</div>
+            <div class="chat-empty-sub">Enter subject & send message</div>
+        </div>
+    `);
+
+    jQuery('#chat-subject-area').html('');
+    jQuery('#chat-sub-header').html('');
+
+    // ❌ hide footer until user selected
+    jQuery('.chat-footer').html('').hide();
 });

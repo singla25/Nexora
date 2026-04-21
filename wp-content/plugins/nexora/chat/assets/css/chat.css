@@ -334,3 +334,13 @@
 #start-new-chat:hover {
     opacity: 0.9;
 }
+
+.chat-disabled-msg {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    background: #fff3f3;
+    color: #b91c1c;
+    font-size: 13px;
+    border-top: 1px solid #eee;
+}

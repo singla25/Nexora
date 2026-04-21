@@ -484,6 +484,12 @@ class NEXORA_PROFILE_PAGE {
 
         update_post_meta($connection_id, 'status', $status);
 
+        if ($status === 'removed') {
+
+            $chat_db = new NEXORA_CHAT_DB();
+            $chat_db->inactive_threads_by_connection($connection_id);
+        }
+
         // Fetch connection data (here sender and reciever are from user_connection cpt)
         $sender_user_id      = get_post_meta($connection_id, 'sender_user_id', true);
         $sender_user_name    = get_post_meta($connection_id, 'sender_user_name', true);

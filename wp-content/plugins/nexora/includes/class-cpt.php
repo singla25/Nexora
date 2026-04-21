@@ -115,8 +115,10 @@ class NEXORA_CPT {
         add_meta_box('user_document_details', 'User Document Details', [$this, 'user_document_details'], 'user_profile');
         add_meta_box('user_connection_details', 'User Connection Details', [$this, 'user_connection_details'], 'user_profile');
         add_meta_box('user_content_details', 'User Content Details', [$this, 'user_content_details'], 'user_profile');
+        add_meta_box('user_chat_details', 'User Chat Details', [$this, 'user_chat_details'], 'user_profile');
 
         add_meta_box('user_connection_meta_box', 'User Connection Details', [$this, 'user_connection_meta_box'], 'user_connections');
+        add_meta_box('user_connection_chat_box', 'User Connection Chat Details', [$this, 'user_connection_chat_box'], 'user_connections');
 
         add_meta_box('user_content_meta_box', 'User Content Info', [$this, 'render_user_content_meta_box'], 'user_content');
     }
@@ -210,6 +212,8 @@ class NEXORA_CPT {
                 <thead>
                     <tr>
                         <th>Thread ID</th>
+                        <th>Connection ID</th> <!-- ✅ NEW -->
+                        <th>Status</th>        <!-- ✅ NEW -->
                         <th>User 1</th>
                         <th>User 2</th>
                         <th>Subject</th>
@@ -254,6 +258,14 @@ class NEXORA_CPT {
 
                     <tr>
                         <td><?php echo esc_html($thread->id); ?></td>
+                        <td><?php echo esc_html($thread->connection_id ?: '-'); ?></td>
+                        <td>
+                            <?php if ($thread->status === 'active'): ?>
+                                <span style="color: green; font-weight: 600;">Active</span>
+                            <?php else: ?>
+                                <span style="color: red; font-weight: 600;">Inactive</span>
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo esc_html($user1); ?></td>
                         <td><?php echo esc_html($user2); ?></td>
                         <td><?php echo esc_html($thread->subject ?: '-'); ?></td>
@@ -489,8 +501,9 @@ class NEXORA_CPT {
     }
 
     /* ===============================
-       PERSONAL
+       USER PROFILE METABOXES
     =============================== */
+    /* PERSONAL */
     public function user_personal_details($post) {
         ?>
 
@@ -519,9 +532,7 @@ class NEXORA_CPT {
         <?php
     }
 
-    /* ===============================
-       ADDRESS
-    =============================== */
+    /* ADDRESS*/
     public function user_address_details($post) {
         ?>
 
@@ -542,9 +553,7 @@ class NEXORA_CPT {
         <?php
     }
 
-    /* ===============================
-       WORK
-    =============================== */
+    /* WORK */
     public function user_work_details($post) {
         ?>
 
@@ -557,9 +566,7 @@ class NEXORA_CPT {
         <?php
     }
 
-    /* ===============================
-       DOCUMENTS (MEDIA UPLOAD)
-    =============================== */
+    /* DOCUMENTS (MEDIA UPLOAD) */
     public function user_document_details($post) {
 
         $fields = [
@@ -593,9 +600,7 @@ class NEXORA_CPT {
         }
     }
 
-    /* ===============================
-       USER CONNECTIONS
-    =============================== */
+    /* USER CONNECTIONS */
     public function user_connection_details($post) {
 
         $profile_id = $post->ID;
@@ -706,9 +711,7 @@ class NEXORA_CPT {
         <?php
     }
 
-    /* ===============================
-       USER CONTENT DETAIL
-    =============================== */
+    /* USER CONTENT DETAIL */
     public function user_content_details($post) {
 
         $profile_id = $post->ID;
@@ -768,9 +771,117 @@ class NEXORA_CPT {
         <?php
     }
 
+    /* USER CHAT DETAIL */
+    public function user_chat_details($post) {
+
+        $chat_db = new NEXORA_CHAT_DB();
+
+        $user_id = get_post_meta($post->ID, '_wp_user_id', true);
+
+        if (!$user_id) {
+            echo "<p>No user linked.</p>";
+            return;
+        }
+
+        $connections = $this->get_connections_by_user($user_id);
+
+        if (!$connections) {
+            echo "<p>No connections found.</p>";
+            return;
+        }
+
+        echo '<h3>💬 User Chat Overview</h3>';
+
+        echo '<table class="widefat striped" style="font-size:13px;">';
+        echo '<thead>
+                <tr>
+                    <th>User</th>
+                    <th>Connection ID</th>
+                    <th>Status</th>
+                    <th>Connection Time</th>
+                    <th>Threads</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+        foreach ($connections as $conn) {
+
+            $conn_id = $conn->ID;
+
+            $sender_id   = get_post_meta($conn_id, 'sender_user_id', true);
+            $receiver_id = get_post_meta($conn_id, 'receiver_user_id', true);
+            $status      = get_post_meta($conn_id, 'status', true);
+
+            // Other user
+            $other_user_id = ($sender_id == $user_id) ? $receiver_id : $sender_id;
+            $other_user    = get_userdata($other_user_id);
+            $other_name    = $other_user ? $other_user->display_name : '-';
+
+            // Connection time
+            $connection_time = get_the_date('d M Y, H:i', $conn_id);
+
+            // Status badge color
+            $status_color = match($status) {
+                'accepted' => '#16a34a',
+                'pending'  => '#f59e0b',
+                'removed'  => '#6b7280',
+                default    => '#dc2626'
+            };
+
+            // Threads
+            $threads = $chat_db->get_threads_by_connection($conn_id);
+
+            echo "<tr>";
+
+            echo "<td><strong>{$other_name}</strong></td>";
+
+            echo "<td>#{$conn_id}</td>";
+
+            echo "<td>
+                    <span style='color:white; background:{$status_color}; padding:3px 8px; border-radius:4px; font-size:12px;'>
+                        {$status}
+                    </span>
+                </td>";
+
+            echo "<td>{$connection_time}</td>";
+
+            echo "<td>";
+
+            if ($threads) {
+
+                echo "<ul style='margin:0;'>";
+
+                foreach ($threads as $t) {
+
+                    $thread_color = $t->status === 'active' ? '#16a34a' : '#dc2626';
+                    $subject = $t->subject ?: 'No Subject';
+
+                    echo "<li style='margin-bottom:5px;'>
+                            <strong>{$subject}</strong>
+                            <span style='color:{$thread_color}; font-weight:600; margin-left:6px;'>
+                                ● {$t->status}
+                            </span>
+                        </li>";
+                }
+
+                echo "</ul>";
+
+            } else {
+                echo "<span style='color:#6b7280;'>No conversations</span>";
+            }
+
+            echo "</td>";
+
+            echo "</tr>";
+        }
+
+        echo '</tbody></table>';
+    }
+
     /* ===============================
        USER CONNECTIONS META BOX
     =============================== */
+    /* USER CONNECTIONS DETAIL */
     public function user_connection_meta_box($post) {
 
         $sender_user_id     = get_post_meta($post->ID, 'sender_user_id', true);
@@ -831,6 +942,96 @@ class NEXORA_CPT {
         </table>
 
         <?php
+    }
+
+     /* USER CONNECTIONS CHAT DETAIL */
+    public function user_connection_chat_box($post) {
+
+        $chat_db = new NEXORA_CHAT_DB();
+        $threads = $chat_db->get_threads_by_connection($post->ID);
+
+        echo '<h3>💬 Connection Chat Threads</h3>';
+
+        if (!$threads) {
+            echo "<p>No threads found.</p>";
+            return;
+        }
+
+        echo '<table class="widefat striped" style="font-size:13px;">';
+        echo '<thead>
+                <tr>
+                    <th>Thread ID</th>
+                    <th>Users</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead><tbody>';
+
+        foreach ($threads as $thread) {
+
+            $user_ids = explode(',', $thread->participants);
+
+            // Get user names safely
+            $user1 = '-';
+            $user2 = '-';
+
+            if (!empty($user_ids[0])) {
+                $u1 = get_userdata($user_ids[0]);
+                $user1 = $u1 ? $u1->display_name : '-';
+            }
+
+            if (!empty($user_ids[1])) {
+                $u2 = get_userdata($user_ids[1]);
+                $user2 = $u2 ? $u2->display_name : '-';
+            }
+
+            // ✅ FIXED: DO NOT use get_current_user_id() in admin
+            $other_user = $user_ids[1] ?? $user_ids[0] ?? 0;
+
+            // Status color
+            $status = $thread->status;
+            $color = $status === 'active' ? '#16a34a' : '#dc2626';
+
+            // Subject fallback
+            $subject = $thread->subject ?: 'No Subject';
+
+            echo '<tr>';
+
+            echo '<td>#' . esc_html($thread->id) . '</td>';
+
+            echo '<td>' . esc_html($user1 . ' & ' . $user2) . '</td>';
+
+            echo '<td>' . esc_html($subject) . '</td>';
+
+            echo '<td>
+                    <span style="
+                        color:white;
+                        background:' . $color . ';
+                        padding:3px 8px;
+                        border-radius:4px;
+                        font-size:12px;
+                    ">
+                        ' . esc_html($status) . '
+                    </span>
+                </td>';
+
+            echo '<td>
+                    <button 
+                        type="button"
+                        class="button button-primary nexora-open-chat"
+                        data-thread="' . esc_attr($thread->id) . '"
+                        data-user="' . esc_attr($other_user) . '"
+                        data-name="' . esc_attr($user1 . ' and ' . $user2) . '"
+                    >
+                        View Chat
+                    </button>
+                </td>';
+
+            echo '</tr>';
+        }
+
+        echo '</tbody></table>';
     }
 
     /* ===============================
@@ -1031,5 +1232,24 @@ class NEXORA_CPT {
 
             echo $full_name;
         }
+    }
+
+    public function get_connections_by_user($user_id) {
+
+        return get_posts([
+            'post_type' => 'user_connections',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                'relation' => 'OR',
+                [
+                    'key' => 'sender_user_id',
+                    'value' => $user_id
+                ],
+                [
+                    'key' => 'receiver_user_id',
+                    'value' => $user_id
+                ]
+            ]
+        ]);
     }
 }
