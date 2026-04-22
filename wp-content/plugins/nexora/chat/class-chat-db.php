@@ -166,9 +166,8 @@ class NEXORA_CHAT_DB {
             SELECT 
                 t.*,
                 p.unread_count,
-
-                -- Get other participant
-                tp.user_id AS other_user_id
+                tp.user_id AS other_user_id,
+                m.message AS last_message
 
             FROM {$this->threads_table} t
 
@@ -178,7 +177,12 @@ class NEXORA_CHAT_DB {
             INNER JOIN {$this->participants_table} tp 
                 ON t.id = tp.thread_id AND tp.user_id != %d
 
-            ORDER BY t.updated_at DESC
+            LEFT JOIN {$this->messages_table} m 
+                ON t.last_message_id = m.id
+
+            ORDER BY 
+                CASE WHEN t.status = 'active' THEN 0 ELSE 1 END,
+                t.updated_at DESC
         ", $user_id, $user_id));
 
         // 🔥 ADD USER NAME (IMPORTANT)
@@ -351,54 +355,4 @@ class NEXORA_CHAT_DB {
             ['connection_id' => $connection_id]
         );
     }
-
-    /**
-     * Get thread between 2 users
-     */
-    // public function get_thread_between_users($user1, $user2) {
-    //     global $wpdb;
-
-    //     $thread_id = $wpdb->get_var($wpdb->prepare("
-    //         SELECT tp1.thread_id
-    //         FROM {$this->participants_table} tp1
-    //         INNER JOIN {$this->participants_table} tp2 
-    //             ON tp1.thread_id = tp2.thread_id
-    //         WHERE tp1.user_id = %d 
-    //         AND tp2.user_id = %d
-    //         LIMIT 1
-    //     ", $user1, $user2));
-
-    //     return $thread_id;
-    // }
-
-    /**
-     * GET OLDER MESSAGES (SCROLL UP)
-     */
-    // public function get_older_messages($thread_id, $last_message_id, $limit = 20) {
-    //     global $wpdb;
-
-    //     return $wpdb->get_results($wpdb->prepare("
-    //         SELECT *
-    //         FROM {$this->messages_table}
-    //         WHERE thread_id = %d
-    //         AND id < %d
-    //         ORDER BY id DESC
-    //         LIMIT %d
-    //     ", $thread_id, $last_message_id, $limit));
-    // }
-
-    /**
-     * GET NEW MESSAGES (POLLING)
-     */
-    // public function get_new_messages($thread_id, $last_message_id) {
-    //     global $wpdb;
-
-    //     return $wpdb->get_results($wpdb->prepare("
-    //         SELECT *
-    //         FROM {$this->messages_table}
-    //         WHERE thread_id = %d
-    //         AND id > %d
-    //         ORDER BY id ASC
-    //     ", $thread_id, $last_message_id));
-    // }
 }

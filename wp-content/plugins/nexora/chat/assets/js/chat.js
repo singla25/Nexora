@@ -191,31 +191,6 @@ function openChat(threadId = null) {
         renderSubHeader(true);
     }
 
-    // let statusToCheck = threadId 
-    //     ? window.currentThreadStatus 
-    //     : window.currentConnectionStatus;
-
-    // if (statusToCheck !== 'accepted' && statusToCheck !== 'active') {
-
-    //     jQuery('.chat-footer').html(`
-    //         <div class="chat-disabled-msg">
-    //             🚫 This conversation is no longer active.<br>
-    //             You can only view previous messages.
-    //         </div>
-    //     `);
-
-    //     jQuery('#chat-sub-header').html('');
-
-    // } else {
-
-    //     jQuery('.chat-footer').html(`
-    //         <input type="text" id="chat-input" placeholder="Type message..." />
-    //         <button id="chat-send">Send</button>
-    //     `);
-
-    //     renderSubHeader(true);
-    // }
-
     /* ===============================
        📌 LOAD SUBJECT
     =============================== */
@@ -354,8 +329,10 @@ function sendMessageNow(message) {
 }
 
 /* ===============================
-   THREAD LIST
+    CHAT THREAD FLOW
 =============================== */
+
+// LOAD THREAD LIST IN SIDEBAR
 function loadUserThreads() {
 
     jQuery.post(nexoraChat.ajax_url, {
@@ -367,30 +344,80 @@ function loadUserThreads() {
 
         let html = '';
 
+        // ✅ SORT BY LATEST UPDATED
+        // res.data.sort((a, b) => {
+        //     return new Date(b.updated_at) - new Date(a.updated_at);
+        // });
+
+        let activeHTML = '';
+        let inactiveHTML = '';
+
         res.data.forEach(thread => {
 
-            let subject = thread.subject || 'No subject';
+            // let subject = thread.subject || 'No subject';
+            let subject = thread.subject || 'No subject yet';
+
+            let last_message = thread.last_message || 'No messages yet';
 
             let badge = thread.unread_count > 0
                 ? `<span class="chat-badge">${thread.unread_count}</span>`
                 : '';
 
-            html += `
-                <div class="chat-thread" data-thread="${thread.id}" data-user="${thread.other_user_id}" data-connection-id="${thread.connection_id}" data-status="${thread.status}">
+            let time = new Date(thread.updated_at).toLocaleString([], {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            let item = `
+                <div class="chat-thread" 
+                    data-thread="${thread.id}" 
+                    data-user="${thread.other_user_id}" 
+                    data-connection-id="${thread.connection_id}" 
+                    data-status="${thread.status}">
+                    
                     <div class="chat-thread-name">${thread.name}</div>
                     <div class="chat-thread-badge">${badge}</div>
-                    <div class="chat-thread-last">${subject}</div>
+                    <div class="chat-thread-last">
+                        ${subject}
+                        <div class="chat-thread-time">${last_message} : ${time}</div>
+                    </div>
                 </div>
             `;
+
+            if (thread.status === 'active') {
+                activeHTML += item;
+            } else {
+                inactiveHTML += item;
+            }
+
+            // html += `
+            //     <div class="chat-thread" data-thread="${thread.id}" data-user="${thread.other_user_id}" data-connection-id="${thread.connection_id}" data-status="${thread.status}">
+            //         <div class="chat-thread-name">${thread.name}</div>
+            //         <div class="chat-thread-badge">${badge}</div>
+            //         <div class="chat-thread-last">
+            //             ${subject}
+            //             <div class="chat-thread-time">${time}</div>
+            //         </div>
+            //     </div>
+            // `;
         });
 
-        jQuery('#chat-thread-list').html(html);
+        let finalHTML = `
+            <div class="chat-section-title">Active Chats</div>
+            ${activeHTML}
+
+            <div class="chat-section-title">Old Conversations</div>
+            ${inactiveHTML}
+        `;
+
+        jQuery('#chat-thread-list').html(finalHTML);
+        // jQuery('#chat-thread-list').html(html);
     });
 }
 
-/* ===============================
-   THREAD CLICK
-=============================== */
+// OPEN CHAT (THREAD)
 jQuery(document).on('click', '.chat-thread', function(){
 
     let name = jQuery(this).find('.chat-thread-name').text();
@@ -414,7 +441,7 @@ jQuery(document).on('click', '.chat-thread', function(){
 
 
 /* ===============================
-   HEADER
+   CHAT HEADER (Admin Side)
 =============================== */
 function updateChatHeader() {
 
@@ -426,7 +453,7 @@ function updateChatHeader() {
 }
 
 /* ===============================
-   SUBJECT UI
+   SUBJECT UI (USER SIDE)
 =============================== */
 function renderSubjectUI(subject = '', isNew = false) {
 
@@ -477,9 +504,9 @@ jQuery(document).on('click', '#save-subject', function(){
     });
 });
 
-/* ===============================
-   SUB HEADER (USER ONLY)
-=============================== */
+/* ====================================================
+   SUB HEADER - Start New Conversatation (USER ONLY)
+==================================================== */
 function renderSubHeader(existingThread = false){
 
     if (existingThread && !currentUserContext) {
@@ -493,9 +520,7 @@ function renderSubHeader(existingThread = false){
     }
 }
 
-/* ===============================
-   START NEW CHAT (USER ONLY)
-=============================== */
+// START NEW CHAT (USER ONLY)
 jQuery(document).on('click', '#start-new-chat', function(){
 
     if (!window.selectedUserForThread) {
@@ -503,7 +528,7 @@ jQuery(document).on('click', '#start-new-chat', function(){
         return;
     }
 
-    // 🔥 ENSURE CONNECTION DATA EXISTS
+    // ENSURE CONNECTION DATA EXISTS
     if (!window.selectedConnectionId) {
         alert('Connection missing. Please select user again.');
         return;
@@ -538,25 +563,6 @@ setInterval(() => {
 /* ===============================
    ADMIN: OPEN CHAT 
 =============================== */
-
-// jQuery(document).on('click', '.nexora-open-chat', function () {
-
-//     let threadId = jQuery(this).data('thread');
-//     let userId = jQuery(this).data('user');
-//     let name     = jQuery(this).data('name');
-
-//     if (!userId) {
-//         console.error("User ID missing in thread");
-//     }
-
-//     currentUserContext = userId;
-//     currentChatPairName = name;
-
-//     updateChatHeader();
-
-//     openChat(threadId);
-// });
-
 jQuery(document).on('click', '.nexora-open-chat', function () {
 
     let threadId = jQuery(this).data('thread');
@@ -630,17 +636,9 @@ function openAdminChat(threadId, userId, name) {
 /* ===============================
    USER: OPEN CHAT SYSTEM
 =============================== */
-// jQuery(document).on('click', '[data-type="chat"]', function(){
-
-//     currentUserContext = null;
-
-//     openChat();          // open empty
-//     loadUserThreads();   // load sidebar
-// });
-
 jQuery(document).on('click', '[data-type="chat"]', function(){
 
-    // ✅ RESET STATE
+    // RESET STATE
     currentThread = null;
     currentUserContext = null;
 
@@ -654,13 +652,13 @@ jQuery(document).on('click', '[data-type="chat"]', function(){
 
     updateChatHeader();
 
-    // ✅ OPEN CHAT MODAL
+    // OPEN CHAT MODAL
     jQuery('#nexora-chat-modal').fadeIn();
 
-    // ✅ LOAD SIDEBAR (IMPORTANT)
+    // LOAD SIDEBAR (IMPORTANT)
     loadUserThreads();
 
-    // ✅ EMPTY STATE UI
+    // EMPTY STATE UI
     jQuery('#chat-messages').html(`
         <div class="chat-empty-state">
             <div class="chat-empty-icon">💬</div>
@@ -672,6 +670,6 @@ jQuery(document).on('click', '[data-type="chat"]', function(){
     jQuery('#chat-subject-area').html('');
     jQuery('#chat-sub-header').html('');
 
-    // ❌ hide footer until user selected
+    // hide footer until user selected
     jQuery('.chat-footer').html('').hide();
 });
