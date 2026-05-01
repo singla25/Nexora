@@ -164,6 +164,16 @@ class NEXORA_System {
     // ===============================
     public function create_new_tables() {
 
+        // CREATE VENDOR ROLE
+        if (!get_role('vendor')) {
+            add_role('vendor', 'Vendor', [
+                'read' => true,
+                'upload_files' => true,
+                'edit_posts' => true,
+                'delete_posts' => false,
+            ]);
+        }
+
         // Notification Table
         $notification = new NEXORA_Notification();
         $notification->create_table();
