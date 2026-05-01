@@ -24,6 +24,8 @@ require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
 
 require_once NEXORA_PATH . 'chat/class-chat-core.php';
 
+require_once NEXORA_PATH . 'includes/class-vendor-registration.php';
+
 class NEXORA_System {
 
     public function __construct() {
@@ -38,6 +40,8 @@ class NEXORA_System {
         new Nexora_Better_Message_CHAT_Page();
         new NEXORA_CHAT_CORE();
         new Nexora_ReCaptcha();
+
+        new NEXORA_Vendor_Registration();
 
         // GLOBAL ASSETS
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);

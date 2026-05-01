@@ -59,14 +59,10 @@ body {
     outline: none;
 }
 
-/* BUTTON FULL WIDTH */
-.profile-registration-form-btn {
+/* BUTTON STYLE */
+.profile-registration-form-btn, .vendor-registration-form-btn {
     grid-column: span 2;
     margin-top: 10px;
-}
-
-/* BUTTON STYLE */
-.profile-registration-form-btn {
     width: 100%;
     padding: 15px;
     background: linear-gradient(135deg, #3b82f6, #2563eb);
@@ -80,7 +76,7 @@ body {
 }
 
 /* HOVER */
-.profile-registration-form-btn:hover {
+.profile-registration-form-btn:hover, .vendor-registration-form-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(59,130,246,0.2);
 }
@@ -156,7 +152,36 @@ body {
 		margin: 35px auto;
     }
 
-    .profile-registration-form-btn {
+    .profile-registration-form-btn, .vendor-registration-form-btn {
         grid-column: span 1;
     }
+}
+
+
+/* Vendor */
+/* SECTION TITLE (Business Details) */
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #334155;
+    margin-top: 10px;
+    margin-bottom: -5px;
+}
+
+/* TEXTAREA MATCH INPUT STYLE */
+.profile-registration-form-grid textarea {
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #f8fafc;
+    transition: all 0.25s ease;
+    resize: none;
+}
+
+.profile-registration-form-grid textarea:focus {
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    outline: none;
 }

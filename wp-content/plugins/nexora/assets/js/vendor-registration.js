@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    jQuery(document).on('submit', '#profile-registration-form', function (e) {
+    jQuery(document).on('submit', '#vendor-registration-form', function (e) {
 
         e.preventDefault();
 
         const form = this;
-        
+
         Swal.fire({
-            title: 'Create Account?',
+            title: 'Create Vendor Account?',
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes'
@@ -15,19 +15,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!result.isConfirmed) return;
 
-            // Add captcha
+            // CAPTCHA
             let captcha = '';
 
             if (typeof grecaptcha !== 'undefined') {
                 captcha = grecaptcha.getResponse();
             }
 
-            // Validate captcha (only if exists)
-            if (typeof grecaptcha !== 'undefined') {
-                if (!captcha) {
-                    alert("Please complete captcha");
-                    return;
-                }
+            if (typeof grecaptcha !== 'undefined' && !captcha) {
+                Swal.fire('Error', 'Please complete captcha', 'error');
+                return;
             }
 
             Swal.fire({
@@ -39,12 +36,12 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const formData = new FormData(form);
-            formData.append('action', 'profile_register');
-            formData.append('nonce', profileData.nonce);
+            formData.append('action', 'vendor_register');
+            formData.append('nonce', vendorData.nonce);
             formData.append('g-recaptcha-response', captcha);
 
             jQuery.ajax({
-                url: profileData.ajaxUrl,
+                url: vendorData.ajaxUrl,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -60,7 +57,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
 
                     } else {
+
                         Swal.fire('Error', res.data, 'error');
+
                         if (typeof grecaptcha !== 'undefined') {
                             grecaptcha.reset();
                         }
@@ -75,5 +74,3 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-
-

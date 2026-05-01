@@ -88,6 +88,15 @@ class NEXORA_CPT {
             'menu_icon' => 'dashicons-groups',
         ]);
 
+        register_post_type('vendor_profile', [
+            'label' => 'Vendor Profiles',
+            'public' => false,
+            'show_ui' => true,
+            'supports' => ['title', 'thumbnail'],
+            'show_in_menu' => 'nexora-system',
+            'menu_icon' => 'dashicons-store',
+        ]);
+
         register_post_type('user_connections', [
             'label' => 'User Connections',
             'public' => false,
@@ -121,6 +130,11 @@ class NEXORA_CPT {
         add_meta_box('user_connection_chat_box', 'User Connection Chat Details', [$this, 'user_connection_chat_box'], 'user_connections');
 
         add_meta_box('user_content_meta_box', 'User Content Info', [$this, 'render_user_content_meta_box'], 'user_content');
+
+        add_meta_box('vendor_personal_details', 'Vendor Personal Details', [$this, 'vendor_personal_details'], 'vendor_profile');
+        add_meta_box('vendor_address_details', 'Vendor Address Details', [$this, 'vendor_address_details'], 'vendor_profile');
+        add_meta_box('vendor_document_details', 'Vendor Document Details', [$this, 'vendor_document_details'], 'vendor_profile');
+        add_meta_box('vendor_business_details', 'Vendor Business Details', [$this, 'vendor_business_details'], 'vendor_profile');
     }
 
     public function register_settings() {
@@ -500,19 +514,36 @@ class NEXORA_CPT {
         <?php
     }
 
+
     /* ===============================
-       USER PROFILE METABOXES
+       COMMON FUNCTIONS
     =============================== */
-    /* PERSONAL */
-    public function user_personal_details($post) {
+    public function render_personal_fields($post) {
         ?>
 
-        <input type="text" name="user_name" placeholder="User Name" value="<?php echo esc_attr(get_post_meta($post->ID, 'user_name', true)); ?>" class="widefat"><br><br>
-        <input type="text" name="first_name" placeholder="First Name" value="<?php echo esc_attr(get_post_meta($post->ID, 'first_name', true)); ?>" class="widefat"><br><br>
-        <input type="text" name="last_name" placeholder="Last Name" value="<?php echo esc_attr(get_post_meta($post->ID, 'last_name', true)); ?>" class="widefat"><br><br>
-        <input type="email" name="email" placeholder="Email" value="<?php echo esc_attr(get_post_meta($post->ID, 'email', true)); ?>" class="widefat"><br><br>
-        <input type="text" name="phone" placeholder="Phone" value="<?php echo esc_attr(get_post_meta($post->ID, 'phone', true)); ?>" class="widefat"><br><br>
-        <input type="text" name="linkedin_id" placeholder="LinkedIn" value="<?php echo esc_attr(get_post_meta($post->ID, 'linkedin_id', true)); ?>" class="widefat"><br><br>
+        <input type="text" name="user_name" placeholder="User Name"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'user_name', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="first_name" placeholder="First Name"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'first_name', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="last_name" placeholder="Last Name"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'last_name', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="email" name="email" placeholder="Email"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'email', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="phone" placeholder="Phone"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'phone', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="linkedin_id" placeholder="LinkedIn"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'linkedin_id', true)); ?>"
+            class="widefat"><br><br>
 
         <label>Gender</label>
         <select name="gender" class="widefat">
@@ -532,10 +563,8 @@ class NEXORA_CPT {
         <?php
     }
 
-    /* ADDRESS*/
-    public function user_address_details($post) {
+    public function render_address_fields($post) {
         ?>
-
         <h3>Permanent Address</h3>
 
         <input type="text" name="perm_address" placeholder="Address" value="<?php echo esc_attr(get_post_meta($post->ID, 'perm_address', true)); ?>" class="widefat"><br><br>
@@ -551,6 +580,19 @@ class NEXORA_CPT {
         <input type="text" name="corr_pincode" placeholder="Pincode" value="<?php echo esc_attr(get_post_meta($post->ID, 'corr_pincode', true)); ?>" class="widefat"><br><br>
 
         <?php
+    }
+
+    /* ===============================
+       USER PROFILE METABOXES
+    =============================== */
+    /* PERSONAL */
+    public function user_personal_details($post) {
+        $this->render_personal_fields($post);
+    }
+
+    /* ADDRESS*/
+    public function user_address_details($post) {
+        $this->render_address_fields($post);
     }
 
     /* WORK */
@@ -1067,6 +1109,83 @@ class NEXORA_CPT {
     }
 
     /* ===============================
+       VENDOR PROFILE METABOXES
+    =============================== */
+    /* PERSONAL */
+    public function vendor_personal_details($post) {
+        $this->render_personal_fields($post);
+    }
+
+    /* Address */
+    public function vendor_address_details($post) {
+        $this->render_address_fields($post);
+    }
+
+    /* Document */
+    public function vendor_document_details($post) {
+
+        $fields = [
+            'profile_image'    => 'Profile Image',
+            'cover_image'      => 'Cover Image',
+            'aadhaar_card'     => 'Aadhar Card',
+            'company_id_card'  => 'Company ID Card',
+            'gst_certificate'  => 'GST Certificate',
+            'business_license' => 'Business License',
+            'pan_card'         => 'PAN Card',
+            'bank_proof'       => 'Bank Proof'
+        ];
+
+        foreach ($fields as $key => $label) {
+
+            $image_id = get_post_meta($post->ID, $key, true);
+            $image_url = $image_id ? wp_get_attachment_url($image_id) : '';
+            ?>
+
+            <div class="profile-upload-box">
+                <label><strong><?php echo $label; ?></strong></label><br>
+
+                <img src="<?php echo esc_url($image_url); ?>"
+                    class="profile-preview"
+                    style="max-width:150px; display:<?php echo $image_url ? 'block' : 'none'; ?>; margin-bottom:10px;">
+
+                <input type="hidden" name="<?php echo $key; ?>" value="<?php echo esc_attr($image_id); ?>">
+
+                <button type="button" class="button upload-btn">Upload</button>
+                <button type="button" class="button remove-btn" style="<?php echo $image_url ? '' : 'display:none;'; ?>">Remove</button>
+            </div>
+            <hr>
+
+            <?php
+        }
+    }
+
+    /* BUSINESS */
+    public function vendor_business_details($post) {
+        ?>
+
+        <input type="text" name="business_name" placeholder="Business Name"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_name', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="business_phone" placeholder="Business Phone"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_phone', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="email" name="business_email" placeholder="Business Email"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_email', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="business_type" placeholder="Business Type"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_type', true)); ?>"
+            class="widefat"><br><br>
+
+        <textarea name="business_address" placeholder="Business Address"
+            class="widefat"><?php echo esc_textarea(get_post_meta($post->ID, 'business_address', true)); ?></textarea>
+
+        <?php
+    }
+
+    /* ===============================
        SAVE DATA
     =============================== */
     public function save_meta_boxes($post_id) {
@@ -1127,6 +1246,31 @@ class NEXORA_CPT {
             foreach ($fields as $field) {
                 if (isset($_POST[$field])) {
                     update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+                }
+            }
+        }
+
+        // ===============================
+        // VENDOR PROFILE SAVE
+        // ===============================
+        if ($post_type === 'vendor_profile') {
+
+            $fields = [
+                'user_name','first_name','last_name','email','phone','linkedin_id','bio','gender','birthdate',
+                'perm_address','perm_city','perm_state','perm_pincode',
+                'corr_address','corr_city','corr_state','corr_pincode',
+                'business_name','business_phone','business_email','business_type','business_address',
+                'profile_image','cover_image','aadhaar_card','company_id_card','gst_certificate','business_license','pan_card','bank_proof'
+            ];
+
+            foreach ($fields as $field) {
+                if (isset($_POST[$field])) {
+
+                    if (in_array($field, ['profile_image','cover_image','aadhaar_card','company_id_card','gst_certificate','business_license','pan_card','bank_proof'])) {
+                        update_post_meta($post_id, $field, intval($_POST[$field]));
+                    } else {
+                        update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+                    }
                 }
             }
         }
