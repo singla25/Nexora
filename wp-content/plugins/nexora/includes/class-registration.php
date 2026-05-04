@@ -55,7 +55,7 @@ class NEXORA_Registration {
                         <h2>Hey ' . esc_html($current_user->display_name) . ' 👋</h2>
                         <p>You are already logged in</p>
 
-                        <a href="' . home_url('/profile-page/' . $current_user->user_login) . '" class="btn-primary">
+                        <a href="' . home_url('/dashboard/' . $current_user->user_login) . '" class="btn-primary">
                             Go to Profile
                         </a>
 
@@ -212,7 +212,7 @@ class NEXORA_Registration {
 
         wp_send_json_success([
             'message' => 'Registration successful',
-            'redirect' => home_url('/profile-page/' . $username)
+            'redirect' => home_url('/dashboard/' . $username)
         ]);
     }
 

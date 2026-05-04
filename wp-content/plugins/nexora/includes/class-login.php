@@ -188,7 +188,7 @@ class NEXORA_Login {
         $user = get_userdata($user_id);
 
         wp_send_json_success([
-            'redirect' => home_url('/profile-page/' . $user->user_login)
+            'redirect' => home_url('/dashboard/' . $user->user_login)
         ]);
     }
 
@@ -216,7 +216,7 @@ class NEXORA_Login {
                         <p>You are already logged in</p>
 
                         <div class="login-actions">
-                            <a href="' . home_url('/profile-page/' . $current_user->user_login) . '" class="btn-primary">
+                            <a href="' . home_url('/dashboard/' . $current_user->user_login) . '" class="btn-primary">
                                 Go to Profile
                             </a>
 
@@ -326,9 +326,9 @@ class NEXORA_Login {
         $username = $user->user_login;
 
         if (in_array('administrator', $user->roles)) {
-            $redirect = home_url('/profile-page');
+            $redirect = home_url('/dashboard');
         } else {
-            $redirect = home_url('/profile-page/' . $username);
+            $redirect = home_url('/dashboard/' . $username);
         }
 
         wp_send_json_success([

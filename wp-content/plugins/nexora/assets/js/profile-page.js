@@ -384,7 +384,7 @@ jQuery(document).ready(function ($) {
 
                     let profileLink = user.profile_link 
                         ? user.profile_link 
-                        : `${profilePageData.homeUrl}/profile-page/${user.username}`;
+                        : `${profilePageData.homeUrl}/dashboard/${user.username}`;
                     
                     html += `
                         <div class="connection-card">
@@ -456,7 +456,7 @@ jQuery(document).ready(function ($) {
 
                     let profileLink = user.profile_link 
                         ? user.profile_link 
-                        : `${profilePageData.homeUrl}/profile-page/${user.username}`;
+                        : `${profilePageData.homeUrl}/dashboard/${user.username}`;
 
                     html += `
                         <div class="connection-card">

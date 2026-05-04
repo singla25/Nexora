@@ -11,37 +11,48 @@ if (!defined('ABSPATH')) exit;
 define('NEXORA_PATH', plugin_dir_path(__FILE__));
 define('NEXORA_URL', plugin_dir_url(__FILE__));
 
-require_once NEXORA_PATH . 'includes/class-cpt.php';
-require_once NEXORA_PATH . 'includes/class-registration.php';
-require_once NEXORA_PATH . 'includes/class-profile-page.php';
-require_once NEXORA_PATH . 'includes/class-profile-ajax.php';
-require_once NEXORA_PATH . 'includes/class-profile-helper.php';
-require_once NEXORA_PATH . 'includes/class-login.php';
+// ✅ ADD THESE
+define('NEXORA_VERSION', '1.0.0');
+define('NEXORA_DASHBOARD_TEMPLATES', NEXORA_PATH . 'dashboard/templates/');
+
 require_once NEXORA_PATH . 'includes/class-home-page.php';
-require_once NEXORA_PATH . 'includes/class-notification.php';
-require_once NEXORA_PATH . 'includes/class-better-message-chat.php';
-require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
+require_once NEXORA_PATH . 'includes/class-cpt.php';
+require_once NEXORA_PATH . 'includes/class-login.php';
+require_once NEXORA_PATH . 'includes/class-registration.php';
+require_once NEXORA_PATH . 'includes/class-vendor-registration.php';
+
+// require_once NEXORA_PATH . 'includes/class-profile-page.php';
+// require_once NEXORA_PATH . 'includes/class-profile-ajax.php';
+// require_once NEXORA_PATH . 'includes/class-profile-helper.php';
+
+require_once NEXORA_PATH . 'dashboard/dashboard.php';
 
 require_once NEXORA_PATH . 'chat/class-chat-core.php';
-
-require_once NEXORA_PATH . 'includes/class-vendor-registration.php';
+// require_once NEXORA_PATH . 'includes/class-better-message-chat.php';
+require_once NEXORA_PATH . 'includes/class-notification.php';
+require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
 
 class NEXORA_System {
 
     public function __construct() {
 
         // INIT MODULES
-        new NEXORA_Registration();
-        new NEXORA_Login();
-        new NEXORA_CPT();
-        new NEXORA_PROFILE_PAGE();
-        new NEXORA_PROFILE_AJAX();  
         new Nexora_Home_Page();
-        new Nexora_Better_Message_CHAT_Page();
+        new NEXORA_CPT();
+        
+        new NEXORA_Login();
+        new NEXORA_Registration();
+        new NEXORA_Vendor_Registration();
+        
+        // new Nexora_Better_Message_CHAT_Page();
         new NEXORA_CHAT_CORE();
         new Nexora_ReCaptcha();
 
-        new NEXORA_Vendor_Registration();
+        // new NEXORA_PROFILE_PAGE();
+        // new NEXORA_PROFILE_AJAX(); 
+
+        // new NEXORA_DASHBOARD_CORE();
+        
 
         // GLOBAL ASSETS
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
@@ -108,7 +119,7 @@ class NEXORA_System {
 
         // Logged in but NOT admin → block wp-admin
         if (!current_user_can('manage_options') && is_admin()) {
-            wp_redirect(home_url('/profile-page/' . wp_get_current_user()->user_login));
+            wp_redirect(home_url('/dashboard/' . wp_get_current_user()->user_login));
             exit;
         }
 
@@ -141,7 +152,7 @@ class NEXORA_System {
 
             // If logged in but non-admin
             if (!current_user_can('manage_options')) {
-                wp_redirect(home_url('/profile-page'));
+                wp_redirect(home_url('/dashboard'));
                 exit;
             }
         }
@@ -153,10 +164,10 @@ class NEXORA_System {
     public function login_redirect($redirect_to, $request, $user) {
 
         if (isset($user->roles) && in_array('administrator', $user->roles)) {
-            return home_url('/profile-page'); // Admin UI
+            return home_url('/dashboard'); // Admin UI
         }
 
-        return home_url('/profile-page/' . $user->user_login);
+        return home_url('/dashboard/' . $user->user_login);
     }
 
     // ===============================
