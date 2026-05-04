@@ -523,7 +523,11 @@ class NEXORA_CPT {
 
         <input type="text" name="user_name" placeholder="User Name"
             value="<?php echo esc_attr(get_post_meta($post->ID, 'user_name', true)); ?>"
-            class="widefat"><br><br>
+            class="widefat" readonly><br><br>
+
+        <input type="email" name="email" placeholder="Email"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'email', true)); ?>"
+            class="widefat" readonly><br><br>
 
         <input type="text" name="first_name" placeholder="First Name"
             value="<?php echo esc_attr(get_post_meta($post->ID, 'first_name', true)); ?>"
@@ -531,10 +535,6 @@ class NEXORA_CPT {
 
         <input type="text" name="last_name" placeholder="Last Name"
             value="<?php echo esc_attr(get_post_meta($post->ID, 'last_name', true)); ?>"
-            class="widefat"><br><br>
-
-        <input type="email" name="email" placeholder="Email"
-            value="<?php echo esc_attr(get_post_meta($post->ID, 'email', true)); ?>"
             class="widefat"><br><br>
 
         <input type="text" name="phone" placeholder="Phone"
@@ -1200,7 +1200,7 @@ class NEXORA_CPT {
         if ($post_type === 'user_profile') {
 
             $fields = [
-                'user_name','first_name','last_name','email','phone','linkedin_id','bio','gender','birthdate',
+                'first_name','last_name','phone','linkedin_id','bio','gender','birthdate',
                 'perm_address','perm_city','perm_state','perm_pincode',
                 'corr_address','corr_city','corr_state','corr_pincode',
                 'company_name','designation','company_email','company_phone','company_address',
@@ -1256,7 +1256,7 @@ class NEXORA_CPT {
         if ($post_type === 'vendor_profile') {
 
             $fields = [
-                'user_name','first_name','last_name','email','phone','linkedin_id','bio','gender','birthdate',
+                'first_name','last_name','phone','linkedin_id','bio','gender','birthdate',
                 'perm_address','perm_city','perm_state','perm_pincode',
                 'corr_address','corr_city','corr_state','corr_pincode',
                 'business_name','business_phone','business_email','business_type','business_address',
