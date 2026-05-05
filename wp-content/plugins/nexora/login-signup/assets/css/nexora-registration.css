@@ -4,10 +4,18 @@ body {
 }
 
 /* FORM WRAPPER */
+.profile-registration-form-div {
+    padding: 20px 16px;
+    box-sizing: border-box;
+}
+
+/* FORM */
 .profile-registration-form {
-    max-width: 600px;
-    margin: 70px auto;
+    max-width: 640px;
+    width: 100%;
+    margin: 50px auto;
     padding: 40px;
+    box-sizing: border-box;
     background: #ffffff;
     border-radius: 18px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.06);
@@ -36,13 +44,17 @@ body {
 
 /* INPUT + SELECT */
 .profile-registration-form-grid input,
-.profile-registration-form-grid select {
+.profile-registration-form-grid select,
+.profile-registration-form-grid textarea {
+    width: 100%;
+    box-sizing: border-box;
     padding: 14px 16px;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     font-size: 14px;
     background: #f8fafc;
     transition: all 0.25s ease;
+    font-family: inherit;
 }
 
 /* PLACEHOLDER */
@@ -135,24 +147,48 @@ body {
     margin: 0 auto 15px;
 }
 
+/* SHOW/HIDE PASSWORD TOGGLE */
+.password-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.toggle-label {
+    cursor: pointer;
+    user-select: none;
+}
+
 /* MOBILE */
 @media (max-width: 600px) {
-	
-	.profile-registration-form-grid .full-width {
-		grid-column: span 1;
-	}
 
-    .profile-registration-form-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
+    .profile-registration-form-div {
+        padding: 12px;
     }
 
     .profile-registration-form {
-        padding: 25px;
-		margin: 35px auto;
+        padding: 24px 20px;
+        margin: 20px auto;
+        border-radius: 14px;
     }
 
-    .profile-registration-form-btn, .vendor-registration-form-btn {
+    .profile-registration-form h2 {
+        font-size: 22px;
+    }
+
+    .profile-registration-form-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .profile-registration-form-grid .full-width {
+        grid-column: span 1;
+    }
+
+    .profile-registration-form-btn,
+    .vendor-registration-form-btn {
         grid-column: span 1;
     }
 }
@@ -168,20 +204,9 @@ body {
     margin-bottom: -5px;
 }
 
-/* TEXTAREA MATCH INPUT STYLE */
+
+/* TEXTAREA FOCUS */
 .profile-registration-form-grid textarea {
-    padding: 14px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 14px;
-    background: #f8fafc;
-    transition: all 0.25s ease;
     resize: none;
 }
 
-.profile-registration-form-grid textarea:focus {
-    border-color: #3b82f6;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-    outline: none;
-}

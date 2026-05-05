@@ -446,11 +446,15 @@ class NEXORA_DASHBOARD_HELPER {
             'bank_proof_id'        => $get( 'bank_proof' ),
 
             // Document URLs
-            'profile_image'  => self::get_image_url( $profile_id, 'profile_image', 'default_profile_image' ),
-            'cover_image'    => self::get_image_url( $profile_id, 'cover_image',   'default_cover_image'   ),
-            'aadhaar_card'   => self::get_image_url( $profile_id, 'aadhaar_card',  'default_document_image' ),
-            'driving_license'=> self::get_image_url( $profile_id, 'driving_license','default_document_image' ),
-            'company_id_card'=> self::get_image_url( $profile_id, 'company_id_card','default_document_image' ),
+            'profile_image'    => self::get_image_url( $profile_id, 'profile_image', 'default_profile_image' ),
+            'cover_image'      => self::get_image_url( $profile_id, 'cover_image',   'default_cover_image'   ),
+            'aadhaar_card'     => self::get_image_url( $profile_id, 'aadhaar_card',  'default_document_image' ),
+            'driving_license'  => self::get_image_url( $profile_id, 'driving_license', 'default_document_image' ),
+            'company_id_card'  => self::get_image_url( $profile_id, 'company_id_card', 'default_document_image' ),
+            'gst_certificate'  => self::get_image_url( $profile_id, 'gst_certificate', 'default_document_image' ),
+            'business_license' => self::get_image_url( $profile_id, 'business_license', 'default_document_image' ),
+            'pan_card'         => self::get_image_url( $profile_id, 'pan_card', 'default_document_image' ),
+            'bank_proof'       => self::get_image_url( $profile_id, 'bank_proof', 'default_document_image' ),
         ];
     }
 

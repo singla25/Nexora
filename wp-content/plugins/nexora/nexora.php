@@ -15,23 +15,27 @@ define('NEXORA_VERSION', '1.0.0');
 define('NEXORA_DASHBOARD_TEMPLATES', NEXORA_PATH . 'dashboard/templates/');
 
 require_once NEXORA_PATH . 'includes/class-home-page.php';
-require_once NEXORA_PATH . 'includes/class-cpt.php';
 
-require_once NEXORA_PATH . 'includes/class-login.php';
-require_once NEXORA_PATH . 'includes/class-registration.php';
-require_once NEXORA_PATH . 'includes/class-vendor-registration.php';
+// require_once NEXORA_PATH . 'includes/old-flow/class-cpt.php';
+require_once NEXORA_PATH . '/admin/admin.php';
 
-// require_once NEXORA_PATH . 'includes/profile/class-profile-page.php';
-// require_once NEXORA_PATH . 'includes/profile/class-profile-ajax.php';
-// require_once NEXORA_PATH . 'includes/profile/class-profile-helper.php';
+require_once NEXORA_PATH . 'login-signup/class-login.php';
+require_once NEXORA_PATH . 'login-signup/class-registration.php';
+require_once NEXORA_PATH . 'login-signup/class-vendor-registration.php';
+
+// require_once NEXORA_PATH . 'includes/old-flow/profile/class-profile-page.php';
+// require_once NEXORA_PATH . 'includes/old-flow/profile/class-profile-ajax.php';
+// require_once NEXORA_PATH . 'includes/old-flow/profile/class-profile-helper.php';
 
 require_once NEXORA_PATH . 'dashboard/dashboard.php';
 
 require_once NEXORA_PATH . 'chat/class-chat-core.php';
-// require_once NEXORA_PATH . 'includes/class-better-message-chat.php';
+// require_once NEXORA_PATH . 'includes/old-flow/class-better-message-chat.php';
 
 require_once NEXORA_PATH . 'includes/class-notification.php';
 require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
+
+require_once NEXORA_PATH . 'marketplace/marketplace-core.php';
 
 class NEXORA_System {
 
@@ -39,7 +43,7 @@ class NEXORA_System {
 
         // INIT MODULES
         new Nexora_Home_Page();
-        new NEXORA_CPT();
+        // new NEXORA_CPT();
         
         new NEXORA_Login();
         new NEXORA_Registration();

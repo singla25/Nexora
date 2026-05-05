@@ -21,7 +21,7 @@ class NEXORA_Login {
 
     public function login_enqueue_assets() {
 
-        wp_enqueue_style('profile-login-style', NEXORA_URL . 'assets/css/profile-login.css');
+        wp_enqueue_style('profile-login-style', NEXORA_URL . 'login-signup/assets/css/nexora-login.css');
 
         wp_enqueue_script(
             'sweetalert2',
@@ -33,7 +33,7 @@ class NEXORA_Login {
 
         wp_enqueue_script(
             'profile-login',
-            NEXORA_URL . 'assets/js/profile-login.js',
+            NEXORA_URL . 'login-signup/assets/js/nexora-login.js',
             ['jquery', 'sweetalert2'],
             null,
             true

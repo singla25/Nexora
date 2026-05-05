@@ -21,11 +21,11 @@ class NEXORA_PROFILE_PAGE {
     =============================== */
     public function enqueue_assets() {
 
-        wp_enqueue_style('profile-page-style', NEXORA_URL . 'includes/profile/assets/css/profile-page.css');
+        wp_enqueue_style('profile-page-style', NEXORA_URL . 'includes/old-flow/profile/assets/css/profile-page.css');
 
         wp_enqueue_script('sweetalert2','https://cdn.jsdelivr.net/npm/sweetalert2@11',[],null,true);
 
-        wp_enqueue_script('profile-page-js', NEXORA_URL . 'includes/profile/assets/js/profile-page.js', ['jquery','sweetalert2'], null, true);
+        wp_enqueue_script('profile-page-js', NEXORA_URL . 'includes/old-flow/profile/assets/js/profile-page.js', ['jquery','sweetalert2'], null, true);
 
         wp_enqueue_media(); // To upload Media by Using wp.media()
 

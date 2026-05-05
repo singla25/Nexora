@@ -1,5 +1,24 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    // Password toggle – show/hide
+    jQuery(document).on('change', '#toggle-passwords', function () {
+        const type = jQuery(this).is(':checked') ? 'text' : 'password';
+        jQuery('#profile-registration-form input[name="password"], #profile-registration-form input[name="confirm_password"]').attr('type', type);
+        jQuery(this).closest('.password-toggle-wrapper').find('.toggle-label').text(
+            jQuery(this).is(':checked') ? 'Hide Password' : 'Show Password'
+        );
+    });
+
+    // Date of Birth – keep placeholder visible until a value is chosen,
+    // and ensure it always submits as type="text" so FormData captures it
+    jQuery(document).on('focus', '#user_birthdate', function () {
+        jQuery(this).attr('type', 'date');
+    }).on('blur', '#user_birthdate', function () {
+        if (!jQuery(this).val()) {
+            jQuery(this).attr('type', 'text');
+        }
+    });
+
     jQuery(document).on('submit', '#profile-registration-form', function (e) {
 
         e.preventDefault();

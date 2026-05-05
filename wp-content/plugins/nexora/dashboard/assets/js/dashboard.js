@@ -418,8 +418,11 @@ jQuery(document).ready(function ($) {
                     Swal.fire({ icon: 'success', title: res.data, timer: 1500, showConfirmButton: false })
                         .then(() => location.reload());
                 } else {
-                    Swal.fire('Error', res.data, 'error');
+                    Swal.fire('Error', getAjaxMessage(res), 'error');
                 }
+            },
+            error(xhr) {
+                Swal.fire('Error', getAjaxMessage(xhr.responseJSON) || xhr.statusText || 'Request failed.', 'error');
             }
         });
     });
@@ -502,13 +505,14 @@ jQuery(document).ready(function ($) {
             text: 'This cannot be undone.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, remove'
+            confirmButtonText: 'Yes, Remove'
         }).then(result => {
             if (!result.isConfirmed) return;
 
             ajaxPost('update_connection_status', { connection_id: id, status: 'removed' }, function () {
                 Swal.fire({ icon: 'success', title: 'Removed!', timer: 1500, showConfirmButton: false });
                 card.fadeOut(300, function () { $(this).remove(); });
+                setTimeout(() => {location.reload();}, 1200);
             });
         });
     });
@@ -690,8 +694,11 @@ jQuery(document).ready(function ($) {
                     Swal.fire({ icon: 'success', title: 'Posted!', timer: 1500, showConfirmButton: false })
                         .then(() => { localStorage.setItem(TAB_KEY, 'content'); location.reload(); });
                 } else {
-                    Swal.fire('Error', res.data, 'error');
+                    Swal.fire('Error', getAjaxMessage(res), 'error');
                 }
+            },
+            error(xhr) {
+                Swal.fire('Error', getAjaxMessage(xhr.responseJSON) || xhr.statusText || 'Request failed.', 'error');
             }
         });
     });
@@ -773,7 +780,9 @@ jQuery(document).ready(function ($) {
     function ajaxPost(action, params, onSuccess) {
         $.post(D.ajaxUrl, { action, nonce: D.nonce, ...params }, function (res) {
             if (res.success) onSuccess(res.data);
-            else Swal.fire('Error', res.data?.message || res.data || 'Something went wrong.', 'error');
+            else Swal.fire('Error', getAjaxMessage(res), 'error');
+        }).fail(function (xhr) {
+            Swal.fire('Error', getAjaxMessage(xhr.responseJSON) || xhr.statusText || 'Request failed.', 'error');
         });
     }
 
@@ -781,8 +790,14 @@ jQuery(document).ready(function ($) {
     function ajaxPostHtml(action, params, onSuccess) {
         $.post(D.ajaxUrl, { action, nonce: D.nonce, ...params }, function (res) {
             if (res.success) onSuccess(res.data);
-            else Swal.fire('Error', res.data || 'Something went wrong.', 'error');
+            else Swal.fire('Error', getAjaxMessage(res), 'error');
+        }).fail(function (xhr) {
+            Swal.fire('Error', getAjaxMessage(xhr.responseJSON) || xhr.statusText || 'Request failed.', 'error');
         });
+    }
+
+    function getAjaxMessage(res) {
+        return res?.data?.message || res?.data || res?.message || 'Something went wrong.';
     }
 
     /**

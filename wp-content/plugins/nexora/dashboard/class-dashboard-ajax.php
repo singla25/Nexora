@@ -76,13 +76,27 @@ class NEXORA_DASHBOARD_AJAX {
         }
 
         $user_id    = get_current_user_id();
-        $profile_id = (int) get_user_meta( $user_id, '_profile_id', true );
+        $profile_id = $this->get_current_user_profile_id( $user_id );
 
         if ( ! $profile_id ) {
             wp_send_json_error( [ 'message' => 'Profile not found' ], 404 );
         }
         
         return compact( 'user_id', 'profile_id' );
+    }
+
+    /**
+     * Resolve the dashboard profile for both supported account types.
+     */
+    private function get_current_user_profile_id( int $user_id ): int {
+
+        $profile_id = (int) get_user_meta( $user_id, '_profile_id', true );
+
+        if ( ! $profile_id ) {
+            $profile_id = (int) get_user_meta( $user_id, '_vendor_profile_id', true );
+        }
+
+        return $profile_id;
     }
 
     /**
@@ -330,11 +344,36 @@ class NEXORA_DASHBOARD_AJAX {
 
         $auth            = $this->auth();
         $current_user_id = $auth['user_id'];
+        $profile_id      = $auth['profile_id'];
         $connection_id   = absint( $_POST['connection_id'] ?? 0 );
         $status          = sanitize_key( $_POST['status'] ?? '' );
 
+        if ( ! $connection_id || get_post_type( $connection_id ) !== 'user_connections' ) {
+            wp_send_json_error( 'Invalid connection.' );
+        }
+
         if ( ! in_array( $status, [ 'accepted', 'rejected', 'removed' ], true ) ) {
             wp_send_json_error( 'Invalid status.' );
+        }
+
+        $sender_profile_id   = (int) get_post_meta( $connection_id, 'sender_profile_id',   true );
+        $receiver_profile_id = (int) get_post_meta( $connection_id, 'receiver_profile_id', true );
+
+        if ( $sender_profile_id !== $profile_id && $receiver_profile_id !== $profile_id ) {
+            wp_send_json_error( 'Forbidden.' );
+        }
+
+        if ( in_array( $status, [ 'accepted', 'rejected' ], true ) && $receiver_profile_id !== $profile_id ) {
+            wp_send_json_error( 'Only the request receiver can update this status.' );
+        }
+
+        $sender_user_id      = (int) get_post_meta( $connection_id, 'sender_user_id',    true );
+        $sender_user_name    =       get_post_meta( $connection_id, 'sender_user_name',   true );
+        $receiver_user_id    = (int) get_post_meta( $connection_id, 'receiver_user_id',   true );
+        $receiver_user_name  =       get_post_meta( $connection_id, 'receiver_user_name', true );
+
+        if ( ! $sender_user_id || ! $receiver_user_id ) {
+            wp_send_json_error( 'Invalid connection users.' );
         }
 
         update_post_meta( $connection_id, 'status', $status );
@@ -342,11 +381,6 @@ class NEXORA_DASHBOARD_AJAX {
         if ( $status === 'removed' ) {
             ( new NEXORA_CHAT_DB() )->inactive_threads_by_connection( $connection_id );
         }
-
-        $sender_user_id      = (int) get_post_meta( $connection_id, 'sender_user_id',    true );
-        $sender_user_name    =       get_post_meta( $connection_id, 'sender_user_name',   true );
-        $receiver_user_id    = (int) get_post_meta( $connection_id, 'receiver_user_id',   true );
-        $receiver_user_name  =       get_post_meta( $connection_id, 'receiver_user_name', true );
 
         if ( $current_user_id === $sender_user_id ) {
             [ $actor_id, $actor_name, $recv_id, $recv_name ] =

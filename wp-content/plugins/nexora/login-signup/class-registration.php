@@ -1,41 +1,44 @@
 <?php
 
-if (!defined('ABSPATH')) exit;
-
-class NEXORA_Vendor_Registration {
+class NEXORA_Registration {
 
     public function __construct() {
-
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
-        add_shortcode('vendor_registration', [$this, 'registration_form']);
+        add_shortcode('profile_registration', [$this, 'registration_form']);
 
-        add_action('wp_ajax_vendor_register', [$this, 'handle_registration']);
-        add_action('wp_ajax_nopriv_vendor_register', [$this, 'handle_registration']);
+        add_action('wp_ajax_profile_register', [$this, 'registration_form_handle']);
+        add_action('wp_ajax_nopriv_profile_register', [$this, 'registration_form_handle']);
     }
 
     public function enqueue_assets() {
 
-        wp_enqueue_style('vendor-registration-style', NEXORA_URL . 'assets/css/profile-registration.css');
+        wp_enqueue_style('profile-style', NEXORA_URL . 'login-signup/assets/css/nexora-registration.css');
 
         wp_enqueue_script(
-            'vendor-registration-js',
-            NEXORA_URL . 'assets/js/vendor-registration.js',
-            ['jquery'],
+            'sweetalert2',
+            'https://cdn.jsdelivr.net/npm/sweetalert2@11',
+            [],
             null,
             true
         );
 
-        wp_localize_script('vendor-registration-js', 'vendorData', [
+        wp_enqueue_script(
+            'profile-registration',
+            NEXORA_URL . 'login-signup/assets/js/user-registration.js',
+            ['jquery', 'sweetalert2'],
+            null,
+            true
+        );
+
+        wp_localize_script('profile-registration', 'profileData', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce'   => wp_create_nonce('vendor_nonce')
+            'nonce'   => wp_create_nonce('profile_nonce')
         ]);
     }
 
-    /* ===============================
-       FORM UI
-    =============================== */
     public function registration_form() {
 
+        // LOGIN CHECK HERE
         if (is_user_logged_in()) {
 
             $current_user = wp_get_current_user();
@@ -65,7 +68,7 @@ class NEXORA_Vendor_Registration {
         ob_start(); ?>
 
         <div class="profile-registration-form-div">
-            <form id="vendor-registration-form" class="profile-registration-form" enctype="multipart/form-data">
+            <form id="profile-registration-form" class="profile-registration-form" enctype="multipart/form-data">
 
                 <h2>Create Your Account</h2>
 
@@ -89,25 +92,11 @@ class NEXORA_Vendor_Registration {
 
                     <!-- ROW 3 -->
                     <input type="text" name="phone" placeholder="Phone *" required>
-					<input type="text" name="birthdate" placeholder="Date of Birth *"
+					<input type="text" name="birthdate" id="user_birthdate" placeholder="Date of Birth *"
 						   onfocus="(this.type='date')"
 						   onblur="if(!this.value)this.type='text'">
 
-                    
-                    <div class="full-width section-title">Business Details</div>
-
                     <!-- ROW 4 -->
-                    <input type="text" name="business_name" placeholder="Business Name *" required>
-                    <input type="text" name="business_phone" placeholder="Business Phone *" required>
-
-                    <!-- ROW 5 -->
-                    <input type="email" name="business_email" placeholder="Business Email *" required>
-                    <input type="text" name="business_type" placeholder="Business Type *" required>
-
-                    <!-- ROW 6 -->
-                    <textarea name="business_address" class="full-width" placeholder="Business Full Address"></textarea>
-
-                    <!-- ROW 7 -->
                     <input type="password" name="password" placeholder="Password *" required>
                     <input type="password" name="confirm_password" placeholder="Confirm Password *" required>
 
@@ -119,6 +108,7 @@ class NEXORA_Vendor_Registration {
                         </label>
                         <span class="toggle-label">Show Password</span>
                     </div>
+
                 </div>
 
                 <?php
@@ -126,7 +116,7 @@ class NEXORA_Vendor_Registration {
                 echo $captcha->render();
                 ?>
 
-                <button type="submit" class="vendor-registration-form-btn">Create Vendor Account</button>
+                <button type="submit" class="profile-registration-form-btn">Create Account</button>
 
                 <div class="profile-registration-extra">
                     Already have an account? 
@@ -139,12 +129,9 @@ class NEXORA_Vendor_Registration {
         return ob_get_clean();
     }
 
-    /* ===============================
-       HANDLE REGISTRATION
-    =============================== */
-    public function handle_registration() {
+    public function registration_form_handle() {
 
-        check_ajax_referer('vendor_nonce', 'nonce');
+        check_ajax_referer('profile_nonce', 'nonce');
 
         $captcha = new Nexora_ReCaptcha();
 
@@ -157,20 +144,16 @@ class NEXORA_Vendor_Registration {
 
         $data = $_POST;
 
-        $email      = sanitize_email($data['email']);
-        $user_name  = sanitize_user($data['user_name']);
-        $password   = $data['password'];
-        $confirm    = $data['confirm_password'];
+        $email = sanitize_email($data['email'] ?? '');
+        $user_name = sanitize_user($data['user_name'] ?? '');
+        $password = $data['password'] ?? '';
+        $confirm_pass = $data['confirm_password'] ?? '';
 
-        if (empty($email) || empty($user_name) || empty($password)) {
+        if (empty($email) || empty($user_name) || empty($password) || empty($confirm_pass)) {
             wp_send_json_error('Required fields missing');
         }
 
-        if (!is_email($email)) {
-            wp_send_json_error('Invalid email');
-        }
-
-        if ($password !== $confirm) {
+        if ($password !== $confirm_pass) {
             wp_send_json_error('Passwords do not match');
         }
 
@@ -178,7 +161,7 @@ class NEXORA_Vendor_Registration {
             wp_send_json_error('User already exists');
         }
 
-        // CREATE USER
+        // Create WP User
         $wp_user_id = wp_create_user($user_name, $password, $email);
 
         if (is_wp_error($wp_user_id)) {
@@ -191,11 +174,6 @@ class NEXORA_Vendor_Registration {
         $full_name = trim($first_name . ' ' . $last_name);
         $this->nexora_send_admin_notification($user_name, $email, $full_name);
 
-        // SET ROLE
-        $user = new WP_User($wp_user_id);
-        $user->set_role('vendor');
-
-        // UPDATE BASIC USER DATA
         wp_update_user([
             'ID' => $wp_user_id,
             'user_nicename' => $user_name,
@@ -203,10 +181,10 @@ class NEXORA_Vendor_Registration {
             'last_name'  => sanitize_text_field($data['last_name'] ?? '')
         ]);
 
-        // CREATE VENDOR PROFILE
+        // Create Profile CPT
         $post_id = wp_insert_post([
-            'post_type'   => 'vendor_profile',
-            'post_title'  => $user_name,
+            'post_type' => 'user_profile',
+            'post_title' => $user_name,
             'post_name'  => sanitize_title($user_name),
             'post_status' => 'publish',
             'post_author' => $wp_user_id
@@ -214,6 +192,7 @@ class NEXORA_Vendor_Registration {
 
         update_post_meta($post_id, '_wp_user_id', $wp_user_id);
 
+        // Save Meta
         update_post_meta($post_id, 'user_name', sanitize_text_field($data['user_name']));
         update_post_meta($post_id, 'first_name', $first_name);
         update_post_meta($post_id, 'last_name', $last_name);
@@ -223,18 +202,7 @@ class NEXORA_Vendor_Registration {
         update_post_meta($post_id, 'birthdate', sanitize_text_field($data['birthdate']));
 
         // Link profile
-        update_user_meta($wp_user_id, '_vendor_profile_id', $post_id);
-
-        // BUSINESS META
-        $business_fields = [
-            'business_name','business_phone','business_email','business_type','business_address'
-        ];
-
-        foreach ($business_fields as $field) {
-            if (isset($data[$field])) {
-                update_post_meta($post_id, $field, sanitize_text_field($data[$field]));
-            }
-        }
+        update_user_meta($wp_user_id, '_profile_id', $post_id);
 
         // Auto Login
         wp_set_current_user($wp_user_id);
@@ -257,13 +225,13 @@ class NEXORA_Vendor_Registration {
             $admin_email = get_option('admin_email');
         }
 
-        $subject = '🚀 New Vendor Registered on Nexora';
+        $subject = '🚀 New User Registered on Nexora';
 
         $message = "
-            <h2>New Vendor Registration</h2>
-            <p><strong>Vendor Username:</strong> {$user_name}</p>
-            <p><strong>Vendor Name:</strong> {$full_name}</p>
-            <p><strong>Vendor Email:</strong> {$email}</p>
+            <h2>New User Registration</h2>
+            <p><strong>Username:</strong> {$user_name}</p>
+            <p><strong>Name:</strong> {$full_name}</p>
+            <p><strong>Email:</strong> {$email}</p>
             <p><strong>Time:</strong> " . current_time('mysql') . "</p>
         ";
 
