@@ -21,7 +21,6 @@ class NEXORA_DASHBOARD_AJAX {
         $this->add( 'update_personal_info' );
         $this->add( 'update_address_info' );
         $this->add( 'update_work_info' );
-        $this->add( 'update_vendor_details' );
         $this->add( 'update_documents_info' );
         $this->add( 'update_profile_password' );
 
@@ -57,6 +56,16 @@ class NEXORA_DASHBOARD_AJAX {
      * Calls wp_send_json_error and dies on failure.
      *
      * @return array{ user_id: int, profile_id: int }
+     * 
+     * compact() creates an array from variables
+     * 
+     * compact( 'user_id', 'profile_id' )
+     * Output: 
+     * [
+     *      'user_id'    => $user_id,
+     *      'profile_id' => $profile_id,
+     * ]
+     * 
      */
     private function auth(): array {
 
@@ -72,7 +81,7 @@ class NEXORA_DASHBOARD_AJAX {
         if ( ! $profile_id ) {
             wp_send_json_error( [ 'message' => 'Profile not found' ], 404 );
         }
-
+        
         return compact( 'user_id', 'profile_id' );
     }
 
@@ -146,28 +155,6 @@ class NEXORA_DASHBOARD_AJAX {
             NEXORA_DASHBOARD_HELPER::get_work_save_fields()
         );
         wp_send_json_success( 'Work info updated.' );
-    }
-
-    /**
-     * Vendor-only: save the extra vendor-details sub-tab.
-     */
-    public function update_vendor_details(): void {
-
-        $auth       = $this->auth();
-        $profile_id = $auth['profile_id'];
-
-        // Verify the profile is actually a vendor profile
-        $post_type = get_post_type( $profile_id );
-        if ( $post_type !== 'vendor_profile' ) {
-            wp_send_json_error( 'Not a vendor profile.' );
-        }
-
-        $this->save_fields(
-            $profile_id,
-            array_keys( NEXORA_DASHBOARD_HELPER::get_vendor_detail_fields() )
-        );
-
-        wp_send_json_success( 'Vendor details updated.' );
     }
 
     public function update_documents_info(): void {

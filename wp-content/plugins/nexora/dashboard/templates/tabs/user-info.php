@@ -25,7 +25,6 @@ $m   = fn( $key ) => get_post_meta( $pid, $key, true );
 $personal_fields = NEXORA_DASHBOARD_HELPER::get_personal_fields();
 $address_fields  = NEXORA_DASHBOARD_HELPER::get_address_fields();
 $work_config     = NEXORA_DASHBOARD_HELPER::get_work_fields( $profile_role );
-$vendor_fields   = NEXORA_DASHBOARD_HELPER::get_vendor_detail_fields();
 $doc_fields      = NEXORA_DASHBOARD_HELPER::get_document_fields( $profile_role );
 ?>
 
@@ -128,23 +127,6 @@ $doc_fields      = NEXORA_DASHBOARD_HELPER::get_document_fields( $profile_role )
             <?php endforeach; ?>
         </div>
     </div><!-- work-info -->
-
-
-    <!-- ── VENDOR DETAILS (vendor-owner only) ────────────────── -->
-    <?php if ( $profile_role === 'vendor' && $is_owner ) : ?>
-    <div class="info-card" data-section="vendor-info">
-        <h3>Vendor Details</h3>
-        <div class="info-grid">
-            <?php foreach ( $vendor_fields as $key => $label ) : ?>
-                <div class="info-item">
-                    <span class="info-label"><?php echo esc_html( $label ); ?></span>
-                    <span class="info-value"><?php echo esc_html( $m( $key ) ); ?></span>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div><!-- vendor-info -->
-    <?php endif; ?>
-
 
     <!-- ── DOCUMENTS ──────────────────────────────────────────── -->
     <!-- Fix #3: Documents section now visible for vendor-owner too (via sub-tab) -->

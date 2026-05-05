@@ -1167,16 +1167,36 @@ class NEXORA_CPT {
             value="<?php echo esc_attr(get_post_meta($post->ID, 'business_name', true)); ?>"
             class="widefat"><br><br>
 
-        <input type="text" name="business_phone" placeholder="Business Phone"
-            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_phone', true)); ?>"
+        <input type="text" name="business_type" placeholder="Business Type"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_type', true)); ?>"
             class="widefat"><br><br>
 
         <input type="email" name="business_email" placeholder="Business Email"
             value="<?php echo esc_attr(get_post_meta($post->ID, 'business_email', true)); ?>"
             class="widefat"><br><br>
 
-        <input type="text" name="business_type" placeholder="Business Type"
-            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_type', true)); ?>"
+        <input type="text" name="business_phone" placeholder="Business Phone"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_phone', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="gst_number" placeholder="GST Number"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'gst_number', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="business_category" placeholder="Business Category"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'business_category', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="text" name="service_areas" placeholder="Service Areas (e.g. Delhi, NCR)"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'service_areas', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="number" name="years_in_business" placeholder="Years in Business"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'years_in_business', true)); ?>"
+            class="widefat"><br><br>
+
+        <input type="url" name="website_url" placeholder="Website URL"
+            value="<?php echo esc_attr(get_post_meta($post->ID, 'website_url', true)); ?>"
             class="widefat"><br><br>
 
         <textarea name="business_address" placeholder="Business Address"
@@ -1260,13 +1280,15 @@ class NEXORA_CPT {
                 'perm_address','perm_city','perm_state','perm_pincode',
                 'corr_address','corr_city','corr_state','corr_pincode',
                 'business_name','business_phone','business_email','business_type','business_address',
-                'profile_image','cover_image','aadhaar_card','company_id_card','gst_certificate','business_license','pan_card','bank_proof'
+                'gst_number','business_category','service_areas','years_in_business','website_url',
+                'profile_image','cover_image','aadhaar_card','company_id_card',
+                'gst_certificate','business_license','pan_card','bank_proof'
             ];
 
             foreach ($fields as $field) {
                 if (isset($_POST[$field])) {
 
-                    if (in_array($field, ['profile_image','cover_image','aadhaar_card','company_id_card','gst_certificate','business_license','pan_card','bank_proof'])) {
+                    if (in_array($field, ['profile_image','cover_image','aadhaar_card','company_id_card','gst_certificate','business_license','pan_card','bank_proof','years_in_business'])) {
                         update_post_meta($post_id, $field, intval($_POST[$field]));
                     } else {
                         update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));

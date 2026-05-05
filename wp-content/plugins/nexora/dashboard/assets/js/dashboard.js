@@ -235,15 +235,66 @@ jQuery(document).ready(function ($) {
     function buildVendorWorkForm() {
         return `
             <form class="info-form grid-form" data-type="work-info">
-                <div class="form-group"><label>Business Name</label>  <input name="business_name"   value="${esc(data.business_name)}"></div>
-                <div class="form-group"><label>Business Type</label>  <input name="business_type"   value="${esc(data.business_type)}"></div>
-                <div class="form-group"><label>Business Email</label> <input name="company_email"   value="${esc(data.company_email)}"></div>
-                <div class="form-group"><label>Business Phone</label> <input name="company_phone"   value="${esc(data.company_phone)}"></div>
-                <div class="form-group"><label>GST Number</label>     <input name="gst_number"      value="${esc(data.gst_number)}"></div>
+
+                <div class="form-group">
+                    <label>Business Name</label>
+                    <input type="text" name="business_name" placeholder="Enter your business name"
+                        value="${esc(data.business_name)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Business Type</label>
+                    <input type="text" name="business_type" placeholder="e.g. Retail, Service, Manufacturing"
+                        value="${esc(data.business_type)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Business Email Address</label>
+                    <input type="email" name="business_email" placeholder="Enter business email"
+                        value="${esc(data.business_email)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Business Contact Number</label>
+                    <input type="text" name="business_phone" placeholder="Enter contact number"
+                        value="${esc(data.business_phone)}">
+                </div>
+
+                <div class="form-group">
+                    <label>GST Number</label>
+                    <input type="text" name="gst_number" placeholder="Enter GST number"
+                        value="${esc(data.gst_number)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Business Category</label>
+                    <input type="text" name="business_category" placeholder="e.g. Electronics, Clothing"
+                        value="${esc(data.business_category)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Service Areas</label>
+                    <input type="text" name="service_areas" placeholder="e.g. Delhi, NCR, India"
+                        value="${esc(data.service_areas)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Years in Business</label>
+                    <input type="number" name="years_in_business" placeholder="e.g. 5"
+                        value="${esc(data.years_in_business)}">
+                </div>
+
+                <div class="form-group full">
+                    <label>Website URL</label>
+                    <input type="url" name="website_url" placeholder="https://yourwebsite.com"
+                        value="${esc(data.website_url)}">
+                </div>
+
                 <div class="form-group full">
                     <label>Business Address</label>
-                    <textarea name="company_address">${esc(data.company_address)}</textarea>
+                    <textarea name="business_address" placeholder="Enter full business address">${esc(data.business_address)}</textarea>
                 </div>
+
                 <button class="form-submit">Save Changes</button>
             </form>
         `;
@@ -769,5 +820,4 @@ jQuery(document).ready(function ($) {
             </div>
         `;
     }
-
 });

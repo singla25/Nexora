@@ -17,18 +17,20 @@ define('NEXORA_DASHBOARD_TEMPLATES', NEXORA_PATH . 'dashboard/templates/');
 
 require_once NEXORA_PATH . 'includes/class-home-page.php';
 require_once NEXORA_PATH . 'includes/class-cpt.php';
+
 require_once NEXORA_PATH . 'includes/class-login.php';
 require_once NEXORA_PATH . 'includes/class-registration.php';
 require_once NEXORA_PATH . 'includes/class-vendor-registration.php';
 
-// require_once NEXORA_PATH . 'includes/class-profile-page.php';
-// require_once NEXORA_PATH . 'includes/class-profile-ajax.php';
-// require_once NEXORA_PATH . 'includes/class-profile-helper.php';
+// require_once NEXORA_PATH . 'includes/profile/class-profile-page.php';
+// require_once NEXORA_PATH . 'includes/profile/class-profile-ajax.php';
+// require_once NEXORA_PATH . 'includes/profile/class-profile-helper.php';
 
 require_once NEXORA_PATH . 'dashboard/dashboard.php';
 
 require_once NEXORA_PATH . 'chat/class-chat-core.php';
 // require_once NEXORA_PATH . 'includes/class-better-message-chat.php';
+
 require_once NEXORA_PATH . 'includes/class-notification.php';
 require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
 
@@ -49,9 +51,7 @@ class NEXORA_System {
         new Nexora_ReCaptcha();
 
         // new NEXORA_PROFILE_PAGE();
-        // new NEXORA_PROFILE_AJAX(); 
-
-        // new NEXORA_DASHBOARD_CORE();
+        // new NEXORA_PROFILE_AJAX();
         
 
         // GLOBAL ASSETS

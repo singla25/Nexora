@@ -217,9 +217,9 @@ class NEXORA_DASHBOARD_HELPER {
         return $tabs;
     }
 
-    public static function can_access_tab( string $tab, array $ctx ): bool {
-        return in_array( $tab, self::get_visible_tabs( $ctx ), true );
-    }
+    // public static function can_access_tab( string $tab, array $ctx ): bool {
+    //     return in_array( $tab, self::get_visible_tabs( $ctx ), true );
+    // }
 
     /* =========================================================================
        INFO SUB-TABS
@@ -239,7 +239,6 @@ class NEXORA_DASHBOARD_HELPER {
                 'work-info'     => 'Business',
                 'docs-info'     => 'Documents',
                 'security-info' => 'Security',
-                'vendor-info'   => 'Vendor Details',
             ];
         }
 
@@ -303,12 +302,16 @@ class NEXORA_DASHBOARD_HELPER {
             return [
                 'heading' => 'Business Information',
                 'fields'  => [
-                    'business_name'    => 'Business Name',
-                    'business_type'    => 'Business Type',
-                    'business_email'   => 'Business Email',
-                    'business_phone'   => 'Business Phone',
-                    'business_address' => 'Business Address',
-                    'gst_number'       => 'GST Number',
+                    'business_name'     => 'Business Name',
+                    'business_type'     => 'Business Type',
+                    'business_email'    => 'Business Email',
+                    'business_phone'    => 'Business Phone',
+                    'business_address'  => 'Business Address',
+                    'business_category' => 'Business Category',
+                    'gst_number'        => 'GST Number',
+                    'service_areas'     => 'Service Areas',
+                    'years_in_business' => 'Years in Business',
+                    'website_url'       => 'Website',
                 ],
             ];
         }
@@ -322,15 +325,6 @@ class NEXORA_DASHBOARD_HELPER {
                 'company_phone'   => 'Company Phone',
                 'company_address' => 'Company Address',
             ],
-        ];
-    }
-
-    public static function get_vendor_detail_fields(): array {
-        return [
-            'vendor_category'    => 'Vendor Category',
-            'service_areas'      => 'Service Areas',
-            'years_in_business'  => 'Years in Business',
-            'website_url'        => 'Website',
         ];
     }
 
@@ -371,14 +365,11 @@ class NEXORA_DASHBOARD_HELPER {
         ];
     }
 
-    /**
-     * Fix #1: added business_email, business_phone, business_address to save fields.
-     */
     public static function get_work_save_fields(): array {
         return [
             'company_name', 'designation', 'company_email', 'company_phone', 'company_address',
             'business_name', 'business_type', 'business_email', 'business_phone', 'business_address',
-            'gst_number', 'vendor_category', 'service_areas', 'years_in_business', 'website_url',
+            'gst_number', 'business_category', 'service_areas', 'years_in_business', 'website_url',
         ];
     }
 
@@ -431,19 +422,17 @@ class NEXORA_DASHBOARD_HELPER {
             'company_phone'   => $get( 'company_phone' ),
             'company_address' => $get( 'company_address' ),
 
-            // Business (vendor) — Fix #1: correct meta keys
-            'business_name'    => $get( 'business_name' ),
-            'business_type'    => $get( 'business_type' ),
-            'business_email'   => $get( 'business_email' ),
-            'business_phone'   => $get( 'business_phone' ),
-            'business_address' => $get( 'business_address' ),
-            'gst_number'       => $get( 'gst_number' ),
-
-            // Vendor-specific extras
-            'vendor_category'    => $get( 'vendor_category' ),
-            'service_areas'      => $get( 'service_areas' ),
-            'years_in_business'  => $get( 'years_in_business' ),
-            'website_url'        => $get( 'website_url' ),
+            // Business (vendor)
+            'business_name'     => $get( 'business_name' ),
+            'business_type'     => $get( 'business_type' ),
+            'business_email'    => $get( 'business_email' ),
+            'business_phone'    => $get( 'business_phone' ),
+            'business_address'  => $get( 'business_address' ),
+            'business_category' => $get( 'business_category' ),
+            'gst_number'        => $get( 'gst_number' ),
+            'service_areas'     => $get( 'service_areas' ),
+            'years_in_business' => $get( 'years_in_business' ),
+            'website_url'       => $get( 'website_url' ),
 
             // Document IDs
             'profile_image_id'     => $get( 'profile_image' ),

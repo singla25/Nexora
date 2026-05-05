@@ -103,8 +103,9 @@ class NEXORA_DASHBOARD_CORE {
 
         if ( ! is_page( 'dashboard' ) ) return '';
 
-        // Fix #5: If a logged-in user (subscriber OR vendor) hits /dashboard
+        // If a logged-in user (subscriber OR vendor) hits /dashboard
         // with no username in the URL, redirect them to their own profile URL.
+        
         $username = get_query_var( 'username' );
         if ( ! $username && is_user_logged_in() && ! current_user_can( 'manage_options' ) ) {
             $user_id    = get_current_user_id();
