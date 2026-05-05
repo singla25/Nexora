@@ -11,7 +11,6 @@ if (!defined('ABSPATH')) exit;
 define('NEXORA_PATH', plugin_dir_path(__FILE__));
 define('NEXORA_URL', plugin_dir_url(__FILE__));
 
-// ✅ ADD THESE
 define('NEXORA_VERSION', '1.0.0');
 define('NEXORA_DASHBOARD_TEMPLATES', NEXORA_PATH . 'dashboard/templates/');
 
