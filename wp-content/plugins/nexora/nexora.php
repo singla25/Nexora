@@ -35,7 +35,7 @@ require_once NEXORA_PATH . 'chat/class-chat-core.php';
 require_once NEXORA_PATH . 'includes/class-notification.php';
 require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
 
-require_once NEXORA_PATH . 'marketplace/marketplace-core.php';
+// require_once NEXORA_PATH . 'marketplace/marketplace-core.php';
 
 class NEXORA_System {
 
