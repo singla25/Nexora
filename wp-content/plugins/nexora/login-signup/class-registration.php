@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 class NEXORA_Registration {
 
     public function __construct() {
@@ -11,6 +13,8 @@ class NEXORA_Registration {
     }
 
     public function enqueue_assets() {
+
+        if ( ! is_page( 'registration-page' ) ) return;
 
         wp_enqueue_style('profile-style', NEXORA_URL . 'login-signup/assets/css/nexora-registration.css');
 
@@ -43,6 +47,10 @@ class NEXORA_Registration {
 
             $current_user = wp_get_current_user();
 
+            $dashboard_url = in_array( 'administrator', (array) $current_user->roles )
+                ? home_url( '/dashboard' )
+                : home_url( '/dashboard/' . $current_user->user_login );
+
             return '
                 <div class="register-state-wrapper">
 
@@ -55,7 +63,7 @@ class NEXORA_Registration {
                         <h2>Hey ' . esc_html($current_user->display_name) . ' 👋</h2>
                         <p>You are already logged in</p>
 
-                        <a href="' . home_url('/dashboard/' . $current_user->user_login) . '" class="btn-primary">
+                        <a href="' . esc_url( $dashboard_url ) . '" class="btn-primary">
                             Go to Profile
                         </a>
 
@@ -144,10 +152,10 @@ class NEXORA_Registration {
 
         $data = $_POST;
 
-        $email = sanitize_email($data['email'] ?? '');
-        $user_name = sanitize_user($data['user_name'] ?? '');
-        $password = $data['password'] ?? '';
-        $confirm_pass = $data['confirm_password'] ?? '';
+        $email        = sanitize_email($data['email'] ?? '');
+        $user_name    = sanitize_user($data['user_name'] ?? '');
+        $password     = wp_unslash( $data['password'] ?? '' );
+        $confirm_pass = wp_unslash( $data['confirm_password'] ?? '' );
 
         if (empty($email) || empty($user_name) || empty($password) || empty($confirm_pass)) {
             wp_send_json_error('Required fields missing');
@@ -177,6 +185,7 @@ class NEXORA_Registration {
         wp_update_user([
             'ID' => $wp_user_id,
             'user_nicename' => $user_name,
+            'display_name'  => $full_name,
             'first_name' => sanitize_text_field($data['first_name'] ?? ''),
             'last_name'  => sanitize_text_field($data['last_name'] ?? '')
         ]);

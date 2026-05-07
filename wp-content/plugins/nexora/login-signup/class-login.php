@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 class NEXORA_Login {
 
     public function __construct() {
@@ -20,6 +22,8 @@ class NEXORA_Login {
     }
 
     public function login_enqueue_assets() {
+
+        // if ( ! is_page( 'login-page' ) ) return;
 
         wp_enqueue_style('profile-login-style', NEXORA_URL . 'login-signup/assets/css/nexora-login.css');
 
@@ -60,12 +64,8 @@ class NEXORA_Login {
 
         $user = get_user_by('login', $username);
 
-        if (!$user) {
-            wp_send_json_error('Invalid username');
-        }
-
-        if ($user->user_email !== $email) {
-            wp_send_json_error('Email does not match with username');
+        if (!$user || $user->user_email !== $email) {
+            wp_send_json_error('Username and email combination not found');
         }
 
         // Check existing OTP
@@ -132,6 +132,8 @@ class NEXORA_Login {
             wp_send_json_error('OTP expired');
         }
 
+        $verified  = update_user_meta($user_id, 'otp_verified', true);
+
         wp_send_json_success('OTP verified');
     }
 
@@ -142,19 +144,30 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        $user_id = intval($_POST['user_id']);
-        $password = $_POST['password'];
+        $user_id  = absint( $_POST['user_id'] ?? 0 );
+        $password = wp_unslash( $_POST['password'] ?? '' );
+
+        $verified = get_user_meta($user_id, 'otp_verified', true);
 
         if (empty($password)) {
             wp_send_json_error('Password cannot be empty');
         }
 
+        if (strlen($password) < 6) {
+            wp_send_json_error('Password must be at least 6 characters');
+        }
+
+        if (!$verified) {
+            wp_send_json_error('OTP not verified');
+        }
+
         // Update password
         wp_set_password($password, $user_id);
 
-        // Clear OTP
+        // Clear all OTP meta
         delete_user_meta($user_id, 'reset_otp');
         delete_user_meta($user_id, 'otp_expiry');
+        delete_user_meta($user_id, 'otp_verified');
 
         // Get user data
         $user = get_userdata($user_id);
@@ -191,7 +204,7 @@ class NEXORA_Login {
             'redirect' => home_url('/dashboard/' . $user->user_login)
         ]);
     }
-
+    
 
     // ---------------------------
     //      LogIn Form
@@ -202,6 +215,10 @@ class NEXORA_Login {
         if (is_user_logged_in()) {
 
             $current_user = wp_get_current_user();
+
+            $dashboard_url = in_array( 'administrator', (array) $current_user->roles )
+                ? home_url( '/dashboard' )
+                : home_url( '/dashboard/' . $current_user->user_login );
 
             return '
                 <div class="login-state-wrapper">
@@ -216,7 +233,7 @@ class NEXORA_Login {
                         <p>You are already logged in</p>
 
                         <div class="login-actions">
-                            <a href="' . home_url('/dashboard/' . $current_user->user_login) . '" class="btn-primary">
+                            <a href="' . esc_url( $dashboard_url ) . '" class="btn-primary">
                                 Go to Profile
                             </a>
 
@@ -251,6 +268,13 @@ class NEXORA_Login {
                         <span class="toggle-label">Show Password</span>
                     </div>
 
+                    <div class="remember-me-wrapper full-width">
+                        <label>
+                            <input type="checkbox" name="remember_me" id="remember_me">
+                            Remember Me
+                        </label>
+                    </div>
+
                     <?php
                     $captcha = new Nexora_ReCaptcha();
                     echo $captcha->render();
@@ -278,6 +302,8 @@ class NEXORA_Login {
 
     public function handle_login() {
 
+        error_log(print_r($_POST, true));
+
         check_ajax_referer('profile_nonce', 'nonce');
 
         $captcha = new Nexora_ReCaptcha();
@@ -290,7 +316,8 @@ class NEXORA_Login {
         }
 
         $login_input = sanitize_text_field($_POST['user_name']);
-        $password    = $_POST['password'];
+        $password    = wp_unslash( $_POST['password'] ?? '' );
+        $remember_me = ! empty($_POST['remember_me']);
 
         // Check if input is email
         if (is_email($login_input)) {
@@ -307,20 +334,17 @@ class NEXORA_Login {
         $creds = [
             'user_login'    => $login_input,
             'user_password' => $password,
-            'remember'      => true
+            'remember'      => $remember_me
         ];
 
-        // is_ssl()is a WordPress conditional function that checks if the current page is loaded over HTTPS or via port 443.
-        // It returns true if the connection is secure and false otherwise [1, 3]. 
-        // It is essential for ensuring that scripts, stylesheets, and site URLs use the https protocol to avoid mixed content errors.
         $user = wp_signon($creds, is_ssl());
 
         if (is_wp_error($user)) {
             wp_send_json_error('Invalid username or password');
         }
 
-        wp_set_current_user($user->ID);
-        wp_set_auth_cookie($user->ID);
+        // wp_set_current_user($user->ID);
+        // wp_set_auth_cookie($user->ID);
 
         // ✅ Correct way to get username
         $username = $user->user_login;

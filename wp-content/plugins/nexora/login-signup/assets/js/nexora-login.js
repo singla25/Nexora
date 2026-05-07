@@ -9,9 +9,12 @@ jQuery(document).ready(function ($) {
 
         let formData = new FormData(this);
         formData.append('action', 'profile_login');
-        formData.append('nonce', profileData.nonce); // 🔥 ADD THIS
+        formData.append('nonce', profileData.nonce); 
 
-        // 🔥 Add captcha
+        let rememberMe = $('#remember_me').is(':checked') ? '1' : '0';
+        formData.set('remember_me', rememberMe);
+
+        // Add captcha
         let captcha = '';
         if (typeof grecaptcha !== 'undefined') {
             captcha = grecaptcha.getResponse();
