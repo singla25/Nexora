@@ -198,7 +198,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         public function can_invite( $user_id, $thread_id ){
             $type = $this->get_thread_type( $thread_id );
             if( $type === 'chat-room' ) return false;
-            if( $type === 'group' ) return false;
+            if( $type === 'group' || $type === 'course' ) return false;
             if( $user_id <= 0 ) return false;
 
             $participants = $this->get_participants( $thread_id );
@@ -229,7 +229,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         {
             $type = $this->get_thread_type( $thread_id );
             if( $type === 'chat-room' ) return false;
-            if( $type === 'group' ) return false;
+            if( $type === 'group' || $type === 'course' ) return false;
 
             if( Better_Messages()->settings['allowGroupLeave'] === '1' ) {
                 $participants = $this->get_participants( $thread_id );
@@ -782,6 +782,48 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                     $community_slug = function_exists('suredash_get_community_slug') ? suredash_get_community_slug() : 'portal';
                     return home_url( '/' . $community_slug . '/messages/' );
                 }
+
+                if ( class_exists('LearnPress') && Better_Messages()->settings['chatPage'] === 'learnpress-profile' && function_exists('learn_press_user_profile_link') ) {
+                    $profile_url = learn_press_user_profile_link( $user_id, 'messages' );
+                    if ( $profile_url && strpos( $profile_url, '//messages' ) === false ) {
+                        return $profile_url;
+                    }
+
+                    if ( class_exists( '\LearnPress\Models\UserModel' ) ) {
+                        $wp_user = get_userdata( $user_id );
+                        if ( $wp_user instanceof WP_User ) {
+                            $user_model = new \LearnPress\Models\UserModel( $wp_user );
+                            if ( method_exists( $user_model, 'generate_pretty_slug' ) ) {
+                                $user_model->generate_pretty_slug();
+                                $profile_url = learn_press_user_profile_link( $user_id, 'messages' );
+                                if ( $profile_url && strpos( $profile_url, '//messages' ) === false ) {
+                                    return $profile_url;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if ( defined('TUTOR_VERSION') && Better_Messages()->settings['chatPage'] === 'tutor-dashboard' ) {
+                    $dashboard_url = tutor_utils()->get_tutor_dashboard_page_permalink( 'messages' );
+                    if ( $dashboard_url ) {
+                        return $dashboard_url;
+                    }
+                }
+
+                if ( defined('STM_LMS_VERSION') && Better_Messages()->settings['chatPage'] === 'masterstudy-account' && function_exists('ms_plugin_user_account_url') ) {
+                    $account_url = ms_plugin_user_account_url( 'messages' );
+                    if ( $account_url ) {
+                        return $account_url;
+                    }
+                }
+
+                if ( defined('ATBDP_VERSION') && Better_Messages()->settings['chatPage'] === 'directorist-dashboard' && class_exists('ATBDP_Permalink') ) {
+                    $dashboard_url = ATBDP_Permalink::get_dashboard_page_link();
+                    if ( $dashboard_url ) {
+                        return trailingslashit( $dashboard_url ) . '#bm_messages';
+                    }
+                }
             }
 
             if( Better_Messages()->settings['chatPage'] !== '0' ){
@@ -881,6 +923,24 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             $content = trim(str_replace(array("&nbsp;", '&amp;nbsp;'), " ", $content));
 
             return $content;
+        }
+
+        public function message_text_length( $content ) {
+            $text = html_entity_decode( (string) $content, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+            $text = trim( wp_strip_all_tags( $text ) );
+
+            if ( $text === '' ) {
+                return 0;
+            }
+
+            if ( function_exists( 'grapheme_strlen' ) ) {
+                $length = grapheme_strlen( $text );
+                if ( $length !== false && $length !== null ) {
+                    return $length;
+                }
+            }
+
+            return mb_strlen( $text );
         }
 
 
@@ -1737,6 +1797,12 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 if( $is_valid_group ){
                     $thread_type = 'group';
                 }
+            } else if( $thread->type === 'course' ) {
+                $is_valid_course = apply_filters( 'better_messages_is_valid_course', false, $thread_id );
+
+                if( $is_valid_course ){
+                    $thread_type = 'course';
+                }
             } else {
                 $chat_id = Better_Messages()->functions->get_thread_meta($thread_id, 'chat_id');
 
@@ -1750,6 +1816,10 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             wp_cache_set('thread_' . $thread_id . '_type', $thread_type, 'bm_messages');
 
             return $thread_type;
+        }
+
+        public function is_group_like_thread_type( $type ){
+            return $type === 'group' || $type === 'course';
         }
 
         public function get_thread_title( int $thread_id ){
@@ -1818,6 +1888,10 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             return apply_filters( 'better_messages_groups_active', false );
         }
 
+        public function is_courses_active(){
+            return apply_filters( 'better_messages_courses_active', false );
+        }
+
         public function user_has_friends( $user_id ) {
             if ( $user_id <= 0 ) return false;
             return (bool) apply_filters( 'better_messages_user_has_friends', false, $user_id );
@@ -1826,6 +1900,11 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         public function user_has_groups( $user_id ) {
             if ( $user_id <= 0 ) return false;
             return (bool) apply_filters( 'better_messages_user_has_groups', false, $user_id );
+        }
+
+        public function user_has_courses( $user_id ) {
+            if ( $user_id <= 0 ) return false;
+            return (bool) apply_filters( 'better_messages_user_has_courses', false, $user_id );
         }
 
         public function user_has_users( $user_id ) {
@@ -3059,6 +3138,13 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                        }
                    }
                }
+
+               if( $type === 'course' ) {
+                   if ( Better_Messages()->settings['enableCoursesPushs'] !== '1' ) {
+                       $message->send_push = false;
+                       $message->mobile_push = false;
+                   }
+               }
             }
 
             /*if( $is_pending !== 0 ){
@@ -3357,7 +3443,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 return $this->check_chat_room_access( $thread_id, $user_id, $acccess_type );
             }
 
-            if( $type === 'group' ){
+            if( $type === 'group' || $type === 'course' ){
                 return apply_filters( 'better_messages_has_access_to_group_chat', false, $thread_id, $user_id );
             }
 

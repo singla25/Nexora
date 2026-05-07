@@ -2573,6 +2573,11 @@ body[class*=_page_better-messages-viewer] .update-nag {
   flex-shrink: 0;
 }
 
+.bm-settings-section-body > .bm-sortable-picker {
+  box-sizing: border-box;
+  padding: 16px;
+}
+
 .bm-settings-download-notice {
   display: block;
   margin-top: 6px;
@@ -4340,6 +4345,52 @@ body[class*=_page_better-messages-viewer] .update-nag {
   margin: 0;
 }
 
+.bm-db-health {
+  border-bottom: 1px solid #f0f0f1;
+}
+.bm-db-health .bm-db-health-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 20px 8px;
+}
+.bm-db-health .bm-db-health-summary {
+  font-size: 12px;
+  color: #757575;
+}
+.bm-db-health .bm-db-health-actions {
+  display: flex;
+  gap: 8px;
+}
+.bm-db-health .bm-db-health-hint {
+  margin: 0;
+  padding: 0 20px 12px;
+  font-size: 12px;
+  color: #757575;
+}
+.bm-db-health .bm-db-health-state {
+  padding: 14px 20px;
+  font-size: 13px;
+}
+.bm-db-health table {
+  table-layout: auto;
+}
+.bm-db-health tbody tr.bm-db-health-detail-row td {
+  text-align: left;
+  padding: 12px 20px;
+}
+.bm-db-health .bm-db-health-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-family: monospace;
+  color: #1e1e1e;
+  background-color: #f0f0f1;
+  border-radius: 2px;
+}
+
 .bm-sortable-widgets {
   padding: 16px 20px;
 }
@@ -4354,9 +4405,12 @@ body[class*=_page_better-messages-viewer] .update-nag {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   padding: 12px 16px;
-  min-width: 120px;
+  width: 180px;
+  min-height: 190px;
+  box-sizing: border-box;
   background: #f6f7f7;
   border: 2px solid #dcdcde;
   border-radius: 6px;
