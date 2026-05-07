@@ -26,6 +26,7 @@ jQuery(document).ready(function ($) {
     const profileRole = D.profileRole || 'user';    // user  | vendor
     const isOwner     = roleType === 'owner';
     const isVendor    = profileRole === 'vendor';
+    const isAdmin     = profileRole === 'admin';
 
     // =========================================================
     // TAB SWITCH
@@ -62,62 +63,9 @@ jQuery(document).ready(function ($) {
         // ── PERSONAL ──────────────────────────────────────────
         if (type === 'personal-info') {
 
-            html = `
-                <form class="info-form grid-form" data-type="personal-info">
-
-                    <div class="form-group">
-                        <label>User Name</label>
-                        <input type="text" value="${esc(data.user_name)}" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" value="${esc(data.email)}" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label>First Name</label>
-                        <input name="first_name" value="${esc(data.first_name)}">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Last Name</label>
-                        <input name="last_name" value="${esc(data.last_name)}">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Phone</label>
-                        <input name="phone" value="${esc(data.phone)}">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Gender</label>
-                        <select name="gender">
-                            <option value="">Select</option>
-                            <option value="male"   ${sel(data.gender,'male')}>Male</option>
-                            <option value="female" ${sel(data.gender,'female')}>Female</option>
-                            <option value="other"  ${sel(data.gender,'other')}>Other</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Birthdate</label>
-                        <input type="date" name="birthdate" value="${esc(data.birthdate)}">
-                    </div>
-
-                    <div class="form-group">
-                        <label>LinkedIn</label>
-                        <input name="linkedin_id" value="${esc(data.linkedin_id)}">
-                    </div>
-
-                    <div class="form-group full">
-                        <label>Bio</label>
-                        <textarea name="bio">${esc(data.bio)}</textarea>
-                    </div>
-
-                    <button class="form-submit">Save Changes</button>
-                </form>
-            `;
+            html = isAdmin
+                ? buildAdminPersonalDetail()
+                : buildUserPersonalDetail();
         }
 
         // ── ADDRESS ───────────────────────────────────────────
@@ -157,15 +105,16 @@ jQuery(document).ready(function ($) {
             // Vendor sees business fields; user sees company fields
             html = isVendor
                 ? buildVendorWorkForm()
-                : buildUserWorkForm();
+                : buildUserPersonalDetail();
         }
 
         // ── DOCUMENTS (role-adaptive) ─────────────────────────
         if (type === 'docs-info') {
 
+            const adminDocs  = ['profile_image','cover_image'];
             const userDocs   = ['profile_image','cover_image','aadhaar_card','driving_license','company_id_card'];
             const vendorDocs = ['profile_image','cover_image','aadhaar_card','company_id_card','gst_certificate','business_license','pan_card','bank_proof'];
-            const docKeys    = isVendor ? vendorDocs : userDocs;
+            const docKeys    = isAdmin ? adminDocs : isVendor ? vendorDocs : userDocs;
 
             html = `
                 <form class="info-form docs-form" data-type="docs-info">
@@ -214,6 +163,101 @@ jQuery(document).ready(function ($) {
         });
     });
 
+    // ── Personal Information form builders ────────────────────────────────────
+
+    function buildAdminPersonalDetail() {
+        return `
+            <form class="info-form grid-form" data-type="personal-info">
+
+                <div class="form-group">
+                    <label>User Name</label>
+                    <input type="text" value="${esc(data.user_name)}" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" value="${esc(data.email)}" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input name="first_name" value="${esc(data.first_name)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input name="last_name" value="${esc(data.last_name)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input name="phone" value="${esc(data.phone)}">
+                </div>
+
+                <button class="form-submit">Save Changes</button>
+            </form>
+        `;
+    }
+
+    function buildUserPersonalDetail() {
+        return `
+            <form class="info-form grid-form" data-type="personal-info">
+
+                <div class="form-group">
+                    <label>User Name</label>
+                    <input type="text" value="${esc(data.user_name)}" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" value="${esc(data.email)}" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input name="first_name" value="${esc(data.first_name)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input name="last_name" value="${esc(data.last_name)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input name="phone" value="${esc(data.phone)}">
+                </div>
+
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select name="gender">
+                        <option value="">Select</option>
+                        <option value="male"   ${sel(data.gender,'male')}>Male</option>
+                        <option value="female" ${sel(data.gender,'female')}>Female</option>
+                        <option value="other"  ${sel(data.gender,'other')}>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Birthdate</label>
+                    <input type="date" name="birthdate" value="${esc(data.birthdate)}">
+                </div>
+
+                <div class="form-group">
+                    <label>LinkedIn</label>
+                    <input name="linkedin_id" value="${esc(data.linkedin_id)}">
+                </div>
+
+                <div class="form-group full">
+                    <label>Bio</label>
+                    <textarea name="bio">${esc(data.bio)}</textarea>
+                </div>
+
+                <button class="form-submit">Save Changes</button>
+            </form>
+        `;
+    }
+    
     // ── Work form builders ────────────────────────────────────
 
     function buildUserWorkForm() {
@@ -385,11 +429,11 @@ jQuery(document).ready(function ($) {
     // FORM SUBMIT — unified handler
     // =========================================================
     const ACTION_MAP = {
-        'personal-info' : 'update_personal_info',
+        'personal-info' : isAdmin ? 'nx_admin_update_personal' : 'update_personal_info',
         'address-info'  : 'update_address_info',
         'work-info'     : 'update_work_info',
-        'docs-info'     : 'update_documents_info',
-        'security-info' : 'update_profile_password',
+        'docs-info'     : isAdmin ? 'nx_admin_update_avatar' : 'update_documents_info',
+        'security-info' : isAdmin ? 'nx_admin_update_password' : 'update_profile_password',
     };
 
     $(document).on('submit', '.info-form', function (e) {

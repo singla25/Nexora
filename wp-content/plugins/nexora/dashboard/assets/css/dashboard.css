@@ -2,7 +2,6 @@
    NEXORA DASHBOARD — dashboard.css
    Built on your original profile-page.css with additions for:
      - Gate screens (.nexora-gate)
-     - Market tab (.market-header, .market-body)
      - Table utility (.nexora-table)
      - Vendor badge (.vendor-badge, .mutual-badge)
      - Button utilities (.btn, .btn-*)
@@ -406,8 +405,7 @@ body {
 ================================================================= */
 .connection-header,
 .content-header,
-.user-info-header,
-.market-header {
+.user-info-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -416,21 +414,18 @@ body {
 
 .conn-left h3,
 .content-left h3,
-.user-info-left h3,
-.market-left h3 { font-size: 22px; font-weight: 700; margin: 0; }
+.user-info-left h3 { font-size: 22px; font-weight: 700; margin: 0; }
 
 .conn-center,
 .user-info-center { width: 100%; text-align: center; }
 
 .conn-sub,
 .content-sub,
-.user-info-sub,
-.market-sub { font-size: 13px; color: #94a3b8; }
+.user-info-sub { font-size: 13px; color: #94a3b8; }
 
 .conn-right,
 .content-right,
-.user-info-right,
-.market-right { display: flex; gap: 10px; flex-wrap: wrap; }
+.user-info-right { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .conn-tab,
 .content-tab,
@@ -779,28 +774,6 @@ body {
 .meta-date         { color: #9ca3af; font-size: 12px; }
 
 /* =================================================================
-   MARKET TAB
-================================================================= */
-.market-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.market-body {
-    min-height: 200px;
-}
-
-/* When marketplace plugin injects content, give it breathing room */
-.market-body > * { animation: fadeSlideIn 0.3s ease; }
-
-@keyframes fadeSlideIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* =================================================================
    EMPTY STATES
 ================================================================= */
 .empty-content {
@@ -915,8 +888,7 @@ body {
 
     .connection-header,
     .content-header,
-    .user-info-header,
-    .market-header {
+    .user-info-header {
         flex-direction: column;
         gap: 12px;
         align-items: flex-start;
@@ -924,8 +896,7 @@ body {
 
     .conn-right,
     .content-right,
-    .user-info-right,
-    .market-right {
+    .user-info-right {
         width: 100%;
         flex-wrap: wrap;
     }
@@ -979,3 +950,102 @@ body {
     gap: 6px;
     align-items: center;
 }
+
+/* =================================================================
+   ADMIN DASHBOARD  (.nx-admin-dashboard)
+   Same design language as vendor dashboard.
+   Cover uses a gradient fallback when no image is set.
+================================================================= */
+
+.nx-admin-dashboard .nx-admin-cover:not([style*="background-image"]) {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 60%, #4f46e5 100%);
+}
+
+/* Role badge under the name */
+.nx-admin-role-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    margin-top: 6px;
+}
+
+/* Edit buttons in the info sub-tab bar */
+.nx-admin-edit {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    transition: 0.25s;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.nx-admin-edit:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 6px 16px rgba(59,130,246,0.28);
+    transform: translateY(-1px);
+}
+
+/* Platform management quick-links grid */
+.nx-admin-wp-links {
+    margin-top: 0;
+}
+
+.nx-admin-link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.nx-admin-link-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #f8fafc, #ffffff);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.25s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.nx-admin-link-btn:hover {
+    background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+    border-color: #bfdbfe;
+    color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37,99,235,0.1);
+}
+
+/* Media picker button inside Swal */
+.nx-media-pick-btn {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #2563eb;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.nx-media-pick-btn:hover {
+    background: #dbeafe;
+}
+
+/* Slightly wider Swal for the grid forms */
+.nx-swal-wide { max-width: 520px !important; }

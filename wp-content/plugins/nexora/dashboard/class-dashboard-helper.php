@@ -15,12 +15,12 @@
  *   vendor-viewer= logged-in vendor viewing someone else's profile
  *
  * Tab visibility
- *   Tab           | guest→user | guest→vendor | user-owner | user-viewer | vendor-owner | vendor-viewer
- *   user-info     |     ✓      |      ✓       |     ✓      |      ✓      |      ✓       |      ✓
- *   connections   |     ✓      |      ✗       |     ✓      |      ✓      |      ✗       |      ✗
- *   notifications |     ✗      |      ✗       |     ✓      |      ✗      |      ✓       |      ✗
- *   content       |     ✗      |      ✗       |     ✓      |      ✗      |      ✗       |      ✗
- *   market        |     ✗      |      ✗       |     ✓      |      ✗      |      ✓       |      ✗
+ *   Tab           | guest→user | guest→vendor | user-owner | user-viewer | vendor-owner | vendor-viewer |    Admin     |
+ *   user-info     |     ✓      |      ✓       |     ✓      |      ✓      |      ✓       |      ✓        |      ✓       |
+ *   connections   |     ✓      |      ✗       |     ✓      |      ✓      |      ✗       |      ✗        |      ✗       |
+ *   notifications |     ✗      |      ✗       |     ✓      |      ✗      |      ✓       |      ✗        |      ✓       |
+ *   content       |     ✗      |      ✗       |     ✓      |      ✗      |      ✗       |      ✗        |      ✗       |
+ *   market        |     ✗      |      ✗       |     ✓      |      ✗      |      ✓       |      ✗        |      ✓       |
  *
  * ─── Adding a new role ────────────────────────────────────────────────────────
  *   1. Add its WP role slug → CPT to ROLE_MAP
@@ -40,6 +40,8 @@ class NEXORA_DASHBOARD_HELPER {
     const ROLE_MAP = [
         'subscriber' => 'user_profile',
         'vendor'     => 'vendor_profile',
+        // 'administrator' has no CPT — data lives in wp_users + usermeta.
+        // It is handled as a special case throughout this class.
     ];
 
     const PROFILE_POST_TYPES = [ 'user_profile', 'vendor_profile' ];
@@ -57,7 +59,14 @@ class NEXORA_DASHBOARD_HELPER {
     public static function resolve_context(): array {
 
         $current_user_id = get_current_user_id();
-        $username        = get_query_var( 'username' );
+
+        // ── Admin short-circuit ────────────────────────────────
+        // Admins have no CPT profile. Build context from WP user + usermeta.
+        if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
+            return self::resolve_admin_context( $current_user_id );
+        }
+
+        $username = get_query_var( 'username' );
 
         // ── Which profile is being viewed? ────────────────────────
         if ( $username ) {
@@ -94,6 +103,23 @@ class NEXORA_DASHBOARD_HELPER {
             'viewer_role'     => $viewer_role,
             'is_owner'        => $role_type === 'owner',
             'is_logged_in'    => $role_type !== 'guest',
+        ];
+    }
+
+    /**
+     * Build context for an administrator.
+     * No CPT, no username slug — everything lives in wp_users + usermeta.
+     */
+    public static function resolve_admin_context( int $admin_id ): array {
+        return [
+            'current_user_id' => $admin_id,
+            'profile_id'      => 0,           // no CPT row
+            'owner_user_id'   => $admin_id,
+            'role_type'       => 'owner',
+            'profile_role'    => 'admin',
+            'viewer_role'     => 'admin',
+            'is_owner'        => true,
+            'is_logged_in'    => true,
         ];
     }
 
@@ -179,9 +205,14 @@ class NEXORA_DASHBOARD_HELPER {
 
     public static function get_visible_tabs( array $ctx ): array {
 
-        $role_type    = $ctx['role_type'];    // guest | owner | viewer
-        $profile_role = $ctx['profile_role']; // user  | vendor
-        $viewer_role  = $ctx['viewer_role'];  // user  | vendor | ''
+        $role_type    = $ctx['role_type'];
+        $profile_role = $ctx['profile_role'];
+        $viewer_role  = $ctx['viewer_role'];
+
+        // ── Admin: Information · Marketplace · Notifications ───
+        if ( $profile_role === 'admin' ) {
+            return [ self::TAB_INFO, self::TAB_MARKET, self::TAB_NOTIFICATIONS ];
+        }
 
         $tabs = [];
 
@@ -195,6 +226,7 @@ class NEXORA_DASHBOARD_HELPER {
             $profile_role === 'user' &&          // only on user profiles
             $viewer_role  !== 'vendor'           // vendors never see connections tab
         );
+        
         if ( $show_connections ) {
             $tabs[] = self::TAB_CONNECTIONS;
         }
@@ -231,6 +263,15 @@ class NEXORA_DASHBOARD_HELPER {
     public static function get_info_subtabs( array $ctx ): array {
 
         if ( ! $ctx['is_owner'] ) return [];
+
+        // Admin: Personal, Security, and Photo (docs-info reused for avatar/cover)
+        if ( $ctx['profile_role'] === 'admin' ) {
+            return [
+                'personal-info' => 'Personal',
+                'security-info' => 'Security',
+                'docs-info'     => 'Images',
+            ];
+        }
 
         if ( $ctx['profile_role'] === 'vendor' ) {
             return [
@@ -385,7 +426,40 @@ class NEXORA_DASHBOARD_HELPER {
        DATA BUILDERS
     ========================================================================= */
 
-    public static function build_user_data( int $profile_id ): array {
+    public static function build_user_data( int $profile_id, array $ctx = [] ): array {
+
+        // ── Admin: data lives in wp_users + usermeta, not a CPT ─
+        if ( ( $ctx['profile_role'] ?? '' ) === 'admin' ) {
+            $uid  = $ctx['current_user_id'];
+            $user = get_userdata( $uid );
+            if ( ! $user ) return [];
+
+            $avatar_id = (int) get_user_meta( $uid, 'nexora_admin_avatar', true );
+            $cover_id  = (int) get_user_meta( $uid, 'nexora_admin_cover',  true );
+
+            $avatar_url = $avatar_id
+                ? (string) wp_get_attachment_url( $avatar_id )
+                : ( ( $da = (int) get_option( 'default_profile_image' ) )
+                    ? (string) wp_get_attachment_url( $da )
+                    : get_avatar_url( $uid, [ 'size' => 120 ] ) );
+
+            $cover_url = $cover_id
+                ? (string) wp_get_attachment_url( $cover_id )
+                : ( ( $dc = (int) get_option( 'default_cover_image' ) )
+                    ? (string) wp_get_attachment_url( $dc )
+                    : '' );
+
+            return [
+                'profile_id'    => 0,
+                'user_name'     => $user->user_login,
+                'email'         => $user->user_email,
+                'first_name'    => get_user_meta( $uid, 'first_name',         true ),
+                'last_name'     => get_user_meta( $uid, 'last_name',          true ),
+                'phone'         => get_user_meta( $uid, 'nexora_admin_phone', true ),
+                'profile_image' => $avatar_url,
+                'cover_image'   => $cover_url,
+            ];
+        }
 
         if ( ! $profile_id ) return [];
 
@@ -458,7 +532,25 @@ class NEXORA_DASHBOARD_HELPER {
         ];
     }
 
-    public static function get_profile_header( int $profile_id ): array {
+    public static function get_profile_header( int $profile_id, array $ctx = [] ): array {
+
+        // ── Admin: read from WP user + usermeta ────────────────
+        if ( ( $ctx['profile_role'] ?? '' ) === 'admin' ) {
+            $uid  = $ctx['current_user_id'];
+            $user = get_userdata( $uid );
+            if ( ! $user ) return [];
+
+            $data = self::build_user_data( 0, $ctx );
+            return [
+                'username' => $user->user_login,
+                'name'     => trim( $data['first_name'] . ' ' . $data['last_name'] ) ?: $user->display_name,
+                'email'    => $user->user_email,
+                'phone'    => $data['phone'],
+                'image'    => $data['profile_image'],
+                'cover'    => $data['cover_image'],
+                'is_admin' => true,
+            ];
+        }
 
         return [
             'username' => get_post_meta( $profile_id, 'user_name',   true ),

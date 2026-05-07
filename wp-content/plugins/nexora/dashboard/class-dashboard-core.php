@@ -29,6 +29,9 @@ class NEXORA_DASHBOARD_CORE {
 
     public function enqueue_assets(): void {
 
+        // Only load dashboard assets on the dashboard page
+        if ( ! is_page( 'dashboard' ) ) return;
+
         wp_enqueue_style(
             'nexora-dashboard',
             NEXORA_URL . 'dashboard/assets/css/dashboard.css',
@@ -54,9 +57,7 @@ class NEXORA_DASHBOARD_CORE {
 
         wp_enqueue_media();
 
-        if ( is_page( 'dashboard' ) ) {
-            wp_localize_script( 'nexora-dashboard-js', 'nexoraDashboard', $this->build_js_payload() );
-        }
+        wp_localize_script( 'nexora-dashboard-js', 'nexoraDashboard', $this->build_js_payload() );
     }
 
     private function build_js_payload(): array {
@@ -73,7 +74,7 @@ class NEXORA_DASHBOARD_CORE {
             'viewerRole'    => $ctx['viewer_role'],
             'isOwner'       => $ctx['is_owner'],
             'isLoggedIn'    => $ctx['is_logged_in'],
-            'userData'      => NEXORA_DASHBOARD_HELPER::build_user_data( $ctx['profile_id'] ),
+            'userData'      => NEXORA_DASHBOARD_HELPER::build_user_data( $ctx['profile_id'], $ctx ),
             'visibleTabs'   => NEXORA_DASHBOARD_HELPER::get_visible_tabs( $ctx ),
         ];
     }
@@ -105,7 +106,8 @@ class NEXORA_DASHBOARD_CORE {
 
         // If a logged-in user (subscriber OR vendor) hits /dashboard
         // with no username in the URL, redirect them to their own profile URL.
-        
+        // Admins are excluded — they have no CPT username to redirect to.
+
         $username = get_query_var( 'username' );
         if ( ! $username && is_user_logged_in() && ! current_user_can( 'manage_options' ) ) {
             $user_id    = get_current_user_id();
@@ -143,9 +145,9 @@ class NEXORA_DASHBOARD_CORE {
             return $this->render_partial( 'partials/gate-login.php', $ctx );
         }
 
-        // Admin → redirect hint screen
-        if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
-            return $this->render_partial( 'partials/gate-admin.php', $ctx );
+        // Admin — flows through to dashboard-main.php (profile_id = 0 is fine for admin)
+        if ( $ctx['profile_role'] === 'admin' ) {
+            return null;
         }
 
         // Profile not found

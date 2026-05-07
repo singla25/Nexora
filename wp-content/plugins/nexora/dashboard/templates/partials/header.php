@@ -31,10 +31,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         <?php if ( $header['phone'] ) echo ' | ' . esc_html( $header['phone'] ); ?>
     </p>
 
+    <?php if ( ! empty( $header['is_admin'] ) ) : ?>
+        <span class="nx-admin-role-badge">Platform Admin</span>
+    <?php endif; ?>
+
     <?php
     /**
      * Hook: nexora_dashboard_after_header
-     * Inject badges, follow buttons, vendor badges, etc.
      */
     do_action( 'nexora_dashboard_after_header', $context );
     ?>

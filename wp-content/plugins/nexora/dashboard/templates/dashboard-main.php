@@ -18,7 +18,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // ── Shared data for all partials ──────────────────────────────
-$header       = NEXORA_DASHBOARD_HELPER::get_profile_header( $profile_id );
+$header       = NEXORA_DASHBOARD_HELPER::get_profile_header( $profile_id, $context );
 $visible_tabs = NEXORA_DASHBOARD_HELPER::get_visible_tabs( $context );
 $info_subtabs = NEXORA_DASHBOARD_HELPER::get_info_subtabs( $context );
 $unread_count = NEXORA_DASHBOARD_HELPER::get_unread_notification_count( $context['current_user_id'] );

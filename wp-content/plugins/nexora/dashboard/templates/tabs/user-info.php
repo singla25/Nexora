@@ -19,6 +19,77 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+// ── Admin: read-only personal card + Security sub-tab only ────
+if ( $profile_role === 'admin' ) {
+    $admin_user = wp_get_current_user();
+    $admin_id   = (int) $admin_user->ID;
+    ?>
+    <div class="user-info-header">
+        <div class="user-info-left">
+            <h3>Your Information</h3>
+            <span class="user-info-sub">Manage your admin account details</span>
+        </div>
+        <div class="user-info-right">
+            <?php foreach ( $info_subtabs as $slug => $label ) : ?>
+                <button class="user-edit-info"
+                        data-type="<?php echo esc_attr( $slug ); ?>">
+                    <?php echo esc_html( $label ); ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <div class="info-card" data-section="personal-info">
+        <h3>Personal Information</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Username</span>
+                <span class="info-value"><?php echo esc_html( $admin_user->user_login ); ?></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value nx-ai-email"><?php echo esc_html( $admin_user->user_email ); ?></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">First Name</span>
+                <span class="info-value nx-ai-first"><?php echo esc_html( get_user_meta( $admin_id, 'first_name', true ) ); ?></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Last Name</span>
+                <span class="info-value nx-ai-last"><?php echo esc_html( get_user_meta( $admin_id, 'last_name', true ) ); ?></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Phone</span>
+                <span class="info-value nx-ai-phone"><?php echo esc_html( get_user_meta( $admin_id, 'nexora_admin_phone', true ) ); ?></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Role</span>
+                <span class="info-value">Administrator</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card nx-admin-wp-links">
+        <h3>Platform Management</h3>
+        <div class="nx-admin-link-grid">
+            <a href="<?php echo esc_url( admin_url() ); ?>" class="nx-admin-link-btn">
+                🛠️ WordPress Admin
+            </a>
+            <a href="<?php echo esc_url( admin_url( 'users.php' ) ); ?>" class="nx-admin-link-btn">
+                👥 Manage Users
+            </a>
+            <a href="<?php echo esc_url( admin_url( 'edit.php?post_type=vendor_profile' ) ); ?>" class="nx-admin-link-btn">
+                🏪 Vendor Profiles
+            </a>
+            <a href="<?php echo esc_url( admin_url( 'edit.php?post_type=user_profile' ) ); ?>" class="nx-admin-link-btn">
+                🧑‍💼 User Profiles
+            </a>
+        </div>
+    </div>
+    <?php
+    return; // skip the rest of this template
+}
+
 $pid = $profile_id;
 $m   = fn( $key ) => get_post_meta( $pid, $key, true );
 
