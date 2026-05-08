@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Nexora
- * Description: Handles User Registration, Login, Profile Dashboard and User Connections
+ * Description: Modern social marketplace platform with user/vendor authentication, dashboards, chat system, notifications, and marketplace features.
  * Version: 1.0
  * Author: Sahil Singla
  */
@@ -15,27 +15,18 @@ define('NEXORA_VERSION', '1.0.0');
 define('NEXORA_DASHBOARD_TEMPLATES', NEXORA_PATH . 'dashboard/templates/');
 
 require_once NEXORA_PATH . 'includes/class-home-page.php';
+require_once NEXORA_PATH . 'includes/class-notification.php';
+require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
 
-// require_once NEXORA_PATH . 'includes/old-flow/class-cpt.php';
 require_once NEXORA_PATH . '/admin/admin.php';
 
-require_once NEXORA_PATH . 'login-signup/class-login.php';
-require_once NEXORA_PATH . 'login-signup/class-registration.php';
-require_once NEXORA_PATH . 'login-signup/class-vendor-registration.php';
-
-// require_once NEXORA_PATH . 'includes/old-flow/profile/class-profile-page.php';
-// require_once NEXORA_PATH . 'includes/old-flow/profile/class-profile-ajax.php';
-// require_once NEXORA_PATH . 'includes/old-flow/profile/class-profile-helper.php';
+require_once NEXORA_PATH . 'login-signup/class-login-signup.php';
 
 require_once NEXORA_PATH . 'dashboard/dashboard.php';
 
 require_once NEXORA_PATH . 'chat/class-chat-core.php';
-// require_once NEXORA_PATH . 'includes/old-flow/class-better-message-chat.php';
 
-require_once NEXORA_PATH . 'includes/class-notification.php';
-require_once NEXORA_PATH . 'includes/class-google-recaptcha.php';
-
-// require_once NEXORA_PATH . 'marketplace/marketplace-core.php';
+require_once NEXORA_PATH . 'marketplace/marketplace.php';
 
 class NEXORA_System {
 
@@ -43,20 +34,9 @@ class NEXORA_System {
 
         // INIT MODULES
         new Nexora_Home_Page();
-        // new NEXORA_CPT();
-        
-        new NEXORA_Login();
-        new NEXORA_Registration();
-        new NEXORA_Vendor_Registration();
-        
-        // new Nexora_Better_Message_CHAT_Page();
         new NEXORA_CHAT_CORE();
         new Nexora_ReCaptcha();
-
-        // new NEXORA_PROFILE_PAGE();
-        // new NEXORA_PROFILE_AJAX();
         
-
         // GLOBAL ASSETS
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
 
