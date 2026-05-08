@@ -382,7 +382,10 @@ jQuery(document).ready(function ($) {
         const frame = wp.media({
             title: 'Select Image',
             button: { text: 'Use this image' },
-            multiple: false
+            multiple: false,
+            library: {
+                author: nexoraDashboard.currentUserId
+            }
         });
 
         frame.on('select', function () {
@@ -706,7 +709,7 @@ jQuery(document).ready(function ($) {
 
         e.preventDefault();
 
-        const frame = wp.media({ title: 'Select Image', button: { text: 'Use this image' }, multiple: false });
+        const frame = wp.media({ title: 'Select Image', button: { text: 'Use this image' }, multiple: false, library: { author: nexoraDashboard.currentUserId } });
 
         frame.on('select', function () {
             const attachment = frame.state().get('selection').first().toJSON();

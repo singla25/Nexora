@@ -21,6 +21,15 @@ class NEXORA_DASHBOARD_CORE {
         add_action( 'init',                [ $this, 'register_rewrite_rules' ] );
         add_filter( 'query_vars',          [ $this, 'register_query_vars' ] );
         add_shortcode( 'nexora_dashboard', [ $this, 'render' ] );
+        add_filter('wp_insert_attachment_data', function($data) {
+
+            if (is_user_logged_in()) {
+                $data['post_author'] = get_current_user_id();
+            }
+
+            return $data;
+
+        }, 10, 1);
     }
 
     /* =========================================================================
