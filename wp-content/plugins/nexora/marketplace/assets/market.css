@@ -1,0 +1,715 @@
+/* ============================================================
+   Nexora Marketplace — market.css
+   Matches Nexora dashboard palette (white cards, blue accents)
+   ============================================================ */
+
+/* ── Variables ───────────────────────────────────────────── */
+:root {
+    --mk-bg:          #f4f6f9;
+    --mk-card:        #ffffff;
+    --mk-border:      #e2e8f0;
+    --mk-accent:      #2563eb;
+    --mk-accent-hover:#1d4ed8;
+    --mk-accent-light:#eff6ff;
+    --mk-text:        #1e293b;
+    --mk-muted:       #64748b;
+    --mk-success:     #16a34a;
+    --mk-warning:     #d97706;
+    --mk-danger:      #dc2626;
+    --mk-radius:      10px;
+    --mk-shadow:      0 1px 4px rgba(0,0,0,.08);
+    --mk-shadow-hover:0 4px 16px rgba(0,0,0,.12);
+    --mk-transition:  0.18s ease;
+}
+
+/* ── Wrapper ─────────────────────────────────────────────── */
+.nexora-marketplace {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--mk-text);
+    background: var(--mk-bg);
+    border-radius: var(--mk-radius);
+    overflow: hidden;
+}
+
+/* ── Header / Tabs ───────────────────────────────────────── */
+.market-top {
+    background: var(--mk-card);
+    border-bottom: 1px solid var(--mk-border);
+    padding: 18px 24px 0;
+}
+
+.market-heading h3 {
+    margin: 0 0 2px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--mk-text);
+    cursor: pointer;
+}
+.market-heading h3:hover { color: var(--mk-accent); }
+
+.market-heading span {
+    font-size: 13px;
+    color: var(--mk-muted);
+}
+
+.market-tabs {
+    display: flex;
+    gap: 2px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.market-tab {
+    background: none;
+    border: none;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--mk-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
+    transition: color var(--mk-transition), border-color var(--mk-transition);
+    white-space: nowrap;
+}
+.market-tab:hover { color: var(--mk-accent); }
+.market-tab.active {
+    color: var(--mk-accent);
+    border-bottom-color: var(--mk-accent);
+    background: var(--mk-accent-light);
+}
+
+/* ── Dynamic Body ────────────────────────────────────────── */
+.market-dynamic-body {
+    padding: 24px;
+    min-height: 400px;
+    animation: mk-fade-in 0.2s ease;
+}
+
+@keyframes mk-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Loading spinner ─────────────────────────────────────── */
+.market-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 60px 0;
+    color: var(--mk-muted);
+    font-size: 14px;
+}
+
+.market-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--mk-border);
+    border-top-color: var(--mk-accent);
+    border-radius: 50%;
+    animation: mk-spin 0.65s linear infinite;
+}
+
+@keyframes mk-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Browse Grid ─────────────────────────────────────────── */
+.market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.market-card {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-border);
+    border-radius: var(--mk-radius);
+    overflow: hidden;
+    box-shadow: var(--mk-shadow);
+    transition: box-shadow var(--mk-transition), transform var(--mk-transition);
+}
+.market-card:hover {
+    box-shadow: var(--mk-shadow-hover);
+    transform: translateY(-2px);
+}
+
+.market-image {
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    object-fit: cover;
+    display: block;
+}
+.market-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.market-card-content {
+    padding: 14px;
+}
+
+.market-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    background: var(--mk-accent-light);
+    color: var(--mk-accent);
+}
+.market-badge.manual { background: #f0fdf4; color: var(--mk-success); }
+.market-badge.csv    { background: #fffbeb; color: var(--mk-warning); }
+
+.market-card-content h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    line-height: 1.3;
+}
+
+.market-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--mk-accent);
+    margin: 0 0 4px;
+}
+
+.market-owner {
+    font-size: 12px;
+    color: var(--mk-muted);
+    margin: 0 0 12px;
+}
+
+.market-view-product {
+    width: 100%;
+    padding: 8px;
+    background: var(--mk-accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--mk-transition);
+}
+.market-view-product:hover { background: var(--mk-accent-hover); }
+
+/* ── Panel (generic page wrapper) ───────────────────────── */
+.market-panel {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-border);
+    border-radius: var(--mk-radius);
+    padding: 24px;
+    box-shadow: var(--mk-shadow);
+}
+
+.market-panel h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--mk-border);
+}
+
+/* ── Upload Options (Add Product) ────────────────────────── */
+.market-upload-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.upload-card {
+    border: 2px dashed var(--mk-border);
+    border-radius: var(--mk-radius);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--mk-transition), background var(--mk-transition);
+}
+.upload-card:hover {
+    border-color: var(--mk-accent);
+    background: var(--mk-accent-light);
+}
+.upload-card .upload-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+    display: block;
+}
+.upload-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 6px;
+}
+.upload-card p {
+    font-size: 12px;
+    color: var(--mk-muted);
+    margin: 0;
+}
+.upload-card.active {
+    border-color: var(--mk-accent);
+    background: var(--mk-accent-light);
+}
+
+/* ── Manual Product Form ─────────────────────────────────── */
+.market-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+    max-width: 560px;
+}
+
+.market-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.market-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.market-field label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--mk-muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.market-field input,
+.market-field textarea,
+.market-field select {
+    padding: 9px 12px;
+    border: 1px solid var(--mk-border);
+    border-radius: 7px;
+    font-size: 14px;
+    color: var(--mk-text);
+    background: #fff;
+    transition: border-color var(--mk-transition), box-shadow var(--mk-transition);
+    font-family: inherit;
+    resize: vertical;
+}
+.market-field input:focus,
+.market-field textarea:focus,
+.market-field select:focus {
+    outline: none;
+    border-color: var(--mk-accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+
+/* ── API Import Form ─────────────────────────────────────── */
+.market-api-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 20px;
+    max-width: 560px;
+}
+
+/* ── CSV Upload Area ─────────────────────────────────────── */
+.market-csv-drop {
+    border: 2px dashed var(--mk-border);
+    border-radius: var(--mk-radius);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: border-color var(--mk-transition), background var(--mk-transition);
+}
+.market-csv-drop:hover,
+.market-csv-drop.dragover {
+    border-color: var(--mk-accent);
+    background: var(--mk-accent-light);
+}
+.market-csv-drop p { margin: 6px 0 0; font-size: 13px; color: var(--mk-muted); }
+.market-csv-drop .csv-icon { font-size: 36px; }
+
+/* ── Table ───────────────────────────────────────────────── */
+.market-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+}
+.market-table thead tr {
+    background: var(--mk-bg);
+}
+.market-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--mk-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--mk-border);
+}
+.market-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--mk-border);
+    color: var(--mk-text);
+    vertical-align: middle;
+}
+.market-table tbody tr:last-child td { border-bottom: none; }
+.market-table tbody tr:hover { background: #f8fafc; }
+
+/* ── Status pills ────────────────────────────────────────── */
+.mk-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.mk-status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    display: inline-block;
+}
+.mk-status.active     { background:#f0fdf4; color: var(--mk-success); }
+.mk-status.pending    { background:#fffbeb; color: var(--mk-warning); }
+.mk-status.inactive   { background:#fef2f2; color: var(--mk-danger); }
+.mk-status.completed  { background:#f0fdf4; color: var(--mk-success); }
+.mk-status.processing { background:#eff6ff; color: var(--mk-accent); }
+
+/* ── Inline action buttons ───────────────────────────────── */
+.mk-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background var(--mk-transition), opacity var(--mk-transition);
+}
+.mk-btn-primary   { background: var(--mk-accent);  color: #fff; }
+.mk-btn-primary:hover { background: var(--mk-accent-hover); }
+.mk-btn-ghost     { background: var(--mk-bg); color: var(--mk-text); border: 1px solid var(--mk-border); }
+.mk-btn-ghost:hover { background: var(--mk-border); }
+.mk-btn-danger    { background: #fef2f2; color: var(--mk-danger); }
+.mk-btn-danger:hover { background: #fee2e2; }
+.mk-btn + .mk-btn { margin-left: 6px; }
+
+/* ── Earnings / Stats cards ──────────────────────────────── */
+.market-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.mk-stat-card {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-border);
+    border-radius: var(--mk-radius);
+    padding: 18px;
+    box-shadow: var(--mk-shadow);
+}
+.mk-stat-card .stat-label {
+    font-size: 12px;
+    color: var(--mk-muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.mk-stat-card .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--mk-text);
+}
+.mk-stat-card .stat-sub {
+    font-size: 12px;
+    color: var(--mk-success);
+    margin-top: 4px;
+}
+.mk-stat-card .stat-sub.neg { color: var(--mk-danger); }
+
+/* ── Earnings chart placeholder ──────────────────────────── */
+.market-chart-placeholder {
+    background: var(--mk-bg);
+    border: 1px dashed var(--mk-border);
+    border-radius: var(--mk-radius);
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mk-muted);
+    font-size: 13px;
+    margin-top: 20px;
+}
+
+/* ── History timeline ────────────────────────────────────── */
+.market-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.mk-timeline-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--mk-border);
+    align-items: flex-start;
+}
+.mk-timeline-item:last-child { border-bottom: none; }
+.mk-tl-icon {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--mk-accent-light);
+    color: var(--mk-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+.mk-tl-body { flex: 1; }
+.mk-tl-title { font-size: 13.5px; font-weight: 600; margin: 0 0 3px; }
+.mk-tl-meta  { font-size: 12px; color: var(--mk-muted); }
+
+/* ── Inline edit row (My Products) ──────────────────────── */
+.market-edit-row input {
+    width: 80px;
+    padding: 5px 8px;
+    border: 1px solid var(--mk-border);
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.market-empty {
+    text-align: center;
+    padding: 64px 24px 56px;
+    color: var(--mk-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+.market-empty-illustration {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+    box-shadow: 0 4px 24px rgba(37,99,235,.10);
+}
+
+.market-empty-illustration svg {
+    width: 56px;
+    height: 56px;
+    opacity: .85;
+}
+
+/* Subtle floating ring behind the circle */
+.market-empty-illustration::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1.5px dashed #bfdbfe;
+    animation: mk-empty-spin 18s linear infinite;
+}
+
+@keyframes mk-empty-spin {
+    to { transform: rotate(360deg); }
+}
+
+.market-empty h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--mk-text);
+    margin: 0 0 8px;
+}
+
+.market-empty p {
+    font-size: 13.5px;
+    color: var(--mk-muted);
+    margin: 0 0 22px;
+    max-width: 300px;
+    line-height: 1.55;
+}
+
+.market-empty .mk-btn {
+    font-size: 13.5px;
+    padding: 9px 20px;
+}
+
+/* ── Notification / toast ────────────────────────────────── */
+.market-notice {
+    padding: 12px 16px;
+    border-radius: 7px;
+    font-size: 13.5px;
+    margin-bottom: 16px;
+    border-left: 3px solid;
+}
+.market-notice.success { background: #f0fdf4; color: #15803d; border-color: var(--mk-success); }
+.market-notice.error   { background: #fef2f2; color: #b91c1c; border-color: var(--mk-danger); }
+.market-notice.info    { background: var(--mk-accent-light); color: var(--mk-accent); border-color: var(--mk-accent); }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .market-dynamic-body { padding: 16px; }
+    .market-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .market-form-row { grid-template-columns: 1fr; }
+    .market-tabs { gap: 0; }
+    .market-tab { padding: 9px 12px; font-size: 13px; }
+    .market-stats { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Add Product — form sections & media ─────────────────────── */
+
+/* Section header inside the manual form */
+.market-form-section {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-border);
+    border-radius: var(--mk-radius);
+    padding: 20px 20px 16px;
+    margin-top: 20px;
+}
+
+.market-form-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--mk-muted);
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--mk-border);
+}
+
+/* Upload method card container */
+.product-upload-option {
+    margin-top: 18px;
+}
+
+/* Submit row */
+.market-submit-area {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--mk-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Secondary button (outline style) */
+.mk-btn-secondary {
+    background: transparent;
+    color: var(--mk-accent);
+    border: 1.5px solid var(--mk-accent);
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--mk-transition), color var(--mk-transition);
+}
+.mk-btn-secondary:hover {
+    background: var(--mk-accent-light);
+}
+
+/* Featured image box */
+.market-media-box {
+    border: 1px solid var(--mk-border);
+    border-radius: var(--mk-radius);
+    overflow: hidden;
+}
+
+.market-media-preview {
+    width: 100%;
+    height: 160px;
+    background: var(--mk-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 32px;
+    color: var(--mk-muted);
+}
+
+.market-media-preview p {
+    font-size: 12px;
+    margin: 0;
+}
+
+.market-media-box .mk-btn-secondary {
+    display: block;
+    width: 100%;
+    border-radius: 0;
+    border-top: 1px solid var(--mk-border);
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    text-align: center;
+}
+
+/* Gallery box */
+.market-gallery-box {
+    border: 1px solid var(--mk-border);
+    border-radius: var(--mk-radius);
+    overflow: hidden;
+}
+
+.market-gallery-preview {
+    min-height: 100px;
+    background: var(--mk-bg);
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.gallery-placeholder {
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    color: var(--mk-muted);
+    padding: 24px 0;
+    border: 1.5px dashed var(--mk-border);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.gallery-placeholder:hover {
+    border-color: var(--mk-accent);
+    color: var(--mk-accent);
+}
+
+.market-gallery-box .mk-btn-secondary {
+    display: block;
+    width: 100%;
+    border-radius: 0;
+    border-top: 1px solid var(--mk-border);
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    text-align: center;
+}
+
+/* Webhook secret field — initially hidden, shown via JS */
+#mk-webhook-secret-wrap { margin-top: 4px; }
