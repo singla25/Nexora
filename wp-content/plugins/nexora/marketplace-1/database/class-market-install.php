@@ -2,12 +2,11 @@
 /**
  * database/class-market-install.php
  *
- * Thin activation / deactivation / uninstall wrapper.
+ * Thin wrapper called on plugin activation.
  * The real schema logic lives in includes/class-market-db.php.
  *
- * Usage in your main plugin file:
+ * Usage (in your main plugin file):
  *   register_activation_hook( __FILE__, [ 'NEXORA_MARKET_INSTALL', 'activate' ] );
- *   register_deactivation_hook( __FILE__, [ 'NEXORA_MARKET_INSTALL', 'deactivate' ] );
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -25,31 +24,37 @@ class NEXORA_MARKET_INSTALL {
 
     /**
      * Run on plugin deactivation.
-     * Does NOT drop tables — data must survive deactivate/reactivate cycles.
+     * Does NOT drop tables — data must survive deactivate/reactivate.
      */
     public static function deactivate(): void {
-        self::clear_crons();
         flush_rewrite_rules();
+        /* Unschedule all marketplace cron hooks */
+        self::clear_crons();
     }
 
     /**
      * Run on full uninstall (called from uninstall.php, not deactivation).
-     * Drops all tables and clears all options.
      */
     public static function uninstall(): void {
         self::clear_crons();
         NEXORA_MARKET_DB::uninstall();
         delete_option( 'nexora_market_db_version' );
-        delete_option( 'nx_market_fee_pct' );
     }
 
     /* ── Private ──────────────────────────────────────────── */
 
     private static function clear_crons(): void {
-        $table = $GLOBALS['wpdb']->prefix . 'nx_api_sources';
-        if ( ! NEXORA_MARKET_DB::table_exists( $table ) ) return;
 
-        $source_ids = $GLOBALS['wpdb']->get_col( "SELECT id FROM {$table}" );
+        global $wpdb;
+        $table = $wpdb->prefix . 'nx_api_sources';
+
+        // Guard if table doesn't exist
+        if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
+            return;
+        }
+
+        $source_ids = $wpdb->get_col( "SELECT id FROM {$table}" );
+
         foreach ( (array) $source_ids as $id ) {
             NEXORA_MARKET_HELPER::unschedule_api_sync( (int) $id );
         }

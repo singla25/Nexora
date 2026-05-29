@@ -1,145 +1,125 @@
 <?php
 /**
- * class-market-product.php
+ * includes/class-market-product.php
  *
- * Static product factory used across AJAX handlers and cron sync.
+ * Unified product factory used by all three upload paths
+ * (manual, CSV, API) and by the AJAX update/delete handlers.
  *
- * NEXORA_MARKET_AJAX calls create_product() for manual adds.
- * NEXORA_MARKET_HELPER::sync_api_source() calls it for API imports.
- * The CSV import path builds the row directly for performance.
+ * Single responsibility: orchestrate nx_products + WooCommerce
+ * so callers never have to touch both directly.
+ *
+ * Depends on: NEXORA_MARKET_DB, NEXORA_MARKET_WOOCOMMERCE, NEXORA_MARKET_UPLOAD
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class NEXORA_MARKET_PRODUCT {
 
+    /* =========================================================
+       CREATE
+    ========================================================= */
+
     /**
-     * Insert one product row into nx_products and create a matching
-     * WooCommerce product, linking both via wc_product_id.
+     * Insert one product into nx_products + create a matching WC product.
      *
      * @param array $data {
-     *   owner_user_id    int      (required)
-     *   title            string   (required)
-     *   price            float    (required)
-     *   owner_role       string   default 'user'
-     *   owner_profile_id int      default 0
-     *   description      string
-     *   short_description string
-     *   sale_price       float|null
-     *   stock_qty        int      default 0
-     *   sku              string
-     *   category         string
-     *   tags             string
-     *   product_type     string   default 'simple'
-     *   source_type      string   default 'manual'  (manual|csv|api)
-     *   api_source_id    int|null
-     *   external_id      string
-     *   image_url        string
-     *   gallery          string   JSON array of URLs
-     *   status           string   default 'active'
+     *   owner_user_id        int      (required)
+     *   title                string   (required)
+     *   price                float    (required)
+     *   owner_role           string   default 'user'
+     *   owner_profile_id     int      default 0
+     *   description          string
+     *   short_description    string
+     *   sale_price           float|null
+     *   stock_qty            int      default 0
+     *   sku                  string
+     *   category             string
+     *   tags                 string
+     *   product_type         string   default 'simple'
+     *   source_type          string   default 'manual'  (manual|csv|api)
+     *   api_source_id        int|null
+     *   external_id          string
+     *   image_url            string   — from remote URL (CSV / API path)
+     *   image_attachment_id  int      — from WP media library (manual path)
+     *   gallery_attachment_ids int[]  — from WP media library (manual path)
+     *   gallery              string   — JSON-encoded gallery URLs
+     *   status               string   default 'active'
      * }
      * @return int|false  nx_products.id or false on failure.
      */
-    public static function create_product( array $data ) {
+    public static function create( array $data ) {
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_products';
+        // Fill defaults
+        $data = array_merge( [
+            'owner_role'           => 'user',
+            'owner_profile_id'     => 0,
+            'description'          => '',
+            'short_description'    => '',
+            'sale_price'           => null,
+            'stock_qty'            => 0,
+            'sku'                  => '',
+            'category'             => '',
+            'tags'                 => '',
+            'product_type'         => 'simple',
+            'source_type'          => 'manual',
+            'api_source_id'        => null,
+            'external_id'          => '',
+            'image_url'            => '',
+            'image_attachment_id'  => 0,
+            'gallery_attachment_ids' => [],
+            'gallery'              => '',
+            'status'               => 'active',
+        ], $data );
 
-        /* ── Defaults ─────────────────────────────────────── */
-        $data = wp_parse_args( $data, [
-            'owner_role'        => 'user',
-            'owner_profile_id'  => 0,
-            'description'       => '',
-            'short_description' => '',
-            'sale_price'        => null,
-            'stock_qty'         => 0,
-            'sku'               => '',
-            'category'          => '',
-            'tags'              => '',
-            'product_type'      => 'simple',
-            'source_type'       => 'manual',
-            'api_source_id'     => null,
-            'external_id'       => '',
-            'image_url'         => '',
-            'gallery'           => '',
-            'status'            => 'active',
-        ] );
-
-        /* ── Guard ────────────────────────────────────────── */
         if ( empty( $data['owner_user_id'] ) || empty( $data['title'] ) || empty( $data['price'] ) ) {
             return false;
         }
 
-        /* ── Build slug ───────────────────────────────────── */
-        $slug = sanitize_title( $data['title'] ) . '-' . uniqid();
-
-        /* ── Insert ───────────────────────────────────────── */
-        $inserted = $wpdb->insert( $table, [
-            'owner_user_id'    => (int)    $data['owner_user_id'],
-            'owner_profile_id' => (int)    $data['owner_profile_id'],
-            'owner_role'       =>           sanitize_text_field( $data['owner_role'] ),
-            'title'            =>           sanitize_text_field( $data['title'] ),
-            'slug'             =>           $slug,
-            'description'      =>           wp_kses_post( $data['description'] ),
-            'short_description'=>           sanitize_textarea_field( $data['short_description'] ),
-            'price'            => (float)  $data['price'],
-            'sale_price'       => is_null( $data['sale_price'] ) ? null : (float) $data['sale_price'],
-            'stock_qty'        => (int)    $data['stock_qty'],
-            'sku'              =>           sanitize_text_field( $data['sku'] ),
-            'category'         =>           sanitize_text_field( $data['category'] ),
-            'tags'             =>           sanitize_text_field( $data['tags'] ),
-            'product_type'     =>           sanitize_text_field( $data['product_type'] ),
-            'source_type'      =>           sanitize_text_field( $data['source_type'] ),
-            'api_source_id'    => $data['api_source_id'] ? (int) $data['api_source_id'] : null,
-            'external_id'      =>           sanitize_text_field( $data['external_id'] ),
-            'image_url'        =>           esc_url_raw( $data['image_url'] ),
-            'gallery'          =>           $data['gallery'],
-            'status'           =>           sanitize_text_field( $data['status'] ),
-        ] );
-
-        if ( ! $inserted ) {
-            return false;
+        // Build gallery JSON from attachment IDs (manual path takes priority)
+        if ( ! empty( $data['gallery_attachment_ids'] ) ) {
+            $data['gallery'] = NEXORA_MARKET_UPLOAD::encode_gallery( $data['gallery_attachment_ids'] );
         }
 
-        $nx_id = (int) $wpdb->insert_id;
+        // Resolve feature image URL from attachment ID if provided (manual path)
+        if ( ! empty( $data['image_attachment_id'] ) && empty( $data['image_url'] ) ) {
+            $data['image_url'] = (string) wp_get_attachment_url( (int) $data['image_attachment_id'] );
+        }
+
+        /* ── Insert into nx_products ──────────────────────── */
+        $nx_id = NEXORA_MARKET_DB::insert_product( $data );
+
+        if ( ! $nx_id ) return false;
 
         /* ── Create WooCommerce product ───────────────────── */
         if ( NEXORA_MARKET_WOOCOMMERCE::wc_active() ) {
 
-            $wc_id = NEXORA_MARKET_WOOCOMMERCE::create_wc_product( [
-                'title'         => $data['title'],
-                'description'   => $data['description'],
-                'price'         => $data['price'],
-                'sale_price'    => $data['sale_price'],
-                'stock_qty'     => $data['stock_qty'],
-                'sku'           => $data['sku'],
-                'category'      => $data['category'],
-                'image_url'     => $data['image_url'],
-                'owner_user_id' => (int) $data['owner_user_id'],
+            $wc_id = NEXORA_MARKET_WOOCOMMERCE::create_wc_product( array_merge( $data, [
                 'nx_product_id' => $nx_id,
-            ] );
+            ] ) );
 
             if ( $wc_id ) {
-                $wpdb->update( $table, [ 'wc_product_id' => $wc_id ], [ 'id' => $nx_id ] );
+                NEXORA_MARKET_DB::link_wc_product( $nx_id, $wc_id );
             }
         }
 
         return $nx_id;
     }
 
+    /* =========================================================
+       UPDATE
+    ========================================================= */
+
     /**
      * Update an existing nx_products row and mirror changes to WooCommerce.
      *
-     * @param int   $nx_product_id
-     * @param array $data  Only include fields you want to change.
+     * @param  int   $nx_id
+     * @param  array $data  Only include fields you want to change.
+     *                      Same shape as create(), minus owner fields.
      * @return bool
      */
-    public static function update_product( int $nx_product_id, array $data ): bool {
+    public static function update( int $nx_id, array $data ): bool {
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_products';
-
-        /* Sanitise updatable fields */
+        // Sanitise each field that can be updated
         $allowed = [
             'title', 'description', 'short_description',
             'price', 'sale_price', 'stock_qty',
@@ -171,43 +151,52 @@ class NEXORA_MARKET_PRODUCT {
             }
         }
 
-        if ( empty( $update ) ) return false;
-
-        $result = $wpdb->update( $table, $update, [ 'id' => $nx_product_id ] );
-
-        /* Mirror to WooCommerce */
-        $wc_id = (int) $wpdb->get_var(
-            $wpdb->prepare( "SELECT wc_product_id FROM {$table} WHERE id = %d", $nx_product_id )
-        );
-
-        if ( $wc_id && NEXORA_MARKET_WOOCOMMERCE::wc_active() ) {
-            NEXORA_MARKET_WOOCOMMERCE::update_wc_product( $wc_id, $update );
+        // Handle image attachment update (manual path)
+        if ( ! empty( $data['image_attachment_id'] ) ) {
+            $update['image_url'] = (string) wp_get_attachment_url( (int) $data['image_attachment_id'] );
         }
 
-        return $result !== false;
+        // Handle gallery attachment update (manual path)
+        if ( ! empty( $data['gallery_attachment_ids'] ) ) {
+            $update['gallery'] = NEXORA_MARKET_UPLOAD::encode_gallery( $data['gallery_attachment_ids'] );
+        }
+
+        if ( empty( $update ) ) return false;
+
+        $ok    = NEXORA_MARKET_DB::update_product( $nx_id, $update );
+        $wc_id = NEXORA_MARKET_DB::get_wc_id( $nx_id );
+
+        // Mirror to WooCommerce, passing through attachment IDs too
+        if ( $wc_id && NEXORA_MARKET_WOOCOMMERCE::wc_active() ) {
+            NEXORA_MARKET_WOOCOMMERCE::update_wc_product( $wc_id, array_merge( $update, [
+                'image_attachment_id'    => $data['image_attachment_id']    ?? 0,
+                'gallery_attachment_ids' => $data['gallery_attachment_ids'] ?? [],
+            ] ) );
+        }
+
+        return $ok;
     }
+
+    /* =========================================================
+       DELETE (soft)
+    ========================================================= */
 
     /**
      * Soft-delete: set status to 'inactive' and draft the WC product.
      *
-     * @param int $nx_product_id
+     * @param  int  $nx_id
      * @return bool
      */
-    public static function delete_product( int $nx_product_id ): bool {
+    public static function delete( int $nx_id ): bool {
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_products';
+        $wc_id = NEXORA_MARKET_DB::get_wc_id( $nx_id );
 
-        $wc_id = (int) $wpdb->get_var(
-            $wpdb->prepare( "SELECT wc_product_id FROM {$table} WHERE id = %d", $nx_product_id )
-        );
-
-        $ok = $wpdb->update( $table, [ 'status' => 'inactive' ], [ 'id' => $nx_product_id ] );
+        NEXORA_MARKET_DB::soft_delete_product( $nx_id );
 
         if ( $wc_id && NEXORA_MARKET_WOOCOMMERCE::wc_active() ) {
             NEXORA_MARKET_WOOCOMMERCE::unpublish_wc_product( $wc_id );
         }
 
-        return $ok !== false;
+        return true;
     }
 }

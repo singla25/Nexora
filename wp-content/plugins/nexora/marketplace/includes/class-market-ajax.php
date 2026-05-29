@@ -1,12 +1,12 @@
 <?php
 /**
- * class-market-ajax.php
+ * includes/class-market-ajax.php
  *
  * Every wp_ajax_* handler for the marketplace.
  *
  * Registered actions:
  *   nexora_market_tab             — load any tab view
- *   nexora_market_add_manual      — create product (manual form)
+ *   nexora_market_add_manual      — create product (manual form + wp.media images)
  *   nexora_market_csv_import      — bulk import from CSV upload
  *   nexora_market_api_import      — save API source + trigger first sync
  *   nexora_market_api_sync        — manually re-sync one API source
@@ -14,6 +14,13 @@
  *   nexora_market_delete_product  — soft-delete (status → inactive)
  *   nexora_market_single_product  — return single-product view HTML
  *   nexora_market_add_to_cart     — add WC product to cart
+ *
+ * All business logic lives in the dedicated classes (NEXORA_MARKET_PRODUCT,
+ * NEXORA_MARKET_CSV, NEXORA_MARKET_API). This class only validates, unpacks
+ * POST data, calls the right class, and sends JSON responses.
+ *
+ * Depends on: NEXORA_MARKET_DB, NEXORA_MARKET_PRODUCT, NEXORA_MARKET_CSV,
+ *             NEXORA_MARKET_API, NEXORA_MARKET_HELPER, NEXORA_MARKET_WOOCOMMERCE
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -22,27 +29,27 @@ class NEXORA_MARKET_AJAX {
 
     public function __construct() {
 
-        /* Tab loader */
-        add_action( 'wp_ajax_nexora_market_tab',            [ $this, 'market_tab'      ] );
+        // Tab loader
+        add_action( 'wp_ajax_nexora_market_tab',            [ $this, 'market_tab'     ] );
 
-        /* Product CRUD */
-        add_action( 'wp_ajax_nexora_market_add_manual',     [ $this, 'add_manual'      ] );
-        add_action( 'wp_ajax_nexora_market_csv_import',     [ $this, 'csv_import'      ] );
-        add_action( 'wp_ajax_nexora_market_api_import',     [ $this, 'api_import'      ] );
-        add_action( 'wp_ajax_nexora_market_api_sync',       [ $this, 'api_sync'        ] );
-        add_action( 'wp_ajax_nexora_market_update_product', [ $this, 'update_product'  ] );
-        add_action( 'wp_ajax_nexora_market_delete_product', [ $this, 'delete_product'  ] );
+        // Product CRUD
+        add_action( 'wp_ajax_nexora_market_add_manual',     [ $this, 'add_manual'     ] );
+        add_action( 'wp_ajax_nexora_market_csv_import',     [ $this, 'csv_import'     ] );
+        add_action( 'wp_ajax_nexora_market_api_import',     [ $this, 'api_import'     ] );
+        add_action( 'wp_ajax_nexora_market_api_sync',       [ $this, 'api_sync'       ] );
+        add_action( 'wp_ajax_nexora_market_update_product', [ $this, 'update_product' ] );
+        add_action( 'wp_ajax_nexora_market_delete_product', [ $this, 'delete_product' ] );
 
-        /* Single product + cart */
-        add_action( 'wp_ajax_nexora_market_single_product', [ $this, 'single_product'  ] );
-        add_action( 'wp_ajax_nexora_market_add_to_cart',    [ $this, 'add_to_cart'     ] );
+        // Single product view + cart
+        add_action( 'wp_ajax_nexora_market_single_product', [ $this, 'single_product' ] );
+        add_action( 'wp_ajax_nexora_market_add_to_cart',    [ $this, 'add_to_cart'    ] );
     }
 
     /* =========================================================
        SHARED AUTH
     ========================================================= */
 
-    private function auth() {
+    private function auth(): void {
         check_ajax_referer( 'nexora_market_nonce', 'nonce' );
         if ( ! is_user_logged_in() ) {
             wp_send_json_error( [ 'message' => 'Unauthorized.' ], 401 );
@@ -53,7 +60,7 @@ class NEXORA_MARKET_AJAX {
        TAB VIEW LOADER
     ========================================================= */
 
-    public function market_tab() {
+    public function market_tab(): void {
 
         $this->auth();
 
@@ -79,7 +86,7 @@ class NEXORA_MARKET_AJAX {
        SINGLE PRODUCT VIEW
     ========================================================= */
 
-    public function single_product() {
+    public function single_product(): void {
 
         $this->auth();
 
@@ -89,7 +96,7 @@ class NEXORA_MARKET_AJAX {
             wp_send_json_error( [ 'message' => 'Invalid product.' ] );
         }
 
-        $product = NEXORA_MARKET_HELPER::get_product( $product_id );
+        $product = NEXORA_MARKET_DB::get_product( $product_id );
 
         if ( ! $product ) {
             wp_send_json_error( [ 'message' => 'Product not found.' ] );
@@ -101,10 +108,10 @@ class NEXORA_MARKET_AJAX {
     }
 
     /* =========================================================
-       ADD TO CART  (WooCommerce)
+       ADD TO CART (WooCommerce)
     ========================================================= */
 
-    public function add_to_cart() {
+    public function add_to_cart(): void {
 
         $this->auth();
 
@@ -119,12 +126,7 @@ class NEXORA_MARKET_AJAX {
             wp_send_json_error( [ 'message' => 'WooCommerce is not active.' ] );
         }
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_products';
-
-        $wc_id = (int) $wpdb->get_var(
-            $wpdb->prepare( "SELECT wc_product_id FROM {$table} WHERE id = %d", $nx_product_id )
-        );
+        $wc_id = NEXORA_MARKET_DB::get_wc_id( $nx_product_id );
 
         if ( ! $wc_id ) {
             wp_send_json_error( [ 'message' => 'This product is not yet available for purchase.' ] );
@@ -147,24 +149,32 @@ class NEXORA_MARKET_AJAX {
        ADD PRODUCT — MANUAL FORM
     ========================================================= */
 
-    public function add_manual() {
+    public function add_manual(): void {
 
         $this->auth();
 
+        $user_id = get_current_user_id();
+
         /* ── Collect + sanitise ───────────────────────────── */
         $title      = sanitize_text_field( wp_unslash( $_POST['title']        ?? '' ) );
-        $price      = (float) ( $_POST['price']       ?? 0 );
+        $price      = (float) ( $_POST['price']         ?? 0 );
         $sale_raw   = $_POST['sale_price'] ?? '';
         $sale_price = strlen( trim( $sale_raw ) ) ? (float) $sale_raw : null;
-        $stock      = (int) ( $_POST['stock_qty']     ?? 0 );
+        $stock      = (int) ( $_POST['stock_qty']        ?? 0 );
         $desc       = wp_kses_post( wp_unslash( $_POST['description']         ?? '' ) );
-        $short_desc = sanitize_textarea_field( wp_unslash( $_POST['short_desc'] ?? '' ) );
+        $short_desc = sanitize_textarea_field( wp_unslash( $_POST['short_desc']  ?? '' ) );
         $category   = sanitize_text_field( wp_unslash( $_POST['category']     ?? '' ) );
         $tags       = sanitize_text_field( wp_unslash( $_POST['tags']         ?? '' ) );
         $sku        = sanitize_text_field( wp_unslash( $_POST['sku']          ?? '' ) );
         $prod_type  = sanitize_text_field( wp_unslash( $_POST['product_type'] ?? 'simple' ) );
+
+        // Feature image — single attachment ID from wp.media picker
         $image_id   = intval( $_POST['image_id'] ?? 0 );
-        $image_url  = $image_id ? (string) wp_get_attachment_url( $image_id ) : '';
+
+        // Gallery — JSON-encoded array of attachment IDs from wp.media picker
+        $gallery_raw = sanitize_text_field( wp_unslash( $_POST['gallery_ids'] ?? '[]' ) );
+        $gallery_ids = array_map( 'intval', (array) json_decode( $gallery_raw, true ) );
+        $gallery_ids = array_filter( $gallery_ids ); // remove zeros
 
         /* ── Validate ─────────────────────────────────────── */
         if ( empty( $title ) ) {
@@ -174,67 +184,40 @@ class NEXORA_MARKET_AJAX {
             wp_send_json_error( [ 'message' => 'Price must be greater than 0.' ] );
         }
 
-        /* ── Determine owner role ─────────────────────────── */
-        $user_id    = get_current_user_id();
-        $user       = wp_get_current_user();
-        $owner_role = in_array( 'vendor', (array) $user->roles, true ) ? 'vendor' : 'user';
+        /* ── Ownership ────────────────────────────────────── */
+        $owner_role = NEXORA_MARKET_HELPER::resolve_owner_role( $user_id );
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_products';
-
-        /* ── Insert into nx_products ──────────────────────── */
-        $inserted = $wpdb->insert( $table, [
-            'owner_user_id'     => $user_id,
-            'owner_role'        => $owner_role,
-            'title'             => $title,
-            'slug'              => sanitize_title( $title ) . '-' . uniqid(),
-            'description'       => $desc,
-            'short_description' => $short_desc,
-            'price'             => $price,
-            'sale_price'        => $sale_price,
-            'stock_qty'         => $stock,
-            'sku'               => $sku,
-            'category'          => $category,
-            'tags'              => $tags,
-            'product_type'      => $prod_type,
-            'source_type'       => 'manual',
-            'image_url'         => $image_url,
-            'status'            => 'active',
+        /* ── Create product ───────────────────────────────── */
+        $nx_id = NEXORA_MARKET_PRODUCT::create( [
+            'owner_user_id'          => $user_id,
+            'owner_role'             => $owner_role,
+            'title'                  => $title,
+            'price'                  => $price,
+            'sale_price'             => $sale_price,
+            'stock_qty'              => $stock,
+            'description'            => $desc,
+            'short_description'      => $short_desc,
+            'category'               => $category,
+            'tags'                   => $tags,
+            'sku'                    => $sku,
+            'product_type'           => $prod_type,
+            'source_type'            => 'manual',
+            'image_attachment_id'    => $image_id,
+            'gallery_attachment_ids' => $gallery_ids,
         ] );
 
-        if ( ! $inserted ) {
+        if ( ! $nx_id ) {
             wp_send_json_error( [ 'message' => 'Database error — could not save product.' ] );
         }
 
-        $nx_product_id = (int) $wpdb->insert_id;
-
-        /* ── Create matching WooCommerce product ──────────── */
-        $wc_id = NEXORA_MARKET_WOOCOMMERCE::create_wc_product( [
-            'title'         => $title,
-            'description'   => $desc,
-            'price'         => $price,
-            'sale_price'    => $sale_price,
-            'stock_qty'     => $stock,
-            'sku'           => $sku,
-            'category'      => $category,
-            'image_url'     => $image_url,
-            'owner_user_id' => $user_id,
-            'nx_product_id' => $nx_product_id,
-        ] );
-
-        if ( $wc_id ) {
-            $wpdb->update( $table, [ 'wc_product_id' => $wc_id ], [ 'id' => $nx_product_id ] );
-        }
-
-        /* ── Log activity ─────────────────────────────────── */
-        NEXORA_MARKET_HELPER::log_activity( $user_id, 'product_created', [
-            'product_id' => $nx_product_id,
+        NEXORA_MARKET_DB::log_activity( $user_id, 'product_created', [
+            'product_id' => $nx_id,
             'title'      => $title,
             'method'     => 'manual',
         ] );
 
         wp_send_json_success( [
-            'product_id' => $nx_product_id,
+            'product_id' => $nx_id,
             'message'    => 'Product added successfully.',
         ] );
     }
@@ -243,185 +226,51 @@ class NEXORA_MARKET_AJAX {
        ADD PRODUCT — CSV IMPORT
     ========================================================= */
 
-    public function csv_import() {
+    public function csv_import(): void {
 
         $this->auth();
 
-        if ( empty( $_FILES['csv_file']['tmp_name'] ) ) {
-            wp_send_json_error( [ 'message' => 'No CSV file uploaded.' ] );
+        $result = NEXORA_MARKET_CSV::import(
+            $_FILES['csv_file'] ?? [],
+            get_current_user_id()
+        );
+
+        if ( isset( $result['error'] ) ) {
+            wp_send_json_error( [ 'message' => $result['error'] ] );
         }
 
-        $file = $_FILES['csv_file'];
-        $ext  = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
-
-        if ( $ext !== 'csv' ) {
-            wp_send_json_error( [ 'message' => 'Only .csv files are accepted.' ] );
-        }
-
-        $rows = NEXORA_MARKET_HELPER::parse_csv( $file['tmp_name'] );
-
-        if ( empty( $rows ) ) {
-            wp_send_json_error( [ 'message' => 'CSV is empty or could not be parsed.' ] );
-        }
-
-        /* Validate required columns exist */
-        $headers = array_keys( $rows[0] );
-        foreach ( [ 'title', 'price' ] as $required ) {
-            if ( ! in_array( $required, $headers, true ) ) {
-                wp_send_json_error( [ 'message' => "CSV must have a \"{$required}\" column." ] );
-            }
-        }
-
-        $user_id    = get_current_user_id();
-        $user       = wp_get_current_user();
-        $owner_role = in_array( 'vendor', (array) $user->roles, true ) ? 'vendor' : 'user';
-
-        global $wpdb;
-        $table    = $wpdb->prefix . 'nx_products';
-        $imported = 0;
-        $skipped  = 0;
-
-        foreach ( $rows as $row ) {
-
-            $title = sanitize_text_field( $row['title'] ?? '' );
-            $price = (float) ( $row['price'] ?? 0 );
-
-            /* Skip rows with no title or zero price */
-            if ( empty( $title ) || $price <= 0 ) {
-                $skipped++;
-                continue;
-            }
-
-            $sale_raw   = $row['sale_price'] ?? '';
-            $sale_price = strlen( trim( $sale_raw ) ) ? (float) $sale_raw : null;
-
-            $inserted = $wpdb->insert( $table, [
-                'owner_user_id'     => $user_id,
-                'owner_role'        => $owner_role,
-                'title'             => $title,
-                'slug'              => sanitize_title( $title ) . '-' . uniqid(),
-                'description'       => sanitize_textarea_field( $row['description']   ?? '' ),
-                'short_description' => sanitize_textarea_field( $row['short_desc']    ?? '' ),
-                'price'             => $price,
-                'sale_price'        => $sale_price,
-                'stock_qty'         => (int) ( $row['stock_qty']    ?? 0 ),
-                'sku'               => sanitize_text_field( $row['sku']          ?? '' ),
-                'category'          => sanitize_text_field( $row['category']     ?? '' ),
-                'tags'              => sanitize_text_field( $row['tags']         ?? '' ),
-                'product_type'      => sanitize_text_field( $row['product_type'] ?? 'simple' ),
-                'image_url'         => esc_url_raw( $row['image_url']            ?? '' ),
-                'source_type'       => 'csv',
-                'status'            => 'active',
-            ] );
-
-            if ( $inserted ) {
-                $nx_id = (int) $wpdb->insert_id;
-
-                $wc_id = NEXORA_MARKET_WOOCOMMERCE::create_wc_product( [
-                    'title'         => $title,
-                    'description'   => sanitize_textarea_field( $row['description'] ?? '' ),
-                    'price'         => $price,
-                    'sale_price'    => $sale_price,
-                    'stock_qty'     => (int) ( $row['stock_qty'] ?? 0 ),
-                    'image_url'     => esc_url_raw( $row['image_url'] ?? '' ),
-                    'owner_user_id' => $user_id,
-                    'nx_product_id' => $nx_id,
-                ] );
-
-                if ( $wc_id ) {
-                    $wpdb->update( $table, [ 'wc_product_id' => $wc_id ], [ 'id' => $nx_id ] );
-                }
-
-                $imported++;
-            } else {
-                $skipped++;
-            }
-        }
-
-        NEXORA_MARKET_HELPER::log_activity( $user_id, 'csv_import', [
-            'imported' => $imported,
-            'skipped'  => $skipped,
-            'file'     => sanitize_text_field( $file['name'] ),
-        ] );
-
-        wp_send_json_success( [
-            'imported' => $imported,
-            'skipped'  => $skipped,
-            'message'  => "{$imported} product(s) imported" . ( $skipped ? ", {$skipped} row(s) skipped." : '.' ),
-        ] );
+        wp_send_json_success( $result );
     }
 
     /* =========================================================
-       ADD PRODUCT — API IMPORT  (save source + first sync)
+       ADD PRODUCT — API IMPORT
     ========================================================= */
 
-    public function api_import() {
+    public function api_import(): void {
 
         $this->auth();
 
-        $label      = sanitize_text_field( wp_unslash( $_POST['label']          ?? 'My API Store' ) );
-        $endpoint   = esc_url_raw( wp_unslash( $_POST['endpoint_url']            ?? '' ) );
-        $api_key    = sanitize_text_field( wp_unslash( $_POST['api_key']         ?? '' ) );
-        $sync_meth  = sanitize_text_field( wp_unslash( $_POST['sync_method']     ?? 'cron' ) );
-        $wh_secret  = sanitize_text_field( wp_unslash( $_POST['webhook_secret']  ?? '' ) );
-
-        if ( empty( $endpoint ) ) {
-            wp_send_json_error( [ 'message' => 'Endpoint URL is required.' ] );
-        }
-
-        if ( ! filter_var( $endpoint, FILTER_VALIDATE_URL ) ) {
-            wp_send_json_error( [ 'message' => 'Endpoint must be a valid URL.' ] );
-        }
-
-        /* Encrypt key before storing — plaintext never hits DB */
-        $encrypted_key = NEXORA_MARKET_HELPER::encrypt( $api_key );
-
-        global $wpdb;
-        $api_table = $wpdb->prefix . 'nx_api_sources';
-
-        $inserted = $wpdb->insert( $api_table, [
+        $result = NEXORA_MARKET_API::save_source( [
             'user_id'        => get_current_user_id(),
-            'label'          => $label,
-            'endpoint_url'   => $endpoint,
-            'api_key'        => $encrypted_key,
-            'api_secret'     => '',
-            'sync_method'    => $sync_meth,
-            'webhook_secret' => $wh_secret,
-            'status'         => 'active',
+            'label'          => sanitize_text_field( wp_unslash( $_POST['label']          ?? 'My API Store' ) ),
+            'endpoint_url'   => wp_unslash( $_POST['endpoint_url']                         ?? '' ),
+            'api_key'        => sanitize_text_field( wp_unslash( $_POST['api_key']         ?? '' ) ),
+            'sync_method'    => sanitize_text_field( wp_unslash( $_POST['sync_method']     ?? 'cron' ) ),
+            'webhook_secret' => sanitize_text_field( wp_unslash( $_POST['webhook_secret']  ?? '' ) ),
         ] );
 
-        if ( ! $inserted ) {
-            wp_send_json_error( [ 'message' => 'Could not save API source.' ] );
+        if ( isset( $result['error'] ) ) {
+            wp_send_json_error( [ 'message' => $result['error'] ] );
         }
 
-        $source_id = (int) $wpdb->insert_id;
-
-        NEXORA_MARKET_HELPER::log_activity( get_current_user_id(), 'api_source_added', [
-            'source_id' => $source_id,
-            'endpoint'  => $endpoint,
-            'method'    => $sync_meth,
-        ] );
-
-        /* Schedule recurring WP-Cron job for this source */
-        if ( in_array( $sync_meth, [ 'cron', 'both' ], true ) ) {
-            NEXORA_MARKET_HELPER::schedule_api_sync( $source_id );
-        }
-
-        /* Fire first sync immediately so user sees products right away */
-        $sync_result = NEXORA_MARKET_HELPER::sync_api_source( $source_id );
-
-        wp_send_json_success( [
-            'source_id' => $source_id,
-            'synced'    => $sync_result['imported'] ?? 0,
-            'message'   => 'API source connected. ' . ( $sync_result['message'] ?? 'Sync started.' ),
-        ] );
+        wp_send_json_success( $result );
     }
 
     /* =========================================================
        MANUAL RE-SYNC ONE API SOURCE
     ========================================================= */
 
-    public function api_sync() {
+    public function api_sync(): void {
 
         $this->auth();
 
@@ -431,26 +280,25 @@ class NEXORA_MARKET_AJAX {
             wp_send_json_error( [ 'message' => 'Invalid source ID.' ] );
         }
 
-        global $wpdb;
-        $owner_id = (int) $wpdb->get_var( $wpdb->prepare(
-            "SELECT user_id FROM {$wpdb->prefix}nx_api_sources WHERE id = %d",
-            $source_id
-        ) );
+        // Ownership check
+        $source = NEXORA_MARKET_DB::get_api_source( $source_id );
 
-        if ( $owner_id !== get_current_user_id() && ! current_user_can( 'manage_options' ) ) {
+        if ( ! $source ) {
+            wp_send_json_error( [ 'message' => 'Source not found.' ] );
+        }
+
+        if ( (int) $source['user_id'] !== get_current_user_id() && ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( [ 'message' => 'Permission denied.' ] );
         }
 
-        $result = NEXORA_MARKET_HELPER::sync_api_source( $source_id );
-
-        wp_send_json_success( $result );
+        wp_send_json_success( NEXORA_MARKET_API::sync_source( $source_id ) );
     }
 
     /* =========================================================
-       UPDATE PRODUCT  (inline edit from My Products)
+       UPDATE PRODUCT (inline edit from My Products)
     ========================================================= */
 
-    public function update_product() {
+    public function update_product(): void {
 
         $this->auth();
 
@@ -460,70 +308,68 @@ class NEXORA_MARKET_AJAX {
             wp_send_json_error( [ 'message' => 'Invalid product ID.' ] );
         }
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_products';
+        $product = NEXORA_MARKET_DB::get_product( $product_id );
 
-        /* Ownership check */
-        $row = $wpdb->get_row( $wpdb->prepare(
-            "SELECT owner_user_id, wc_product_id FROM {$table} WHERE id = %d",
-            $product_id
-        ), ARRAY_A );
-
-        if ( ! $row ) {
+        if ( ! $product ) {
             wp_send_json_error( [ 'message' => 'Product not found.' ] );
         }
 
-        if ( (int) $row['owner_user_id'] !== get_current_user_id() && ! current_user_can( 'manage_options' ) ) {
+        if ( (int) $product['owner_user_id'] !== get_current_user_id() && ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( [ 'message' => 'Permission denied.' ] );
         }
 
-        /* Build update payload — only include fields that were actually sent */
-        $update = [];
+        // Build update payload — only include fields that were actually sent
+        $data = [];
 
-        if ( isset( $_POST['price'] ) && strlen( (string) $_POST['price'] ) ) {
-            $update['price'] = (float) $_POST['price'];
-        }
-        if ( isset( $_POST['stock_qty'] ) && strlen( (string) $_POST['stock_qty'] ) ) {
-            $update['stock_qty'] = (int) $_POST['stock_qty'];
-        }
-        if ( ! empty( $_POST['title'] ) ) {
-            $update['title'] = sanitize_text_field( wp_unslash( $_POST['title'] ) );
-        }
-        if ( isset( $_POST['description'] ) ) {
-            $update['description'] = wp_kses_post( wp_unslash( $_POST['description'] ) );
-        }
-        if ( isset( $_POST['category'] ) ) {
-            $update['category'] = sanitize_text_field( wp_unslash( $_POST['category'] ) );
+        if ( isset( $_POST['price'] )        && strlen( (string) $_POST['price'] ) )
+            $data['price']       = (float) $_POST['price'];
+
+        if ( isset( $_POST['stock_qty'] )    && strlen( (string) $_POST['stock_qty'] ) )
+            $data['stock_qty']   = (int) $_POST['stock_qty'];
+
+        if ( ! empty( $_POST['title'] ) )
+            $data['title']       = sanitize_text_field( wp_unslash( $_POST['title'] ) );
+
+        if ( isset( $_POST['description'] ) )
+            $data['description'] = wp_kses_post( wp_unslash( $_POST['description'] ) );
+
+        if ( isset( $_POST['category'] ) )
+            $data['category']    = sanitize_text_field( wp_unslash( $_POST['category'] ) );
+
+        // Image update from wp.media
+        if ( ! empty( $_POST['image_id'] ) )
+            $data['image_attachment_id'] = intval( $_POST['image_id'] );
+
+        // Gallery update from wp.media
+        if ( isset( $_POST['gallery_ids'] ) ) {
+            $gallery_raw = sanitize_text_field( wp_unslash( $_POST['gallery_ids'] ) );
+            $gallery_ids = array_filter( array_map( 'intval', (array) json_decode( $gallery_raw, true ) ) );
+            if ( ! empty( $gallery_ids ) ) $data['gallery_attachment_ids'] = $gallery_ids;
         }
 
-        if ( empty( $update ) ) {
+        if ( empty( $data ) ) {
             wp_send_json_error( [ 'message' => 'Nothing to update.' ] );
         }
 
-        $result = $wpdb->update( $table, $update, [ 'id' => $product_id ] );
+        $ok = NEXORA_MARKET_PRODUCT::update( $product_id, $data );
 
-        if ( $result === false ) {
-            wp_send_json_error( [ 'message' => 'Database update failed.' ] );
+        if ( ! $ok ) {
+            wp_send_json_error( [ 'message' => 'Update failed.' ] );
         }
 
-        /* Mirror to WooCommerce */
-        if ( $row['wc_product_id'] ) {
-            NEXORA_MARKET_WOOCOMMERCE::update_wc_product( (int) $row['wc_product_id'], $update );
-        }
-
-        NEXORA_MARKET_HELPER::log_activity( get_current_user_id(), 'product_updated', [
+        NEXORA_MARKET_DB::log_activity( get_current_user_id(), 'product_updated', [
             'product_id' => $product_id,
-            'fields'     => array_keys( $update ),
+            'fields'     => array_keys( $data ),
         ] );
 
         wp_send_json_success( [ 'message' => 'Product updated.' ] );
     }
 
     /* =========================================================
-       DELETE PRODUCT  (soft-delete → status = inactive)
+       DELETE PRODUCT (soft-delete)
     ========================================================= */
 
-    public function delete_product() {
+    public function delete_product(): void {
 
         $this->auth();
 
@@ -533,31 +379,19 @@ class NEXORA_MARKET_AJAX {
             wp_send_json_error( [ 'message' => 'Invalid product ID.' ] );
         }
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_products';
+        $product = NEXORA_MARKET_DB::get_product( $product_id );
 
-        $row = $wpdb->get_row( $wpdb->prepare(
-            "SELECT owner_user_id, wc_product_id FROM {$table} WHERE id = %d",
-            $product_id
-        ), ARRAY_A );
-
-        if ( ! $row ) {
+        if ( ! $product ) {
             wp_send_json_error( [ 'message' => 'Product not found.' ] );
         }
 
-        if ( (int) $row['owner_user_id'] !== get_current_user_id() && ! current_user_can( 'manage_options' ) ) {
+        if ( (int) $product['owner_user_id'] !== get_current_user_id() && ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( [ 'message' => 'Permission denied.' ] );
         }
 
-        /* Soft-delete in nx_products */
-        $wpdb->update( $table, [ 'status' => 'inactive' ], [ 'id' => $product_id ] );
+        NEXORA_MARKET_PRODUCT::delete( $product_id );
 
-        /* Draft the WooCommerce product so it disappears from the shop */
-        if ( $row['wc_product_id'] ) {
-            NEXORA_MARKET_WOOCOMMERCE::unpublish_wc_product( (int) $row['wc_product_id'] );
-        }
-
-        NEXORA_MARKET_HELPER::log_activity( get_current_user_id(), 'product_deleted', [
+        NEXORA_MARKET_DB::log_activity( get_current_user_id(), 'product_deleted', [
             'product_id' => $product_id,
         ] );
 

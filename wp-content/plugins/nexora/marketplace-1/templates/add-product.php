@@ -3,9 +3,7 @@
  * templates/add-product.php
  *
  * Three upload methods: Manual Entry / CSV Upload / API Import.
- * Manual form now includes:
- *   - Feature image  via wp.media (scoped to current user's uploads)
- *   - Product gallery via wp.media (multi-select)
+ * Method card click reveals matching form.
  * All submissions handled by market.js → class-market-ajax.php.
  */
 
@@ -45,66 +43,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
     <div class="market-upload-form-area" id="market-form-manual">
 
         <div class="market-form">
-
-            <!-- ── Product Images (wp.media) ────────────────── -->
-            <div class="market-form-section-title">Product Images</div>
-
-            <div class="market-form-row">
-
-                <!-- Feature image -->
-                <div class="market-field">
-                    <label>Feature Image</label>
-                    <div class="mk-media-picker" id="mk-feature-image-picker" data-context="feature">
-                        <div class="mk-media-preview" id="mk-feature-preview">
-                            <span class="mk-media-placeholder">🖼️ No image selected</span>
-                        </div>
-                        <input type="hidden" id="mk-image-id" name="image_id" value="" />
-                        <div class="mk-media-actions">
-                            <button type="button" class="mk-btn mk-btn-ghost mk-media-select-btn"
-                                    data-target="mk-image-id"
-                                    data-preview="mk-feature-preview"
-                                    data-mode="feature">
-                                📁 Choose Image
-                            </button>
-                            <button type="button" class="mk-btn mk-btn-ghost mk-media-remove-btn"
-                                    data-target="mk-image-id"
-                                    data-preview="mk-feature-preview"
-                                    style="display:none; color:var(--mk-danger);">
-                                ✕ Remove
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product gallery -->
-                <div class="market-field">
-                    <label>Product Gallery <span style="color:var(--mk-muted); font-weight:400;">optional — multiple images</span></label>
-                    <div class="mk-media-picker" id="mk-gallery-picker" data-context="gallery">
-                        <div class="mk-gallery-preview" id="mk-gallery-preview">
-                            <span class="mk-media-placeholder">🖼️ No gallery images</span>
-                        </div>
-                        <input type="hidden" id="mk-gallery-ids" name="gallery_ids" value="[]" />
-                        <div class="mk-media-actions">
-                            <button type="button" class="mk-btn mk-btn-ghost mk-media-select-btn"
-                                    data-target="mk-gallery-ids"
-                                    data-preview="mk-gallery-preview"
-                                    data-mode="gallery">
-                                📁 Choose Gallery Images
-                            </button>
-                            <button type="button" class="mk-btn mk-btn-ghost mk-gallery-clear-btn"
-                                    data-target="mk-gallery-ids"
-                                    data-preview="mk-gallery-preview"
-                                    style="display:none; color:var(--mk-danger);">
-                                ✕ Clear Gallery
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </div><!-- .market-form-row (images) -->
-
-            <!-- ── Product details ──────────────────────────── -->
-            <div class="market-form-section-title" style="margin-top:24px;">Product Details</div>
 
             <div class="market-form-row">
                 <div class="market-field">
@@ -164,6 +102,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 <textarea id="mk-desc" rows="5" placeholder="Detailed product description, features, specs…"></textarea>
             </div>
 
+            <!-- Hidden image ID — populated by WP media uploader (future) -->
+            <input type="hidden" id="mk-image-id" value="" />
+
             <div>
                 <button id="market-manual-submit" class="mk-btn mk-btn-primary">
                     Add Product
@@ -187,6 +128,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
         <input type="file" id="market-csv-input" accept=".csv" style="display:none;" />
 
+        <!-- Column spec -->
         <div class="market-csv-spec">
             <strong>Required columns:</strong> <code>title</code>, <code>price</code><br>
             <strong>Optional:</strong> <code>sale_price</code>, <code>stock_qty</code>, <code>sku</code>,
@@ -269,58 +211,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 </div><!-- .market-panel -->
 
 <style>
-/* ── Media picker ───────────────────────────────────── */
-.mk-media-picker {
-    background: var(--mk-bg);
-    border: 1.5px dashed var(--mk-border);
-    border-radius: var(--mk-radius);
-    padding: 14px;
-    transition: border-color 0.15s;
-}
-.mk-media-picker:hover { border-color: var(--mk-accent); }
-
-.mk-media-preview {
-    width: 100%;
-    height: 140px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #fff;
-    border: 1px solid var(--mk-border);
-    margin-bottom: 10px;
-}
-.mk-media-preview img {
-    width: 100%; height: 100%;
-    object-fit: cover; display: block;
-}
-.mk-media-placeholder {
-    font-size: 13px; color: var(--mk-muted);
-}
-
-.mk-gallery-preview {
-    min-height: 64px;
-    display: flex; flex-wrap: wrap; gap: 6px;
-    margin-bottom: 10px;
-    align-items: flex-start;
-}
-.mk-gallery-preview .mk-thumb {
-    width: 60px; height: 60px;
-    border-radius: 6px;
-    object-fit: cover;
-    border: 2px solid var(--mk-border);
-}
-.mk-media-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* CSV spec */
+/* CSV spec box */
 .market-csv-spec {
     margin-top: 16px;
     padding: 12px 16px;
     background: var(--mk-bg);
     border: 1px solid var(--mk-border);
     border-radius: var(--mk-radius);
-    font-size: 13px; line-height: 1.8; color: var(--mk-muted);
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--mk-muted);
 }
 .market-csv-spec code {
     background: #fff;
@@ -330,128 +230,15 @@ if ( ! defined( 'ABSPATH' ) ) exit;
     font-size: 12px;
     color: var(--mk-accent);
 }
-
-/* Section label */
-.market-form-section-title {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--mk-muted);
-    margin-bottom: 14px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--mk-border);
-}
 </style>
 
 <script>
 jQuery( document ).ready( function ( $ ) {
 
-    /* ── Show / hide webhook secret field ─────────────────── */
+    /* Show/hide webhook secret field based on sync method choice */
     $( document ).on( 'change', '#mk-sync-method', function () {
-        var val = $( this ).val();
+        const val = $( this ).val();
         $( '#mk-webhook-secret-wrap' ).toggle( val === 'webhook' || val === 'both' );
-    } );
-
-    /* ── wp.media — Feature image picker ──────────────────── */
-    var featureFrame = null;
-
-    $( document ).on( 'click', '.mk-media-select-btn[data-mode="feature"]', function ( e ) {
-        e.preventDefault();
-
-        var $btn     = $( this );
-        var targetId = $btn.data( 'target' );
-        var previewId= $btn.data( 'preview' );
-
-        if ( featureFrame ) { featureFrame.open(); return; }
-
-        featureFrame = wp.media( {
-            title    : 'Choose Feature Image',
-            button   : { text: 'Use this image' },
-            multiple : false,
-            // Pass custom header so PHP can scope library to current user
-            ajax     : { headers: { 'X-NX-Context': 'marketplace' } },
-        } );
-
-        featureFrame.on( 'select', function () {
-            var attachment = featureFrame.state().get( 'selection' ).first().toJSON();
-
-            $( '#' + targetId ).val( attachment.id );
-
-            var $preview = $( '#' + previewId );
-            $preview.html( '<img src="' + attachment.url + '" alt="">' );
-
-            // Show remove button
-            $btn.siblings( '.mk-media-remove-btn' ).show();
-        } );
-
-        featureFrame.open();
-    } );
-
-    /* ── Remove feature image ─────────────────────────────── */
-    $( document ).on( 'click', '.mk-media-remove-btn', function () {
-        var $btn     = $( this );
-        var targetId = $btn.data( 'target' );
-        var previewId= $btn.data( 'preview' );
-
-        $( '#' + targetId ).val( '' );
-        $( '#' + previewId ).html( '<span class="mk-media-placeholder">🖼️ No image selected</span>' );
-        $btn.hide();
-        featureFrame = null;
-    } );
-
-    /* ── wp.media — Gallery picker ────────────────────────── */
-    var galleryFrame = null;
-
-    $( document ).on( 'click', '.mk-media-select-btn[data-mode="gallery"]', function ( e ) {
-        e.preventDefault();
-
-        var $btn     = $( this );
-        var targetId = $btn.data( 'target' );
-        var previewId= $btn.data( 'preview' );
-
-        if ( galleryFrame ) { galleryFrame.open(); return; }
-
-        galleryFrame = wp.media( {
-            title    : 'Choose Gallery Images',
-            button   : { text: 'Add to gallery' },
-            multiple : true,
-            ajax     : { headers: { 'X-NX-Context': 'marketplace' } },
-        } );
-
-        galleryFrame.on( 'select', function () {
-            var selection = galleryFrame.state().get( 'selection' );
-            var ids  = [];
-            var html = '';
-
-            selection.each( function ( attachment ) {
-                var a = attachment.toJSON();
-                ids.push( a.id );
-                html += '<img class="mk-thumb" src="' + a.url + '" alt="">';
-            } );
-
-            $( '#' + targetId ).val( JSON.stringify( ids ) );
-
-            var $preview = $( '#' + previewId );
-            if ( html ) {
-                $preview.html( html );
-                $btn.siblings( '.mk-gallery-clear-btn' ).show();
-            }
-        } );
-
-        galleryFrame.open();
-    } );
-
-    /* ── Clear gallery ────────────────────────────────────── */
-    $( document ).on( 'click', '.mk-gallery-clear-btn', function () {
-        var $btn     = $( this );
-        var targetId = $btn.data( 'target' );
-        var previewId= $btn.data( 'preview' );
-
-        $( '#' + targetId ).val( '[]' );
-        $( '#' + previewId ).html( '<span class="mk-media-placeholder">🖼️ No gallery images</span>' );
-        $btn.hide();
-        galleryFrame = null;
     } );
 
 } );

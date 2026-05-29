@@ -1,68 +1,55 @@
 <?php
 /**
- * class-market-woocommerce.php
+ * includes/class-market-woocommerce.php
  *
  * WooCommerce bridge for the Nexora Marketplace.
  *
  * Responsibilities:
- *   1. Create / update / delete WC products from nx_products data
- *   2. Attach vendor meta to WC products so we can look up seller_id on order
+ *   1. Create / update / draft WC products from nx_products data
+ *   2. Attach vendor + nx_product meta to WC products (used on order hook)
  *   3. Hook into WC order status changes → write nx_orders + nx_earnings
  *   4. Sync stock back from WC to nx_products after a sale
+ *
+ * Image handling is delegated to NEXORA_MARKET_UPLOAD::attach_from_url()
+ * Depends on: NEXORA_MARKET_DB, NEXORA_MARKET_UPLOAD
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 class NEXORA_MARKET_WOOCOMMERCE {
 
-    /**
-     * Platform fee percentage charged to vendors.
-     * Move to get_option( 'nx_platform_fee_pct', 10 ) for admin control.
-     */
-    const PLATFORM_FEE_PCT = 10;
-
-    /** WC post meta key storing the nx vendor's user ID. */
-    const VENDOR_META_KEY = '_nx_vendor_user_id';
-
-    /** WC post meta key linking back to nx_products.id. */
+    const PLATFORM_FEE_PCT   = 10;
+    const VENDOR_META_KEY    = '_nx_vendor_user_id';
     const NX_PRODUCT_META_KEY = '_nx_product_id';
 
-    // ──────────────────────────────────────────────────────────────
-    // Boot
-    // ──────────────────────────────────────────────────────────────
+    /* =========================================================
+       BOOT
+    ========================================================= */
 
-    public static function init() {
+    public static function init(): void {
+        if ( ! self::wc_active() ) return;
 
-        if ( ! self::wc_active() ) {
-            return;
-        }
-
-        // Order paid/completed → record order row + earnings
         add_action( 'woocommerce_order_status_changed', [ __CLASS__, 'on_order_status_changed' ], 10, 3 );
-
-        // Stock reduced by WC → sync back to nx_products
-        add_action( 'woocommerce_reduce_order_stock', [ __CLASS__, 'on_stock_reduced' ] );
+        add_action( 'woocommerce_reduce_order_stock',   [ __CLASS__, 'on_stock_reduced' ] );
     }
 
-    // ──────────────────────────────────────────────────────────────
-    // WC product CRUD
-    // ──────────────────────────────────────────────────────────────
+    /* =========================================================
+       WC PRODUCT CRUD
+    ========================================================= */
 
     /**
-     * Create a WC simple product.
+     * Create a WC simple product from nx_products data.
      *
-     * @param array $data  title, description, price, stock_qty,
-     *                     owner_user_id, nx_product_id,
-     *                     image_url (opt), sku (opt), category (opt)
+     * @param  array    $data {
+     *   title, description, price, sale_price?,
+     *   stock_qty, sku?, category?, image_url?,
+     *   owner_user_id, nx_product_id
+     * }
      * @return int|false  WC product post ID or false.
      */
     public static function create_wc_product( array $data ) {
 
-        if ( ! self::wc_active() ) {
-            return false;
-        }
+        if ( ! self::wc_active() ) return false;
 
         $product = new WC_Product_Simple();
         $product->set_name( sanitize_text_field( $data['title'] ) );
@@ -73,35 +60,43 @@ class NEXORA_MARKET_WOOCOMMERCE {
         $product->set_status( 'publish' );
         $product->set_catalog_visibility( 'visible' );
 
+        // Sale price
+        if ( isset( $data['sale_price'] ) && $data['sale_price'] !== null && (float) $data['sale_price'] > 0 ) {
+            $product->set_sale_price( (string) floatval( $data['sale_price'] ) );
+        }
+
         if ( ! empty( $data['sku'] ) ) {
             $product->set_sku( sanitize_text_field( $data['sku'] ) );
         }
 
-        // Assign WC category if provided
+        // Assign or create WC product category
         if ( ! empty( $data['category'] ) ) {
-            $term = get_term_by( 'name', $data['category'], 'product_cat' );
-            if ( ! $term ) {
-                $term_result = wp_insert_term( sanitize_text_field( $data['category'] ), 'product_cat' );
-                $term_id     = is_wp_error( $term_result ) ? 0 : $term_result['term_id'];
-            } else {
-                $term_id = $term->term_id;
-            }
-            if ( $term_id ) {
-                $product->set_category_ids( [ $term_id ] );
-            }
+            $term_id = self::ensure_category( $data['category'] );
+            if ( $term_id ) $product->set_category_ids( [ $term_id ] );
         }
 
         $wc_id = $product->save();
+        if ( ! $wc_id ) return false;
 
-        if ( ! $wc_id ) {
-            return false;
+        // Store vendor + nx meta for the order hooks
+        update_post_meta( $wc_id, self::VENDOR_META_KEY,      (int) ( $data['owner_user_id'] ?? 0 ) );
+        update_post_meta( $wc_id, self::NX_PRODUCT_META_KEY,  (int) ( $data['nx_product_id']  ?? 0 ) );
+
+        // Sideload feature image if a URL was provided (API/CSV path)
+        if ( ! empty( $data['image_url'] ) ) {
+            NEXORA_MARKET_UPLOAD::attach_from_url( $wc_id, $data['image_url'], $data['title'] );
         }
 
-        update_post_meta( $wc_id, self::VENDOR_META_KEY,     (int) ( $data['owner_user_id'] ?? 0 ) );
-        update_post_meta( $wc_id, self::NX_PRODUCT_META_KEY, (int) ( $data['nx_product_id']  ?? 0 ) );
+        // Set image from WP media library attachment (manual/upload path)
+        if ( ! empty( $data['image_attachment_id'] ) ) {
+            set_post_thumbnail( $wc_id, (int) $data['image_attachment_id'] );
+        }
 
-        if ( ! empty( $data['image_url'] ) ) {
-            self::attach_image_from_url( $wc_id, $data['image_url'], $data['title'] );
+        // Gallery attachments (manual/upload path)
+        if ( ! empty( $data['gallery_attachment_ids'] ) && is_array( $data['gallery_attachment_ids'] ) ) {
+            update_post_meta( $wc_id, '_product_image_gallery',
+                implode( ',', array_map( 'intval', $data['gallery_attachment_ids'] ) )
+            );
         }
 
         return $wc_id;
@@ -111,81 +106,71 @@ class NEXORA_MARKET_WOOCOMMERCE {
      * Update an existing WC product.
      * Only updates fields present in $data.
      *
-     * @param int   $wc_product_id
-     * @param array $data  price, stock_qty, title, description, status
+     * @param  int   $wc_id
+     * @param  array $data  price, stock_qty, title, description, status,
+     *                      image_attachment_id?, gallery_attachment_ids?
      * @return bool
      */
-    public static function update_wc_product( int $wc_product_id, array $data ) {
+    public static function update_wc_product( int $wc_id, array $data ): bool {
 
-        if ( ! self::wc_active() ) {
-            return false;
+        if ( ! self::wc_active() ) return false;
+
+        $product = wc_get_product( $wc_id );
+        if ( ! $product ) return false;
+
+        if ( isset( $data['price'] ) )       $product->set_regular_price( (string) floatval( $data['price'] ) );
+        if ( isset( $data['stock_qty'] ) )   $product->set_stock_quantity( (int) $data['stock_qty'] );
+        if ( isset( $data['title'] ) )       $product->set_name( sanitize_text_field( $data['title'] ) );
+        if ( isset( $data['description'] ) ) $product->set_description( wp_kses_post( $data['description'] ) );
+        if ( isset( $data['status'] ) )      $product->set_status( $data['status'] === 'active' ? 'publish' : 'draft' );
+
+        if ( isset( $data['sale_price'] ) ) {
+            $product->set_sale_price( $data['sale_price'] !== null ? (string) floatval( $data['sale_price'] ) : '' );
         }
 
-        $product = wc_get_product( $wc_product_id );
+        $ok = (bool) $product->save();
 
-        if ( ! $product ) {
-            return false;
+        // Update feature image from media library attachment
+        if ( ! empty( $data['image_attachment_id'] ) ) {
+            set_post_thumbnail( $wc_id, (int) $data['image_attachment_id'] );
         }
 
-        if ( isset( $data['price'] ) ) {
-            $product->set_regular_price( (string) floatval( $data['price'] ) );
+        // Update gallery attachments
+        if ( ! empty( $data['gallery_attachment_ids'] ) && is_array( $data['gallery_attachment_ids'] ) ) {
+            update_post_meta( $wc_id, '_product_image_gallery',
+                implode( ',', array_map( 'intval', $data['gallery_attachment_ids'] ) )
+            );
         }
 
-        if ( isset( $data['stock_qty'] ) ) {
-            $product->set_stock_quantity( (int) $data['stock_qty'] );
-        }
-
-        if ( isset( $data['title'] ) ) {
-            $product->set_name( sanitize_text_field( $data['title'] ) );
-        }
-
-        if ( isset( $data['description'] ) ) {
-            $product->set_description( wp_kses_post( $data['description'] ) );
-        }
-
-        if ( isset( $data['status'] ) ) {
-            $product->set_status( $data['status'] === 'active' ? 'publish' : 'draft' );
-        }
-
-        return (bool) $product->save();
+        return $ok;
     }
 
     /**
-     * Soft-remove: set WC product to draft.
+     * Soft-remove: set WC product status to 'draft'.
      *
-     * @param int $wc_product_id
+     * @param  int  $wc_id
      * @return bool
      */
-    public static function unpublish_wc_product( int $wc_product_id ) {
+    public static function unpublish_wc_product( int $wc_id ): bool {
 
-        if ( ! self::wc_active() ) {
-            return false;
-        }
+        if ( ! self::wc_active() ) return false;
 
-        $product = wc_get_product( $wc_product_id );
-
-        if ( ! $product ) {
-            return false;
-        }
+        $product = wc_get_product( $wc_id );
+        if ( ! $product ) return false;
 
         $product->set_status( 'draft' );
-
         return (bool) $product->save();
     }
 
-    // ──────────────────────────────────────────────────────────────
-    // Order hooks
-    // ──────────────────────────────────────────────────────────────
+    /* =========================================================
+       ORDER HOOKS
+    ========================================================= */
 
     /**
      * Fires on every WC order status transition.
-     * We record on → processing|completed and reverse on → cancelled|refunded.
-     *
-     * @param int    $order_id
-     * @param string $old_status
-     * @param string $new_status
+     * Records on → processing|completed; reverses on → cancelled|refunded.
      */
-    public static function on_order_status_changed( int $order_id, string $old_status, string $new_status ) {
+    public static function on_order_status_changed( int $order_id, string $old_status, string $new_status ): void {
 
         $paid_statuses    = [ 'processing', 'completed' ];
         $reverse_statuses = [ 'cancelled', 'refunded' ];
@@ -193,20 +178,11 @@ class NEXORA_MARKET_WOOCOMMERCE {
         $going_paid    = in_array( $new_status, $paid_statuses, true );
         $going_reverse = in_array( $new_status, $reverse_statuses, true );
 
-        if ( ! $going_paid && ! $going_reverse ) {
-            return;
-        }
-
-        // Don't double-count if already in a paid status
-        if ( $going_paid && in_array( $old_status, $paid_statuses, true ) ) {
-            return;
-        }
+        if ( ! $going_paid && ! $going_reverse ) return;
+        if ( $going_paid && in_array( $old_status, $paid_statuses, true ) ) return;
 
         $order = wc_get_order( $order_id );
-
-        if ( ! $order ) {
-            return;
-        }
+        if ( ! $order ) return;
 
         foreach ( $order->get_items() as $item ) {
 
@@ -215,10 +191,7 @@ class NEXORA_MARKET_WOOCOMMERCE {
             $vendor_user_id = (int) get_post_meta( $wc_product_id, self::VENDOR_META_KEY, true );
             $nx_product_id  = (int) get_post_meta( $wc_product_id, self::NX_PRODUCT_META_KEY, true );
 
-            // Skip products not from our marketplace
-            if ( ! $vendor_user_id || ! $nx_product_id ) {
-                continue;
-            }
+            if ( ! $vendor_user_id || ! $nx_product_id ) continue;
 
             $buyer_id = (int) $order->get_customer_id();
             $qty      = (int) $item->get_quantity();
@@ -226,183 +199,78 @@ class NEXORA_MARKET_WOOCOMMERCE {
 
             if ( $going_paid ) {
 
-                self::record_order(
-                    $order_id, $buyer_id, $vendor_user_id,
-                    $nx_product_id, $qty, $total, $new_status
-                );
+                $fee_pct      = (float) get_option( 'nx_market_fee_pct', self::PLATFORM_FEE_PCT );
+                $platform_fee = round( $total * ( $fee_pct / 100 ), 2 );
 
-                self::record_earnings( $vendor_user_id, $total );
+                NEXORA_MARKET_DB::upsert_order( [
+                    'wc_order_id'  => $order_id,
+                    'buyer_id'     => $buyer_id,
+                    'seller_id'    => $vendor_user_id,
+                    'product_id'   => $nx_product_id,
+                    'quantity'     => $qty,
+                    'total'        => $total,
+                    'platform_fee' => $platform_fee,
+                    'seller_net'   => round( $total - $platform_fee, 2 ),
+                    'order_status' => $new_status,
+                ] );
+
+                NEXORA_MARKET_DB::upsert_earnings( $vendor_user_id, wp_date( 'Y-m' ), $total, self::PLATFORM_FEE_PCT );
+                NEXORA_MARKET_DB::log_activity( $buyer_id, 'order_placed', [
+                    'wc_order_id' => $order_id,
+                    'product_id'  => $nx_product_id,
+                    'total'       => $total,
+                ] );
 
             } else {
 
-                self::reverse_order( $order_id, $nx_product_id );
-                self::reverse_earnings( $vendor_user_id, $total );
+                NEXORA_MARKET_DB::cancel_order( $order_id, $nx_product_id );
+                NEXORA_MARKET_DB::upsert_earnings( $vendor_user_id, wp_date( 'Y-m' ), -abs( $total ), self::PLATFORM_FEE_PCT );
             }
         }
     }
 
     /**
-     * After WC reduces stock, sync the new quantity back to nx_products.
+     * After WC reduces stock on an order, sync the new quantity back to nx_products.
      *
      * @param WC_Order $order
      */
-    public static function on_stock_reduced( $order ) {
+    public static function on_stock_reduced( $order ): void {
 
-        if ( ! $order instanceof WC_Order ) {
-            return;
-        }
-
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_products';
+        if ( ! $order instanceof WC_Order ) return;
 
         foreach ( $order->get_items() as $item ) {
 
             $wc_product_id = (int) $item->get_product_id();
             $nx_product_id = (int) get_post_meta( $wc_product_id, self::NX_PRODUCT_META_KEY, true );
 
-            if ( ! $nx_product_id ) {
-                continue;
-            }
+            if ( ! $nx_product_id ) continue;
 
             $wc_product = wc_get_product( $wc_product_id );
             $new_stock  = $wc_product ? (int) $wc_product->get_stock_quantity() : 0;
 
-            $wpdb->update(
-                $table,
-                [ 'stock_qty' => $new_stock ],
-                [ 'id'        => $nx_product_id ]
-            );
+            NEXORA_MARKET_DB::update_product( $nx_product_id, [ 'stock_qty' => $new_stock ] );
         }
     }
 
-    // ──────────────────────────────────────────────────────────────
-    // Private: order + earnings recording
-    // ──────────────────────────────────────────────────────────────
+    /* =========================================================
+       UTILITIES
+    ========================================================= */
 
-    private static function record_order(
-        int $wc_order_id, int $buyer_id, int $seller_id,
-        int $nx_product_id, int $qty, float $total, string $status
-    ) {
-        global $wpdb;
-        $table = $wpdb->prefix . 'nx_orders';
-
-        // Idempotent upsert
-        $existing_id = $wpdb->get_var( $wpdb->prepare(
-            "SELECT id FROM {$table} WHERE wc_order_id = %d AND product_id = %d",
-            $wc_order_id, $nx_product_id
-        ) );
-
-        if ( $existing_id ) {
-            $wpdb->update(
-                $table,
-                [ 'order_status' => $status, 'payment_status' => 'paid' ],
-                [ 'id' => (int) $existing_id ]
-            );
-            return;
-        }
-
-        $fee_pct      = (float) get_option( 'nx_market_fee_pct', self::PLATFORM_FEE_PCT );
-        $platform_fee = round( $total * ( $fee_pct / 100 ), 2 );
-        $seller_net   = round( $total - $platform_fee, 2 );
-
-        $wpdb->insert( $table, [
-            'wc_order_id'    => $wc_order_id,
-            'buyer_id'       => $buyer_id,
-            'seller_id'      => $seller_id,
-            'product_id'     => $nx_product_id,
-            'quantity'       => $qty,
-            'total'          => $total,
-            'platform_fee'   => $platform_fee,
-            'seller_net'     => $seller_net,
-            'order_status'   => $status,
-            'payment_status' => 'paid',
-        ] );
-
-        NEXORA_MARKET_HELPER::log_activity( $buyer_id, 'order_placed', [
-            'wc_order_id' => $wc_order_id,
-            'product_id'  => $nx_product_id,
-            'total'       => $total,
-        ] );
+    public static function wc_active(): bool {
+        return class_exists( 'WooCommerce' ) && class_exists( 'WC_Product_Simple' );
     }
-
-    private static function reverse_order( int $wc_order_id, int $nx_product_id ) {
-
-        global $wpdb;
-        $wpdb->update(
-            $wpdb->prefix . 'nx_orders',
-            [ 'order_status' => 'cancelled', 'payment_status' => 'refunded' ],
-            [ 'wc_order_id' => $wc_order_id, 'product_id' => $nx_product_id ]
-        );
-    }
-
-    private static function record_earnings( int $vendor_id, float $gross ) {
-
-        $period = date( 'Y-m' );
-        NEXORA_MARKET_HELPER::upsert_earnings( $vendor_id, $period, $gross, self::PLATFORM_FEE_PCT );
-        NEXORA_MARKET_HELPER::log_activity( $vendor_id, 'sale_recorded', [
-            'period' => $period,
-            'gross'  => $gross,
-        ] );
-    }
-
-    private static function reverse_earnings( int $vendor_id, float $gross ) {
-
-        $period = date( 'Y-m' );
-        // negative gross → upsert subtracts
-        NEXORA_MARKET_HELPER::upsert_earnings( $vendor_id, $period, -abs( $gross ), self::PLATFORM_FEE_PCT );
-    }
-
-    // ──────────────────────────────────────────────────────────────
-    // Image helper
-    // ──────────────────────────────────────────────────────────────
 
     /**
-     * Sideload a remote image into WP media and set as featured image.
+     * Get or create a WC product category by name.
      *
-     * @param int    $post_id
-     * @param string $url
-     * @param string $title
-     * @return int|false  Attachment ID or false.
+     * @param  string $name
+     * @return int    Term ID or 0 on failure.
      */
-    public static function attach_image_from_url( int $post_id, string $url, string $title = '' ) {
+    private static function ensure_category( string $name ): int {
+        $term = get_term_by( 'name', $name, 'product_cat' );
+        if ( $term ) return $term->term_id;
 
-        if ( empty( $url ) ) {
-            return false;
-        }
-
-        require_once ABSPATH . 'wp-admin/includes/media.php';
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/image.php';
-
-        $tmp = download_url( esc_url_raw( $url ) );
-
-        if ( is_wp_error( $tmp ) ) {
-            return false;
-        }
-
-        $file_array = [
-            'name'     => sanitize_file_name( wp_basename( $url ) ),
-            'tmp_name' => $tmp,
-        ];
-
-        $attachment_id = media_handle_sideload( $file_array, $post_id, sanitize_text_field( $title ) );
-
-        @unlink( $file_array['tmp_name'] );
-
-        if ( is_wp_error( $attachment_id ) ) {
-            return false;
-        }
-
-        set_post_thumbnail( $post_id, $attachment_id );
-
-        return $attachment_id;
-    }
-
-    // ──────────────────────────────────────────────────────────────
-    // Utility
-    // ──────────────────────────────────────────────────────────────
-
-    public static function wc_active() {
-        return class_exists( 'WooCommerce' ) && class_exists( 'WC_Product_Simple' );
+        $result = wp_insert_term( sanitize_text_field( $name ), 'product_cat' );
+        return is_wp_error( $result ) ? 0 : (int) $result['term_id'];
     }
 }

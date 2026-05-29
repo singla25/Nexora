@@ -357,8 +357,7 @@ jQuery( document ).ready( function ( $ ) {
                 tags         : $body.find( '#mk-tags' ).val()     || '',
                 sku          : $body.find( '#mk-sku' ).val()      || '',
                 product_type : $body.find( '#mk-type' ).val()     || 'simple',
-                image_id     : $body.find( '#mk-image-id' ).val()    || 0,
-                gallery_ids  : $body.find( '#mk-gallery-ids' ).val() || '[]',
+                image_id     : $body.find( '#mk-image-id' ).val() || 0,
             },
             $btn,
             'Saving…'
@@ -366,12 +365,6 @@ jQuery( document ).ready( function ( $ ) {
             if ( res.success ) {
                 showNotice( $body, 'success', '✓ Product added successfully!' );
                 $body.find( '#mk-title, #mk-price, #mk-sale-price, #mk-stock, #mk-desc, #mk-short-desc, #mk-sku, #mk-tags, #mk-category' ).val( '' );
-                // Reset image pickers
-                $body.find( '#mk-image-id' ).val( '' );
-                $body.find( '#mk-gallery-ids' ).val( '[]' );
-                $body.find( '#mk-feature-preview' ).html( '<span class="mk-media-placeholder">🖼️ No image selected</span>' );
-                $body.find( '#mk-gallery-preview' ).html( '<span class="mk-media-placeholder">🖼️ No gallery images</span>' );
-                $body.find( '.mk-media-remove-btn, .mk-gallery-clear-btn' ).hide();
             } else {
                 showNotice( $body, 'error', res.data?.message || 'Error saving product.' );
             }
