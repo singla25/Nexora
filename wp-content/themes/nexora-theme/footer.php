@@ -10,7 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-nxt_site_cta();
+?>
+</main>
+<?php
+$nxt_use_builtin_footer = ! function_exists( 'elementor_theme_do_location' ) || ! elementor_theme_do_location( 'footer' );
+
+if ( $nxt_use_builtin_footer ) {
+	nxt_site_cta();
+}
 
 $nxt_phone   = nxt_setting( 'phone' );
 $nxt_email   = nxt_setting( 'email' );
@@ -22,8 +29,8 @@ $nxt_social  = array(
 	'instagram' => 'Instagram',
 );
 ?>
-</main>
 
+<?php if ( $nxt_use_builtin_footer ) : ?>
 <footer class="nxt-footer">
 	<div class="nxt-container">
 		<div class="nxt-footer__top">
@@ -84,6 +91,7 @@ $nxt_social  = array(
 		</div>
 	</div>
 </footer>
+<?php endif; ?>
 
 <?php wp_footer(); ?>
 </body>

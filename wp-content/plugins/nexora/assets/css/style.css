@@ -425,3 +425,91 @@
     font-size: 14px;
     color: #444;
 }
+
+/* ---------- Shortcodes used inside Elementor ---------- */
+.nx-auth {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nx-auth .nx-btn {
+    padding: 9px 16px;
+    font-size: 0.9rem;
+}
+
+.nx-contact-form {
+    font-family: var(--nx-font);
+    background: var(--nx-white);
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-lg);
+    padding: 28px;
+    box-shadow: var(--nx-shadow-card);
+}
+
+.nx-contact-form .nx-form-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.nx-contact-form label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--nx-navy);
+    margin-bottom: 6px;
+}
+
+.nx-contact-form input[type="text"],
+.nx-contact-form input[type="email"],
+.nx-contact-form textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    font: inherit;
+    font-size: 0.95rem;
+    background: var(--nx-white);
+    box-sizing: border-box;
+}
+
+.nx-contact-form input:focus,
+.nx-contact-form textarea:focus {
+    outline: none;
+    border-color: var(--nx-blue);
+    box-shadow: 0 0 0 3px rgba(44, 143, 209, 0.18);
+}
+
+.nx-contact-form button.nx-btn {
+    cursor: pointer;
+    border: 0;
+    font: inherit;
+    font-weight: 600;
+}
+
+.nx-contact-form .nx-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.nx-form-notice {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: var(--nx-radius-sm);
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.nx-form-notice--ok {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.nx-form-notice--error {
+    background: #fee2e2;
+    color: #991b1b;
+}

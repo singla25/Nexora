@@ -844,10 +844,6 @@ body {
 		display: block;
 	}
 
-.nxt-logo {
-		display: none;
-	}
-
 .nxt-header__inner {
 		justify-content: space-between;
 		position: relative;

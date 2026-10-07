@@ -7,8 +7,9 @@ A WordPress site (WordPress 7.1) built around a custom **Nexora** plugin that pr
 | Path | Purpose |
 | --- | --- |
 | `wp-content/plugins/nexora/` | **The custom code.** All project-specific features live here. |
-| `wp-content/plugins/` (others) | Third-party plugins: Akismet, All-in-One WP Migration, Hostinger, Hostinger Reach, LiteSpeed Cache, UpdraftPlus, WP Mail SMTP. |
-| `wp-content/themes/` | Stock themes: Twenty Twenty-Three, Twenty Twenty-Four, Twenty Twenty-Five. |
+| `wp-content/themes/nexora-theme/` | **The custom theme** (FST design: navy / blue, Plus Jakarta Sans). Includes the Elementor sample content installer. |
+| `wp-content/plugins/` (others) | Third-party plugins: Elementor, Elementor Pro, Advanced Custom Fields, Akismet, All-in-One WP Migration, Hostinger, Hostinger Reach, LiteSpeed Cache, UpdraftPlus, WP Mail SMTP. Elementor Pro is a licensed product: keep your own licence active. |
+| `wp-content/themes/` (others) | Stock themes: Twenty Twenty-Three, Twenty Twenty-Four, Twenty Twenty-Five. |
 | `wp-content/mu-plugins/` | Hostinger must-use plugins. |
 | `wp-config.php` | **Not tracked** (contains secrets). Create it from `wp-config-sample.php`. |
 
@@ -40,16 +41,19 @@ nexora/
 - **Profile dashboard** with personal, address, work and document sections, a password change form, and a user content feed.
 - **Connections**: search users, send/accept/decline requests, view history, all connections and mutual connections.
 - **Notifications** stored in a dedicated table and markable as read.
-- **Chat**: threads, subjects, and messages, loaded as a popup on every front-end and admin page.
+- **Chat**: threads, subjects, and messages, loaded as a popup for logged-in members.
 - **Admin settings** under *Nexora System* for default images, admin email, and reCAPTCHA keys, plus Notifications and Chat views.
 
 ### Shortcodes
 
 | Shortcode | Use on page |
 | --- | --- |
-| `[nexora_home]` | Landing page |
+| `[nexora_home]` | Landing page (live numbers, text editable under Nexora > Settings) |
 | `[profile_registration]` | Registration page |
 | `[profile_login]` | `/login-page` |
+| `[nexora_stat type="members\|connections\|posts\|chats"]` | Any Elementor Shortcode widget: live platform number |
+| `[nexora_auth_buttons]` | Header: Log in / Sign up, or profile / Log out when logged in |
+| `[nexora_contact_form]` | Contact page: spam-protected form that emails the admin |
 | `[profile_dashboard]` | `/profile-page` (also served at `/profile-page/<username>` via a rewrite rule) |
 
 ### Access control
@@ -62,6 +66,28 @@ nexora/
 
 - Post types: `user_profile`, `user_connections`, `user_content`.
 - Tables (created on plugin activation, with the site's table prefix): `nexora_notifications`, `nexora_threads`, `nexora_thread_participants`, `nexora_messages`, `nexora_message_meta`.
+
+## Nexora theme and Elementor templates
+
+The theme (`wp-content/themes/nexora-theme`) is a classic PHP theme. Header, footer and 404 can be replaced by Elementor Pro Theme Builder templates; the theme's own markup is the fallback.
+
+**Install the sample pages**
+
+1. Activate Elementor, Elementor Pro and the **Nexora** theme.
+2. Go to **Appearance > Sample Content** and press **Install sample content**.
+
+It creates (using Elementor's own API, safe to run again):
+
+- Pages: Home (set as front page), About, Contact, FAQs, Privacy Policy, Terms of Use, Community Guidelines, plus Login / Registration / Profile if missing.
+- Elementor library templates, one per page layout (Templates > Saved Templates), to insert into any page.
+- Theme Builder templates: Header, Footer and 404 (Elementor Pro).
+- Menus: Nexora Main, Nexora Footer Company, Nexora Footer Legal.
+
+Existing pages are never changed unless this installer created them and "Replace" is ticked.
+
+**Dynamic data in the templates**: numbers come from `[nexora_stat]`, the header buttons from `[nexora_auth_buttons]`, and the logo, tagline, email, phone and address from `[nxt_logo]` and `[nxt_setting]` (set them under **Appearance > Nexora Settings**). Images use one sample image (`assets/images/sample.webp`, also added to the Media Library): replace it in the Elementor editor.
+
+Sections are styled by CSS classes (`nxe-*`, `assets/css/elementor.css`), so layout stays editable in Elementor.
 
 ## Setup
 

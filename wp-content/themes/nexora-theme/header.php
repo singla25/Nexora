@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <a class="nxt-skip-link" href="#nxt-main"><?php esc_html_e( 'Skip to content', 'nexora-theme' ); ?></a>
 
+<?php if ( ! function_exists( 'elementor_theme_do_location' ) || ! elementor_theme_do_location( 'header' ) ) : ?>
 <header class="nxt-header">
 	<div class="nxt-container nxt-header__inner">
 		<a class="nxt-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>">
@@ -64,5 +65,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</nav>
 	</div>
 </header>
+<?php endif; ?>
 
 <main id="nxt-main">
