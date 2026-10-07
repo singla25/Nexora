@@ -131,10 +131,29 @@ class NEXORA_CPT {
         register_setting('profile_settings_group', 'default_feed_experience_image');
         register_setting('profile_settings_group', 'default_real_time_chat_image');
         register_setting('profile_settings_group', 'default_smart_connections_image');
-        register_setting('profile_settings_group', 'default_admin_mail');
+        register_setting('profile_settings_group', 'default_admin_mail', ['sanitize_callback' => 'sanitize_email']);
 
-        register_setting('profile_settings_group', 'recaptcha_site_key');
-        register_setting('profile_settings_group', 'recaptcha_secret_key');
+        // Home page content (all optional - sensible defaults are used when empty)
+        register_setting('profile_settings_group', 'nexora_home_eyebrow',  ['sanitize_callback' => 'sanitize_text_field']);
+        register_setting('profile_settings_group', 'nexora_home_title',    ['sanitize_callback' => 'sanitize_text_field']);
+        register_setting('profile_settings_group', 'nexora_home_subtitle', ['sanitize_callback' => 'sanitize_textarea_field']);
+        register_setting('profile_settings_group', 'nexora_home_features', ['sanitize_callback' => 'sanitize_textarea_field']);
+        register_setting('profile_settings_group', 'nexora_home_testimonials', ['sanitize_callback' => 'sanitize_textarea_field']);
+
+        register_setting('profile_settings_group', 'recaptcha_site_key', ['sanitize_callback' => 'sanitize_text_field']);
+        register_setting('profile_settings_group', 'recaptcha_secret_key', [
+            'sanitize_callback' => function($value) {
+                $value = is_string($value) ? trim(wp_unslash($value)) : '';
+
+                // The field shows a mask, never the real secret: keep the stored key
+                // unless the admin typed a new one.
+                if ($value === '' || preg_match('/^\*+$/', $value)) {
+                    return get_option('recaptcha_secret_key');
+                }
+
+                return sanitize_text_field($value);
+            }
+        ]);
         register_setting('profile_settings_group', 'recaptcha_enabled', [
             'type' => 'boolean',
             'sanitize_callback' => function($value) {
@@ -416,6 +435,43 @@ class NEXORA_CPT {
                             <input type="hidden" name="default_smart_connections_image" value="<?php echo esc_attr($conn_id); ?>">
                             <button type="button" class="button upload-btn">Upload</button>
                             <button type="button" class="button remove-btn">Remove</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th colspan="2"><h2 style="margin:20px 0 0;">Home page content</h2>
+                            <p class="description" style="font-weight:normal;">Live numbers (members, connections, posts, conversations) are calculated automatically. Leave a field empty to use the default.</p>
+                        </th>
+                    </tr>
+
+                    <tr>
+                        <th><label for="nexora_home_eyebrow">Hero eyebrow</label></th>
+                        <td><input type="text" id="nexora_home_eyebrow" name="nexora_home_eyebrow" value="<?php echo esc_attr(get_option('nexora_home_eyebrow')); ?>" class="regular-text" placeholder="Your professional network"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="nexora_home_title">Hero title</label></th>
+                        <td><input type="text" id="nexora_home_title" name="nexora_home_title" value="<?php echo esc_attr(get_option('nexora_home_title')); ?>" class="regular-text" placeholder="Connect. Grow. Discover."></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="nexora_home_subtitle">Hero subtitle</label></th>
+                        <td><textarea id="nexora_home_subtitle" name="nexora_home_subtitle" rows="3" class="large-text" placeholder="Nexora helps you connect, share, and grow your network in real-time."><?php echo esc_textarea(get_option('nexora_home_subtitle')); ?></textarea></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="nexora_home_features">Features</label></th>
+                        <td>
+                            <textarea id="nexora_home_features" name="nexora_home_features" rows="6" class="large-text code" placeholder="Real-time chat | Instant conversations with subject-based threads."><?php echo esc_textarea(get_option('nexora_home_features')); ?></textarea>
+                            <p class="description">One feature per line: <code>Title | Description</code></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="nexora_home_testimonials">Testimonials</label></th>
+                        <td>
+                            <textarea id="nexora_home_testimonials" name="nexora_home_testimonials" rows="6" class="large-text code" placeholder="Jane Doe | Designer | Great place to meet people."><?php echo esc_textarea(get_option('nexora_home_testimonials')); ?></textarea>
+                            <p class="description">One per line: <code>Name | Role | Quote</code>. The section is hidden when empty.</p>
                         </td>
                     </tr>
 

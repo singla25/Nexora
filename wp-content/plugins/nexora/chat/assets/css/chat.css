@@ -24,7 +24,7 @@
     display: flex;
     border-radius: 14px;
     overflow: hidden;
-    background: #020617;
+    background: var(--nx-navy-deep);
 }
 
 /* ===============================
@@ -32,8 +32,8 @@
 =============================== */
 .chat-sidebar {
     width: 320px;
-    background: #020617;
-    border-right: 1px solid #1e293b;
+    background: var(--nx-navy-deep);
+    border-right: 1px solid var(--nx-navy);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -59,7 +59,7 @@
     font-size: 18px;
     font-weight: 600;
     color: #f1f5f9;
-    border-bottom: 1px solid #1e293b;
+    border-bottom: 1px solid var(--nx-navy);
 }
 
 /* SEARCH */
@@ -73,7 +73,7 @@
     padding: 10px 14px;
     border-radius: 10px;
     border: none;
-    background: #1e293b;
+    background: var(--nx-navy);
     color: #fff;
     font-size: 14px;
     flex-shrink: 0;
@@ -82,7 +82,7 @@
 /* SEARCH DROPDOWN */
 #chat-search-results {
     margin-top: 8px;
-    background: #1e293b;
+    background: var(--nx-navy);
     border-radius: 10px;
     max-height: 200px;
     overflow-y: auto;
@@ -92,7 +92,7 @@
     padding: 10px;
     cursor: pointer;
     border-bottom: 1px solid #334155;
-    color: #e2e8f0;
+    color: var(--nx-border);
 }
 
 .chat-user:hover {
@@ -103,13 +103,13 @@
 .chat-thread {
     position: relative;
     padding: 12px 14px;
-    border-bottom: 1px solid #1e293b;
+    border-bottom: 1px solid var(--nx-navy);
     cursor: pointer;
     transition: 0.2s;
 }
 
 .chat-thread:hover {
-    background: #1e293b;
+    background: var(--nx-navy);
 }
 
 .chat-thread.active {
@@ -124,7 +124,7 @@
 
 .chat-thread-last {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--nx-text-faint);
 }
 
 /* ===============================
@@ -134,13 +134,13 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #020617;
+    background: var(--nx-navy-deep);
 }
 
 /* HEADER */
 .chat-header {
     padding: 12px 16px;
-    background: #1e293b;
+    background: var(--nx-navy);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -170,7 +170,7 @@
     flex: 1;
     padding: 15px;
     overflow-y: auto;
-    background: #020617;
+    background: var(--nx-navy-deep);
 }
 
 /* MESSAGE */
@@ -191,26 +191,26 @@
 .chat-text {
     padding: 10px 12px;
     border-radius: 10px;
-    background: #1e293b;
-    color: #e2e8f0;
+    background: var(--nx-navy);
+    color: var(--nx-border);
     display: inline-block;
 }
 
 .chat-msg.right .chat-text {
-    background: #2563eb;
+    background: var(--nx-navy);
 }
 
 /* TIME */
 .chat-time {
     font-size: 10px;
-    color: #94a3b8;
+    color: var(--nx-text-faint);
     margin-top: 3px;
 }
 
 /* FOOTER */
 .chat-footer {
     padding: 10px;
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid var(--nx-navy);
     display: flex;
     gap: 10px;
 }
@@ -220,12 +220,12 @@
     padding: 10px;
     border-radius: 10px;
     border: none;
-    background: #1e293b;
+    background: var(--nx-navy);
     color: #fff;
 }
 
 #chat-send {
-    background: #2563eb;
+    background: var(--nx-navy);
     border: none;
     padding: 10px 16px;
     border-radius: 10px;
@@ -260,7 +260,7 @@
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 4px;
-    color: #94a3b8;
+    color: var(--nx-text-faint);
 }
 
 /* Start New Conversation */
@@ -270,7 +270,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: #94a3b8;
+    color: var(--nx-text-faint);
     text-align: center;
 }
 
@@ -282,7 +282,7 @@
 .chat-empty-title {
     font-size: 18px;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--nx-border);
 }
 
 .chat-empty-sub {
@@ -302,17 +302,17 @@
     padding: 8px 10px;
     border-radius: 8px;
     border: 1px solid #334155;
-    background: #020617;
+    background: var(--nx-navy-deep);
     color: #fff;
     outline: none;
 }
 
 #chat-subject::placeholder {
-    color: #64748b;
+    color: var(--nx-text-muted);
 }
 
 #save-subject {
-    background: #2563eb;
+    background: var(--nx-navy);
     border: none;
     color: #fff;
     padding: 8px 12px;
@@ -322,7 +322,7 @@
 }
 
 #save-subject:hover {
-    background: #1d4ed8;
+    background: var(--nx-navy-deep);
 }
 
 .chat-subject-text {
@@ -337,7 +337,7 @@
 }
 
 #start-new-chat {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: linear-gradient(135deg, var(--nx-navy), var(--nx-navy-deep));
     color: #fff;
     border: none;
     padding: 6px 12px;

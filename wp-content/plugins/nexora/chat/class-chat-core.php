@@ -28,10 +28,12 @@ class NEXORA_CHAT_CORE {
         // Chat is for logged-in members only
         if (!is_user_logged_in()) return;
 
+        NEXORA_System::enqueue_tokens();
+
         wp_enqueue_style(
             'nexora-chat-css',
             NEXORA_URL . 'chat/assets/css/chat.css',
-            [],
+            ['nexora-tokens'],
             NEXORA_VERSION
         );
 

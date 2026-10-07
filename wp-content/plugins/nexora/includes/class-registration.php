@@ -12,7 +12,8 @@ class NEXORA_Registration {
 
     public function enqueue_assets() {
 
-        wp_enqueue_style('profile-style', NEXORA_URL . 'assets/css/profile-registration.css');
+        NEXORA_System::enqueue_tokens();
+        wp_enqueue_style('profile-style', NEXORA_URL . 'assets/css/profile-registration.css', ['nexora-tokens'], NEXORA_VERSION);
 
         wp_enqueue_script(
             'sweetalert2',

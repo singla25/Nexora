@@ -19,7 +19,7 @@ body {
     margin-bottom: 30px;
     font-size: 28px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--nx-navy);
 }
 
 /* GRID */
@@ -38,7 +38,7 @@ body {
 .profile-registration-form-grid input,
 .profile-registration-form-grid select {
     padding: 14px 16px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--nx-border);
     border-radius: 10px;
     font-size: 14px;
     background: #f8fafc;
@@ -47,13 +47,13 @@ body {
 
 /* PLACEHOLDER */
 .profile-registration-form-grid input::placeholder {
-    color: #94a3b8;
+    color: var(--nx-text-faint);
 }
 
 /* FOCUS */
 .profile-registration-form-grid input:focus,
 .profile-registration-form-grid select:focus {
-    border-color: #3b82f6;
+    border-color: var(--nx-blue);
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
     outline: none;
@@ -69,7 +69,7 @@ body {
 .profile-registration-form-btn {
     width: 100%;
     padding: 15px;
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: linear-gradient(135deg, var(--nx-blue), var(--nx-navy));
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -92,11 +92,11 @@ body {
     text-align: center;
     margin-top: 10px;
     font-size: 14px;
-    color: #64748b;
+    color: var(--nx-text-muted);
 }
 
 .profile-registration-extra a {
-    color: #3b82f6;
+    color: var(--nx-blue);
     font-weight: 600;
     text-decoration: none;
     margin-left: 5px;
