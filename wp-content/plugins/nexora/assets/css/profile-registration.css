@@ -1,0 +1,162 @@
+/* PAGE BG */
+body {
+    background: #f1f5f9;
+}
+
+/* FORM WRAPPER */
+.profile-registration-form {
+    max-width: 600px;
+    margin: 70px auto;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+}
+
+/* TITLE */
+.profile-registration-form h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* GRID */
+.profile-registration-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 20px; /* 🔥 horizontal + vertical spacing */
+}
+
+/* FULL WIDTH FIELD */
+.profile-registration-form-grid .full-width {
+    grid-column: span 2;
+}
+
+/* INPUT + SELECT */
+.profile-registration-form-grid input,
+.profile-registration-form-grid select {
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #f8fafc;
+    transition: all 0.25s ease;
+}
+
+/* PLACEHOLDER */
+.profile-registration-form-grid input::placeholder {
+    color: #94a3b8;
+}
+
+/* FOCUS */
+.profile-registration-form-grid input:focus,
+.profile-registration-form-grid select:focus {
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    outline: none;
+}
+
+/* BUTTON FULL WIDTH */
+.profile-registration-form-btn {
+    grid-column: span 2;
+    margin-top: 10px;
+}
+
+/* BUTTON STYLE */
+.profile-registration-form-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* HOVER */
+.profile-registration-form-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(59,130,246,0.2);
+}
+
+/* Already Have A Account */
+/* EXTRA LOGIN LINK */
+.profile-registration-extra {
+    grid-column: span 2;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.profile-registration-extra a {
+    color: #3b82f6;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 5px;
+}
+
+.profile-registration-extra a:hover {
+    text-decoration: underline;
+}
+
+/* REGISTER STATE */
+.register-state-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.register-state-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    max-width: 400px;
+    width: 100%;
+}
+
+.register-avatar {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-size: 26px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+	
+	.profile-registration-form-grid .full-width {
+		grid-column: span 1;
+	}
+
+    .profile-registration-form-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .profile-registration-form {
+        padding: 25px;
+		margin: 35px auto;
+    }
+
+    .profile-registration-form-btn {
+        grid-column: span 1;
+    }
+}

@@ -1,0 +1,365 @@
+0000.002 () Opened log file at time: Wed, 07 Oct 2026 07:49:54 +0000 on http://localhost83.local.com/nexora
+0000.003 () UpdraftPlus WordPress backup plugin (https://updraftplus.com): 1.26.8 WP: 7.1 PHP: 8.3.30 (fpm-fcgi, Linux intersoft-admin-To-be-filled-by-O-E-M 7.0.0-34-generic #34~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 15:38:29 UTC 2 x86_64) MySQL: 8.0.46-0ubuntu0.24.04.4 (max packet size=67108864) WPLANG: en_US Server: Apache/2.4.58 (Ubuntu) safe_mode: 0 max_execution_time: 900 memory_limit: 512M (used: 6.2M | 10M) multisite: N openssl: OpenSSL 3.0.13 30 Jan 2024 mcrypt: Y LANG:  WP Proxy: disabled ZipArchive::addFile: Y
+0000.003 () Free space on disk containing Updraft's temporary directory: 62485.1 MB
+0000.017 () Restore setup, now closing connection and starting restore over AJAX.
+0000.005 () Opened log file at time: Wed, 07 Oct 2026 07:49:55 +0000 on http://localhost83.local.com/nexora
+0000.006 () UpdraftPlus WordPress backup plugin (https://updraftplus.com): 1.26.8 WP: 7.1 PHP: 8.3.30 (fpm-fcgi, Linux intersoft-admin-To-be-filled-by-O-E-M 7.0.0-34-generic #34~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 15:38:29 UTC 2 x86_64) MySQL: 8.0.46-0ubuntu0.24.04.4 (max packet size=67108864) WPLANG: en_US Server: Apache/2.4.58 (Ubuntu) safe_mode: 0 max_execution_time: 900 memory_limit: 512M (used: 3.1M | 4M) multisite: N openssl: OpenSSL 3.0.13 30 Jan 2024 mcrypt: Y LANG:  WP Proxy: disabled ZipArchive::addFile: Y
+0000.006 () Free space on disk containing Updraft's temporary directory: 62484.9 MB
+0000.023 () Ensuring WP_Filesystem is setup for a restore
+0000.023 () WP_Filesystem is setup and ready for a restore
+0000.027 () Restore job started. Entities to restore: plugins, themes, uploads, mu-plugins, others, db. Restore options: {"updraft_restorer_replacesiteurl":"1","include_unspecified_tables":false,"tables_to_restore":["wp_options","wp_users","wp_usermeta","wp_actionscheduler_actions","wp_actionscheduler_claims","wp_actionscheduler_groups","wp_actionscheduler_logs","wp_commentmeta","wp_comments","wp_links","wp_postmeta","wp_posts","wp_signups","wp_term_relationships","wp_term_taxonomy","wp_termmeta","wp_terms","wp_bm_ai_usage","wp_bm_bulk_job_threads","wp_bm_bulk_jobs","wp_bm_guests","wp_bm_mentions","wp_bm_message_messages","wp_bm_message_meta","wp_bm_message_recipients","wp_bm_moderation","wp_bm_thread_meta","wp_bm_threads","wp_bm_user_index","wp_bm_user_roles_index","wp_bp_activity","wp_bp_activity_meta","wp_bp_invitations","wp_bp_notifications","wp_bp_notifications_meta","wp_bp_optouts","wp_bp_xprofile_data","wp_bp_xprofile_fields","wp_bp_xprofile_groups","wp_bp_xprofile_meta","wp_hostinger_reach_carts","wp_hostinger_reach_contact_lists","wp_hostinger_reach_forms","wp_litespeed_url","wp_litespeed_url_file","wp_nexora_message_meta","wp_nexora_messages","wp_nexora_notifications","wp_nexora_thread_participants","wp_nexora_threads","wp_wpmailsmtp_debug_events","wp_wpmailsmtp_tasks_meta"],"tables_to_skip":[],"updraft_encryptionphrase":"","updraft_restorer_wpcore_includewpconfig":false,"updraft_incremental_restore_point":-1}
+0000.029 () Will not delete any archives after unpacking them, because there was no cloud storage for this backup
+0000.032 () Entity: db
+0000.032 () restore_backup(backup_file=backup_2026-10-07-0727_nexora_aad0368a6cc9-db.gz, type=db, info=a:0:{}, last_one=)
+0000.032 () Unpacking backup... (backup_2026-10-07-0727_nexora_aad0368a6cc9-db.gz, 0.2 Mb)
+0000.033 () Database successfully unpacked
+0000.033 () Restoring the database (on a large site this can take a long time - if it times out (which can happen if your web hosting company has configured your hosting to limit resources) then you should use a different method, such as phpMyAdmin)...
+0000.033 () Using direct MySQL access; value of use_mysqli is: 1
+0000.034 () SQL compatibility mode is: NO_AUTO_VALUE_ON_ZERO,NO_ENGINE_SUBSTITUTION
+0000.092 () Max packet size: 64 MB
+0000.092 () Entering maintenance mode
+0000.092 () Enabling Maintenance mode&#8230;
+0000.117 () Backup of: https://nexora.zedthron.com
+0000.143 () Content URL: https://nexora.zedthron.com/wp-content
+0000.144 () Uploads URL: https://nexora.zedthron.com/wp-content/uploads
+0000.144 () Old table prefix: wp_
+0000.144 () Old ABSPATH: /home/u473587140/domains/nexora.zedthron.com/public_html/
+0000.144 () UpdraftPlus plugin slug: updraftplus/updraftplus.php
+0000.144 () Site information: multisite=0
+0000.144 () Site information: sql_mode=NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+0000.146 () Skipped execution of SQL statement (unwanted or internally handled type=18): /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+0000.146 () New table prefix: si_
+0000.156 () Processing table (InnoDB): wp_options - will restore as: si_options
+0000.333 () Atomic restore: dropping original table (wp_options)
+0000.346 () Atomic restore: renaming new table (si_options) to final table name (wp_options)
+0000.357 () Restoring prior UD configuration (table: wp_options; keys: 103)
+0000.732 () Search and replacing table: wp_options: rows: 372
+0000.779 () Processing table (InnoDB): wp_users - will restore as: si_users
+0000.827 () Atomic restore: dropping original table (wp_users)
+0000.842 () Atomic restore: renaming new table (si_users) to final table name (wp_users)
+0000.868 () Search and replacing table: wp_users: rows: 6
+0000.871 () Processing table (InnoDB): wp_usermeta - will restore as: si_usermeta
+0000.913 () Atomic restore: dropping original table (wp_usermeta)
+0000.928 () Atomic restore: renaming new table (si_usermeta) to final table name (wp_usermeta)
+0000.944 () Search and replacing table: wp_usermeta: rows: 105
+0000.946 () Processing table (InnoDB): wp_actionscheduler_actions - will restore as: si_actionscheduler_actions
+0001.001 () Atomic restore: dropping original table (wp_actionscheduler_actions)
+0001.003 () Atomic restore: renaming new table (si_actionscheduler_actions) to final table name (wp_actionscheduler_actions)
+0001.019 () Search and replacing table: wp_actionscheduler_actions: rows: 120
+0001.025 () Processing table (InnoDB): wp_actionscheduler_claims - will restore as: si_actionscheduler_claims
+0001.044 () Atomic restore: dropping original table (wp_actionscheduler_claims)
+0001.045 () Atomic restore: renaming new table (si_actionscheduler_claims) to final table name (wp_actionscheduler_claims)
+0001.057 () Search and replacing table: wp_actionscheduler_claims: rows: 0
+0001.057 () Processing table (InnoDB): wp_actionscheduler_groups - will restore as: si_actionscheduler_groups
+0001.075 () Atomic restore: dropping original table (wp_actionscheduler_groups)
+0001.076 () Atomic restore: renaming new table (si_actionscheduler_groups) to final table name (wp_actionscheduler_groups)
+0001.094 () Search and replacing table: wp_actionscheduler_groups: rows: 4
+0001.094 () Processing table (InnoDB): wp_actionscheduler_logs - will restore as: si_actionscheduler_logs
+0001.142 () Atomic restore: dropping original table (wp_actionscheduler_logs)
+0001.143 () Atomic restore: renaming new table (si_actionscheduler_logs) to final table name (wp_actionscheduler_logs)
+0001.165 () Search and replacing table: wp_actionscheduler_logs: rows: 350
+0001.180 () Processing table (InnoDB): wp_commentmeta - will restore as: si_commentmeta
+0001.204 () Atomic restore: dropping original table (wp_commentmeta)
+0001.212 () Atomic restore: renaming new table (si_commentmeta) to final table name (wp_commentmeta)
+0001.228 () Search and replacing table: wp_commentmeta: rows: 0
+0001.228 () Processing table (InnoDB): wp_comments - will restore as: si_comments
+0001.272 () Atomic restore: dropping original table (wp_comments)
+0001.281 () Atomic restore: renaming new table (si_comments) to final table name (wp_comments)
+0001.297 () Search and replacing table: wp_comments: rows: 1
+0001.298 () Processing table (InnoDB): wp_links - will restore as: si_links
+0001.317 () Atomic restore: dropping original table (wp_links)
+0001.328 () Atomic restore: renaming new table (si_links) to final table name (wp_links)
+0001.340 () Search and replacing table: wp_links: rows: 0
+0001.340 () Processing table (InnoDB): wp_postmeta - will restore as: si_postmeta
+0001.368 () Atomic restore: dropping original table (wp_postmeta)
+0001.375 () Atomic restore: renaming new table (si_postmeta) to final table name (wp_postmeta)
+0001.387 () Search and replacing table: wp_postmeta: rows: 0
+0001.387 () Processing table (InnoDB): wp_posts - will restore as: si_posts
+0001.436 () Atomic restore: dropping original table (wp_posts)
+0001.446 () Atomic restore: renaming new table (si_posts) to final table name (wp_posts)
+0001.458 () Skipping search/replace on GUID column in posts table
+0001.460 () Search and replacing table: wp_posts: rows: 97
+0001.482 () Processing table (InnoDB): wp_signups - will restore as: si_signups
+0001.507 () Atomic restore: dropping original table (wp_signups)
+0001.508 () Atomic restore: renaming new table (si_signups) to final table name (wp_signups)
+0001.524 () Search and replacing table: wp_signups: rows: 0
+0001.524 () Processing table (InnoDB): wp_term_relationships - will restore as: si_term_relationships
+0001.549 () Atomic restore: dropping original table (wp_term_relationships)
+0001.559 () Atomic restore: renaming new table (si_term_relationships) to final table name (wp_term_relationships)
+0001.569 () Skipping this table: data in this table (wp_term_relationships) should not be search/replaced
+0001.569 () Processing table (InnoDB): wp_term_taxonomy - will restore as: si_term_taxonomy
+0001.598 () Atomic restore: dropping original table (wp_term_taxonomy)
+0001.605 () Database queries processed: 50 in 1.57 seconds
+0001.606 () Atomic restore: renaming new table (si_term_taxonomy) to final table name (wp_term_taxonomy)
+0001.616 () Search and replacing table: wp_term_taxonomy: rows: 26
+0001.617 () Processing table (InnoDB): wp_termmeta - will restore as: si_termmeta
+0001.644 () Atomic restore: dropping original table (wp_termmeta)
+0001.656 () Atomic restore: renaming new table (si_termmeta) to final table name (wp_termmeta)
+0001.671 () Search and replacing table: wp_termmeta: rows: 0
+0001.671 () Processing table (InnoDB): wp_terms - will restore as: si_terms
+0001.698 () Atomic restore: dropping original table (wp_terms)
+0001.708 () Atomic restore: renaming new table (si_terms) to final table name (wp_terms)
+0001.723 () Search and replacing table: wp_terms: rows: 26
+0001.724 () Processing table (InnoDB): wp_bm_ai_usage - will restore as: si_bm_ai_usage
+0001.747 () Atomic restore: dropping original table (wp_bm_ai_usage)
+0001.747 () Atomic restore: renaming new table (si_bm_ai_usage) to final table name (wp_bm_ai_usage)
+0001.761 () Search and replacing table: wp_bm_ai_usage: rows: 0
+0001.761 () Processing table (InnoDB): wp_bm_bulk_job_threads - will restore as: si_bm_bulk_job_threads
+0001.783 () Atomic restore: dropping original table (wp_bm_bulk_job_threads)
+0001.784 () Atomic restore: renaming new table (si_bm_bulk_job_threads) to final table name (wp_bm_bulk_job_threads)
+0001.797 () Search and replacing table: wp_bm_bulk_job_threads: rows: 0
+0001.797 () Processing table (InnoDB): wp_bm_bulk_jobs - will restore as: si_bm_bulk_jobs
+0001.815 () Atomic restore: dropping original table (wp_bm_bulk_jobs)
+0001.816 () Atomic restore: renaming new table (si_bm_bulk_jobs) to final table name (wp_bm_bulk_jobs)
+0001.832 () Search and replacing table: wp_bm_bulk_jobs: rows: 0
+0001.832 () Processing table (InnoDB): wp_bm_guests - will restore as: si_bm_guests
+0001.851 () Atomic restore: dropping original table (wp_bm_guests)
+0001.852 () Atomic restore: renaming new table (si_bm_guests) to final table name (wp_bm_guests)
+0001.863 () Search and replacing table: wp_bm_guests: rows: 0
+0001.863 () Processing table (InnoDB): wp_bm_mentions - will restore as: si_bm_mentions
+0001.882 () Atomic restore: dropping original table (wp_bm_mentions)
+0001.883 () Atomic restore: renaming new table (si_bm_mentions) to final table name (wp_bm_mentions)
+0001.894 () Search and replacing table: wp_bm_mentions: rows: 0
+0001.894 () Processing table (InnoDB): wp_bm_message_messages - will restore as: si_bm_message_messages
+0001.939 () Atomic restore: dropping original table (wp_bm_message_messages)
+0001.940 () Atomic restore: renaming new table (si_bm_message_messages) to final table name (wp_bm_message_messages)
+0001.955 () Search and replacing table: wp_bm_message_messages: rows: 15
+0001.956 () Processing table (InnoDB): wp_bm_message_meta - will restore as: si_bm_message_meta
+0001.986 () Atomic restore: dropping original table (wp_bm_message_meta)
+0001.987 () Atomic restore: renaming new table (si_bm_message_meta) to final table name (wp_bm_message_meta)
+0001.998 () Search and replacing table: wp_bm_message_meta: rows: 0
+0001.998 () Processing table (InnoDB): wp_bm_message_recipients - will restore as: si_bm_message_recipients
+0002.047 () Atomic restore: dropping original table (wp_bm_message_recipients)
+0002.048 () Atomic restore: renaming new table (si_bm_message_recipients) to final table name (wp_bm_message_recipients)
+0002.062 () Search and replacing table: wp_bm_message_recipients: rows: 10
+0002.063 () Processing table (InnoDB): wp_bm_moderation - will restore as: si_bm_moderation
+0002.084 () Atomic restore: dropping original table (wp_bm_moderation)
+0002.086 () Atomic restore: renaming new table (si_bm_moderation) to final table name (wp_bm_moderation)
+0002.098 () Search and replacing table: wp_bm_moderation: rows: 0
+0002.098 () Processing table (InnoDB): wp_bm_thread_meta - will restore as: si_bm_thread_meta
+0002.126 () Atomic restore: dropping original table (wp_bm_thread_meta)
+0002.126 () Atomic restore: renaming new table (si_bm_thread_meta) to final table name (wp_bm_thread_meta)
+0002.142 () Search and replacing table: wp_bm_thread_meta: rows: 10
+0002.143 () Processing table (InnoDB): wp_bm_threads - will restore as: si_bm_threads
+0002.162 () Atomic restore: dropping original table (wp_bm_threads)
+0002.163 () Atomic restore: renaming new table (si_bm_threads) to final table name (wp_bm_threads)
+0002.179 () Search and replacing table: wp_bm_threads: rows: 5
+0002.179 () Processing table (InnoDB): wp_bm_user_index - will restore as: si_bm_user_index
+0002.205 () Atomic restore: dropping original table (wp_bm_user_index)
+0002.205 () Atomic restore: renaming new table (si_bm_user_index) to final table name (wp_bm_user_index)
+0002.217 () Search and replacing table: wp_bm_user_index: rows: 10
+0002.217 () Processing table (InnoDB): wp_bm_user_roles_index - will restore as: si_bm_user_roles_index
+0002.240 () Atomic restore: dropping original table (wp_bm_user_roles_index)
+0002.240 () Atomic restore: renaming new table (si_bm_user_roles_index) to final table name (wp_bm_user_roles_index)
+0002.250 () Search and replacing table: wp_bm_user_roles_index: rows: 10
+0002.251 () Processing table (InnoDB): wp_bp_activity - will restore as: si_bp_activity
+0002.297 () Atomic restore: dropping original table (wp_bp_activity)
+0002.298 () Atomic restore: renaming new table (si_bp_activity) to final table name (wp_bp_activity)
+0002.315 () Search and replacing table: wp_bp_activity: rows: 0
+0002.315 () Processing table (InnoDB): wp_bp_activity_meta - will restore as: si_bp_activity_meta
+0002.337 () Atomic restore: dropping original table (wp_bp_activity_meta)
+0002.338 () Atomic restore: renaming new table (si_bp_activity_meta) to final table name (wp_bp_activity_meta)
+0002.352 () Search and replacing table: wp_bp_activity_meta: rows: 0
+0002.352 () Processing table (InnoDB): wp_bp_invitations - will restore as: si_bp_invitations
+0002.395 () Atomic restore: dropping original table (wp_bp_invitations)
+0002.396 () Atomic restore: renaming new table (si_bp_invitations) to final table name (wp_bp_invitations)
+0002.411 () Search and replacing table: wp_bp_invitations: rows: 0
+0002.411 () Processing table (InnoDB): wp_bp_notifications - will restore as: si_bp_notifications
+0002.443 () Atomic restore: dropping original table (wp_bp_notifications)
+0002.444 () Atomic restore: renaming new table (si_bp_notifications) to final table name (wp_bp_notifications)
+0002.459 () Search and replacing table: wp_bp_notifications: rows: 0
+0002.460 () Processing table (InnoDB): wp_bp_notifications_meta - will restore as: si_bp_notifications_meta
+0002.481 () Atomic restore: dropping original table (wp_bp_notifications_meta)
+0002.482 () Atomic restore: renaming new table (si_bp_notifications_meta) to final table name (wp_bp_notifications_meta)
+0002.497 () Search and replacing table: wp_bp_notifications_meta: rows: 0
+0002.497 () Processing table (InnoDB): wp_bp_optouts - will restore as: si_bp_optouts
+0002.520 () Atomic restore: dropping original table (wp_bp_optouts)
+0002.521 () Atomic restore: renaming new table (si_bp_optouts) to final table name (wp_bp_optouts)
+0002.532 () Search and replacing table: wp_bp_optouts: rows: 0
+0002.532 () Processing table (InnoDB): wp_bp_xprofile_data - will restore as: si_bp_xprofile_data
+0002.551 () Database queries processed: 100 in 2.51 seconds
+0002.552 () Atomic restore: dropping original table (wp_bp_xprofile_data)
+0002.553 () Atomic restore: renaming new table (si_bp_xprofile_data) to final table name (wp_bp_xprofile_data)
+0002.565 () Search and replacing table: wp_bp_xprofile_data: rows: 0
+0002.565 () Processing table (InnoDB): wp_bp_xprofile_fields - will restore as: si_bp_xprofile_fields
+0002.606 () Atomic restore: dropping original table (wp_bp_xprofile_fields)
+0002.608 () Atomic restore: renaming new table (si_bp_xprofile_fields) to final table name (wp_bp_xprofile_fields)
+0002.626 () Search and replacing table: wp_bp_xprofile_fields: rows: 1
+0002.627 () Processing table (InnoDB): wp_bp_xprofile_groups - will restore as: si_bp_xprofile_groups
+0002.649 () Atomic restore: dropping original table (wp_bp_xprofile_groups)
+0002.650 () Atomic restore: renaming new table (si_bp_xprofile_groups) to final table name (wp_bp_xprofile_groups)
+0002.662 () Search and replacing table: wp_bp_xprofile_groups: rows: 1
+0002.662 () Processing table (InnoDB): wp_bp_xprofile_meta - will restore as: si_bp_xprofile_meta
+0002.687 () Atomic restore: dropping original table (wp_bp_xprofile_meta)
+0002.688 () Atomic restore: renaming new table (si_bp_xprofile_meta) to final table name (wp_bp_xprofile_meta)
+0002.699 () Search and replacing table: wp_bp_xprofile_meta: rows: 2
+0002.699 () Processing table (InnoDB): wp_hostinger_reach_carts - will restore as: si_hostinger_reach_carts
+0002.718 () Atomic restore: dropping original table (wp_hostinger_reach_carts)
+0002.718 () Atomic restore: renaming new table (si_hostinger_reach_carts) to final table name (wp_hostinger_reach_carts)
+0002.732 () Search and replacing table: wp_hostinger_reach_carts: rows: 0
+0002.732 () Processing table (InnoDB): wp_hostinger_reach_contact_lists - will restore as: si_hostinger_reach_contact_lists
+0002.749 () Atomic restore: dropping original table (wp_hostinger_reach_contact_lists)
+0002.750 () Atomic restore: renaming new table (si_hostinger_reach_contact_lists) to final table name (wp_hostinger_reach_contact_lists)
+0002.761 () Search and replacing table: wp_hostinger_reach_contact_lists: rows: 0
+0002.761 () Processing table (InnoDB): wp_hostinger_reach_forms - will restore as: si_hostinger_reach_forms
+0002.785 () Atomic restore: dropping original table (wp_hostinger_reach_forms)
+0002.786 () Atomic restore: renaming new table (si_hostinger_reach_forms) to final table name (wp_hostinger_reach_forms)
+0002.797 () Search and replacing table: wp_hostinger_reach_forms: rows: 0
+0002.797 () Processing table (InnoDB): wp_litespeed_url - will restore as: si_litespeed_url
+0002.818 () Atomic restore: dropping original table (wp_litespeed_url)
+0002.819 () Atomic restore: renaming new table (si_litespeed_url) to final table name (wp_litespeed_url)
+0002.831 () Search and replacing table: wp_litespeed_url: rows: 0
+0002.831 () Processing table (InnoDB): wp_litespeed_url_file - will restore as: si_litespeed_url_file
+0002.862 () Atomic restore: dropping original table (wp_litespeed_url_file)
+0002.862 () Atomic restore: renaming new table (si_litespeed_url_file) to final table name (wp_litespeed_url_file)
+0002.875 () Search and replacing table: wp_litespeed_url_file: rows: 0
+0002.875 () Processing table (InnoDB): wp_nexora_message_meta - will restore as: si_nexora_message_meta
+0002.893 () Atomic restore: dropping original table (wp_nexora_message_meta)
+0002.894 () Atomic restore: renaming new table (si_nexora_message_meta) to final table name (wp_nexora_message_meta)
+0002.906 () Search and replacing table: wp_nexora_message_meta: rows: 0
+0002.906 () Processing table (InnoDB): wp_nexora_messages - will restore as: si_nexora_messages
+0002.929 () Atomic restore: dropping original table (wp_nexora_messages)
+0002.930 () Atomic restore: renaming new table (si_nexora_messages) to final table name (wp_nexora_messages)
+0002.942 () Search and replacing table: wp_nexora_messages: rows: 47
+0002.944 () Processing table (InnoDB): wp_nexora_notifications - will restore as: si_nexora_notifications
+0002.976 () Atomic restore: dropping original table (wp_nexora_notifications)
+0002.977 () Atomic restore: renaming new table (si_nexora_notifications) to final table name (wp_nexora_notifications)
+0002.992 () Search and replacing table: wp_nexora_notifications: rows: 23
+0002.994 () Processing table (InnoDB): wp_nexora_thread_participants - will restore as: si_nexora_thread_participants
+0003.023 () Atomic restore: dropping original table (wp_nexora_thread_participants)
+0003.024 () Atomic restore: renaming new table (si_nexora_thread_participants) to final table name (wp_nexora_thread_participants)
+0003.040 () Search and replacing table: wp_nexora_thread_participants: rows: 28
+0003.041 () Processing table (InnoDB): wp_nexora_threads - will restore as: si_nexora_threads
+0003.065 () Atomic restore: dropping original table (wp_nexora_threads)
+0003.065 () Atomic restore: renaming new table (si_nexora_threads) to final table name (wp_nexora_threads)
+0003.077 () Search and replacing table: wp_nexora_threads: rows: 14
+0003.078 () Processing table (InnoDB): wp_wpmailsmtp_debug_events - will restore as: si_wpmailsmtp_debug_events
+0003.099 () Atomic restore: dropping original table (wp_wpmailsmtp_debug_events)
+0003.100 () Atomic restore: renaming new table (si_wpmailsmtp_debug_events) to final table name (wp_wpmailsmtp_debug_events)
+0003.115 () Search and replacing table: wp_wpmailsmtp_debug_events: rows: 36
+0003.162 () Processing table (InnoDB): wp_wpmailsmtp_tasks_meta - will restore as: si_wpmailsmtp_tasks_meta
+0003.174 () Skipped execution of SQL statement (unwanted or internally handled type=18): /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+0003.175 () Unlocking database and leaving maintenance mode
+0003.175 () Disabling Maintenance mode&#8230;
+0003.175 () Atomic restore: dropping original table (wp_wpmailsmtp_tasks_meta)
+0003.176 () Atomic restore: renaming new table (si_wpmailsmtp_tasks_meta) to final table name (wp_wpmailsmtp_tasks_meta)
+0003.187 () Search and replacing table: wp_wpmailsmtp_tasks_meta: rows: 0
+0003.187 () Finished: lines processed: 142 in 3.15 seconds
+0003.187 () Cleaning up rubbish...
+0003.188 () Begin search and replace (updraftplus_restored_db)
+0003.188 () [Database-replace-site-url] Database: search and replace site URL
+0003.189 () Database search and replace: replace https://nexora.zedthron.com in backup dump with http://localhost83.local.com/nexora
+0003.190 () Database search and replace: replace http://www.nexora.zedthron.com in backup dump with http://localhost83.local.com/nexora
+0003.190 () Database search and replace: replace http://nexora.zedthron.com in backup dump with http://localhost83.local.com/nexora
+0003.190 () Database search and replace: replace https://www.nexora.zedthron.com in backup dump with http://localhost83.local.com/nexora
+0003.190 () Database search and replace: replace /home/u473587140/domains/nexora.zedthron.com/public_html in backup dump with /var/www/html/83/nexora
+0003.192 () Search and replacing table: wp_actionscheduler_actions: already done
+0003.192 () Search and replacing table: wp_actionscheduler_claims: already done
+0003.192 () Search and replacing table: wp_actionscheduler_groups: already done
+0003.192 () Search and replacing table: wp_actionscheduler_logs: already done
+0003.192 () Search and replacing table: wp_bm_ai_usage: already done
+0003.193 () Search and replacing table: wp_bm_bulk_job_threads: already done
+0003.193 () Search and replacing table: wp_bm_bulk_jobs: already done
+0003.193 () Search and replacing table: wp_bm_guests: already done
+0003.193 () Search and replacing table: wp_bm_mentions: already done
+0003.193 () Search and replacing table: wp_bm_message_messages: already done
+0003.193 () Search and replacing table: wp_bm_message_meta: already done
+0003.193 () Search and replacing table: wp_bm_message_recipients: already done
+0003.193 () Search and replacing table: wp_bm_moderation: already done
+0003.193 () Search and replacing table: wp_bm_thread_meta: already done
+0003.193 () Search and replacing table: wp_bm_threads: already done
+0003.194 () Search and replacing table: wp_bm_user_index: already done
+0003.194 () Search and replacing table: wp_bm_user_roles_index: already done
+0003.194 () Search and replacing table: wp_bp_activity: already done
+0003.194 () Search and replacing table: wp_bp_activity_meta: already done
+0003.194 () Search and replacing table: wp_bp_invitations: already done
+0003.194 () Search and replacing table: wp_bp_notifications: already done
+0003.194 () Search and replacing table: wp_bp_notifications_meta: already done
+0003.194 () Search and replacing table: wp_bp_optouts: already done
+0003.194 () Search and replacing table: wp_bp_xprofile_data: already done
+0003.194 () Search and replacing table: wp_bp_xprofile_fields: already done
+0003.195 () Search and replacing table: wp_bp_xprofile_groups: already done
+0003.195 () Search and replacing table: wp_bp_xprofile_meta: already done
+0003.195 () Search and replacing table: wp_commentmeta: already done
+0003.195 () Search and replacing table: wp_comments: already done
+0003.195 () Search and replacing table: wp_hostinger_reach_carts: already done
+0003.195 () Search and replacing table: wp_hostinger_reach_contact_lists: already done
+0003.195 () Search and replacing table: wp_hostinger_reach_forms: already done
+0003.195 () Search and replacing table: wp_links: already done
+0003.195 () Search and replacing table: wp_litespeed_url: already done
+0003.195 () Search and replacing table: wp_litespeed_url_file: already done
+0003.195 () Search and replacing table: wp_nexora_message_meta: already done
+0003.196 () Search and replacing table: wp_nexora_messages: already done
+0003.196 () Search and replacing table: wp_nexora_notifications: already done
+0003.196 () Search and replacing table: wp_nexora_thread_participants: already done
+0003.196 () Search and replacing table: wp_nexora_threads: already done
+0003.196 () Search and replacing table: wp_options: already done
+0003.196 () Search and replacing table: wp_postmeta: already done
+0003.197 () Search and replacing table: wp_posts: already done
+0003.197 () Search and replacing table: wp_signups: already done
+0003.197 () Search and replacing table: wp_term_relationships: already done
+0003.197 () Search and replacing table: wp_term_taxonomy: already done
+0003.197 () Search and replacing table: wp_termmeta: already done
+0003.197 () Search and replacing table: wp_terms: already done
+0003.197 () Search and replacing table: wp_usermeta: already done
+0003.197 () Search and replacing table: wp_users: already done
+0003.197 () Search and replacing table: wp_wpmailsmtp_debug_events: already done
+0003.197 () Search and replacing table: wp_wpmailsmtp_tasks_meta: already done
+0003.212 () Entity: mu-plugins
+0003.212 () restore_backup(backup_file=backup_2026-10-07-0727_nexora_aad0368a6cc9-mu-plugins.zip, type=mu-plugins, info=a:2:{s:4:"path";s:45:"/var/www/html/83/nexora/wp-content/mu-plugins";s:11:"description";s:16:"Must-use plugins";}, last_one=)
+0003.214 () Unpacking backup... (backup_2026-10-07-0727_nexora_aad0368a6cc9-mu-plugins.zip, 0 MB)
+0003.215 () Unzipping backup_2026-10-07-0727_nexora_aad0368a6cc9-mu-plugins.zip to /var/www/html/83/nexora/wp-content/upgrade/3d01c8dd/ using UpdraftPlus_ZipArchive, starting index 0
+0003.217 () Unzip progress: 3 out of 3 files (40.1 KB, mu-plugins/hostinger-preview-domain.php)
+0003.218 () Moving old data: filesystem method / updraft_dir is potentially possible
+0003.218 () Moving old data: can potentially use wp_filesystem method / -old
+0003.218 () Moving old data out of the way...
+0003.218 () Moving unpacked backup into place...
+0003.218 () Destination directory did not exist, but was successfully created (/var/www/html/83/nexora/wp-content/mu-plugins/)
+0003.218 () Cleaning up rubbish...
+0003.223 () Entity: plugins
+0003.223 () restore_backup(backup_file=backup_2026-10-07-0727_nexora_aad0368a6cc9-plugins.zip, type=plugins, info=a:3:{s:4:"path";s:42:"/var/www/html/83/nexora/wp-content/plugins";s:11:"description";s:7:"Plugins";s:20:"singular_description";s:6:"Plugin";}, last_one=)
+0003.224 () Unpacking backup... (backup_2026-10-07-0727_nexora_aad0368a6cc9-plugins.zip, 27.7 MB)
+0003.224 () Unzipping backup_2026-10-07-0727_nexora_aad0368a6cc9-plugins.zip to /var/www/html/83/nexora/wp-content/upgrade/2fc91de5/ using UpdraftPlus_ZipArchive, starting index 0
+0003.385 () Unzip progress: 1002 out of 5201 files (3.6 MB, plugins/wp-mail-smtp/assets/vue/js/chunk-vendors.min.js)
+0003.550 () Unzip progress: 2003 out of 5201 files (19.4 MB, plugins/hostinger-reach/languages/hostinger-reach-de_DE.l10n.php)
+0003.717 () Unzip progress: 3004 out of 5201 files (38.4 MB, plugins/litespeed-cache/assets/img/icons/purge-all.svg)
+0003.850 () Unzip progress: 4005 out of 5201 files (50.4 MB, plugins/updraftplus/vendor/rackspace/php-opencloud/lib/OpenCloud/Common/Exceptions/InvalidTemplateError.php)
+0003.972 () Unzip progress: 5006 out of 5201 files (58.6 MB, plugins/akismet/class-akismet-connector.php)
+0004.013 () Unzip progress: 5201 out of 5201 files (63.6 MB, plugins/updraftplus/includes/Google/Http/MediaFileUpload.php)
+0004.016 () Moving old data: filesystem method / updraft_dir is potentially possible
+0004.017 () Moving old data: can potentially use wp_filesystem method / -old
+0004.017 () Moving old data out of the way...
+0004.108 () Top-level entities being moved: index.php, hello.php, akismet, updraftplus
+0004.109 () Moving unpacked backup into place...
+0004.380 () Top-level entities being moved: hostinger, all-in-one-wp-migration, nexora, wp-mail-smtp, index.php, litespeed-cache, hostinger-reach, akismet, updraftplus
+0004.381 () Cleaning up rubbish...
+0004.391 () Entity: themes
+0004.391 () restore_backup(backup_file=backup_2026-10-07-0727_nexora_aad0368a6cc9-themes.zip, type=themes, info=a:3:{s:4:"path";s:41:"/var/www/html/83/nexora/wp-content/themes";s:11:"description";s:6:"Themes";s:20:"singular_description";s:5:"Theme";}, last_one=)
+0004.392 () Unpacking backup... (backup_2026-10-07-0727_nexora_aad0368a6cc9-themes.zip, 12.6 MB)
+0004.393 () Unzipping backup_2026-10-07-0727_nexora_aad0368a6cc9-themes.zip to /var/www/html/83/nexora/wp-content/upgrade/4a0d28df/ using UpdraftPlus_ZipArchive, starting index 0
+0004.476 () Unzip progress: 441 out of 441 files (13.6 MB, themes/twentytwentyfour/templates/page.html)
+0004.477 () Moving old data: filesystem method / updraft_dir is potentially possible
+0004.477 () Moving old data: can potentially use wp_filesystem method / -old
+0004.477 () Moving old data out of the way...
+0004.510 () Top-level entities being moved: twentytwentythree, twentytwentyfour, index.php, twentytwentyfive
+0004.511 () Moving unpacked backup into place...
+0004.540 () Top-level entities being moved: twentytwentythree, twentytwentyfour, index.php, twentytwentyfive
+0004.540 () Cleaning up rubbish...
+0004.546 () Entity: uploads
+0004.546 () restore_backup(backup_file=backup_2026-10-07-0727_nexora_aad0368a6cc9-uploads.zip, type=uploads, info=a:2:{s:4:"path";s:42:"/var/www/html/83/nexora/wp-content/uploads";s:11:"description";s:7:"Uploads";}, last_one=)
+0004.548 () Unpacking backup... (backup_2026-10-07-0727_nexora_aad0368a6cc9-uploads.zip, 54.8 MB)
+0004.548 () Unzipping backup_2026-10-07-0727_nexora_aad0368a6cc9-uploads.zip to /var/www/html/83/nexora/wp-content/upgrade/f029e47e/ using UpdraftPlus_ZipArchive, starting index 0
+0004.651 () Unzip progress: 176 out of 176 files (54.8 MB, uploads/2026/04/Social-media-feed-with-scenic-post-768x512.png)
+0004.651 () Moving old data: filesystem method / updraft_dir is potentially possible
+0004.651 () Moving old data: can potentially use wp_filesystem method / -old
+0004.651 () Moving old data out of the way...
+0004.652 () Moving unpacked backup into place...
+0004.663 () Cleaning up rubbish...
+0004.668 () Entity: others
+0004.668 () restore_backup(backup_file=backup_2026-10-07-0727_nexora_aad0368a6cc9-others.zip, type=others, info=a:2:{s:4:"path";s:34:"/var/www/html/83/nexora/wp-content";s:11:"description";s:6:"Others";}, last_one=1)
+0004.670 () Unpacking backup... (backup_2026-10-07-0727_nexora_aad0368a6cc9-others.zip, 0 MB)
+0004.670 () Unzipping backup_2026-10-07-0727_nexora_aad0368a6cc9-others.zip to /var/www/html/83/nexora/wp-content/upgrade/6544dfd3/ using UpdraftPlus_ZipArchive, starting index 0
+0004.674 () Unzip progress: 11 out of 11 files (103 B, litespeed/qc.curr.news)
+0004.675 () Cleaning up rubbish...
+0004.693 () Restore successful!
+0004.693 () Restore successful

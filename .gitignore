@@ -1,0 +1,6 @@
+.env
+node_modules/
+vendor/
+wp-config.php      # if WordPress
+*.log
+.DS_Store
