@@ -1,0 +1,28 @@
+/* Nexora design tokens (shared by every plugin stylesheet, front end and admin).
+   Values match the Nexora theme, which follows the FST design system. */
+
+:root {
+    --nx-navy: #14275c;
+    --nx-navy-deep: #0d1c46;
+    --nx-blue: #2c8fd1;
+    --nx-blue-dark: #1f6ea3;
+    --nx-bg-tint: #eaf4fc;
+    --nx-border: #dbe8f4;
+    --nx-border-strong: #bcd4e8;
+    --nx-text: #171717;
+    --nx-text-muted: #5b5f6b;
+    --nx-text-faint: #9a9a95;
+    --nx-white: #ffffff;
+    --nx-danger: #dc2626;
+    --nx-success: #16a34a;
+
+    --nx-radius-sm: 8px;
+    --nx-radius-md: 12px;
+    --nx-radius-lg: 20px;
+
+    --nx-shadow-card: 0 2px 10px -4px rgba(20, 39, 92, 0.10), 0 1px 2px rgba(20, 39, 92, 0.06);
+    --nx-shadow-hover: 0 24px 40px -18px rgba(20, 39, 92, 0.30), 0 4px 10px -4px rgba(20, 39, 92, 0.12);
+    --nx-gradient: linear-gradient(135deg, var(--nx-navy) 0%, var(--nx-blue) 100%);
+
+    --nx-font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}

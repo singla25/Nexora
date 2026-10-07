@@ -1,137 +1,138 @@
-/* PAGE BG */
-body {
-    background: #f1f5f9;
+/* =========================================================
+   Registration page — FST look. Tokens: assets/css/tokens.css
+   ========================================================= */
+
+.profile-registration-form-div,
+.register-state-wrapper {
+    padding: 48px 16px;
+    font-family: var(--nx-font);
+    background: linear-gradient(135deg, #ffffff 0%, var(--nx-bg-tint) 60%, #dbeefb 100%);
 }
 
-/* FORM WRAPPER */
+.register-state-wrapper {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* FORM CARD */
 .profile-registration-form {
-    max-width: 600px;
-    margin: 70px auto;
+    max-width: 640px;
+    margin: 0 auto;
     padding: 40px;
-    background: #ffffff;
-    border-radius: 18px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+    background: var(--nx-white);
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-lg);
+    box-shadow: var(--nx-shadow-hover);
+    box-sizing: border-box;
 }
 
-/* TITLE */
 .profile-registration-form h2 {
     text-align: center;
-    margin-bottom: 30px;
-    font-size: 28px;
-    font-weight: 600;
-    color: #1e293b;
+    margin: 0 0 28px;
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--nx-navy);
 }
 
-/* GRID */
 .profile-registration-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px 20px; /* 🔥 horizontal + vertical spacing */
+    gap: 18px;
 }
 
-/* FULL WIDTH FIELD */
 .profile-registration-form-grid .full-width {
     grid-column: span 2;
 }
 
-/* INPUT + SELECT */
 .profile-registration-form-grid input,
 .profile-registration-form-grid select {
-    padding: 14px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 14px;
-    background: #f8fafc;
-    transition: all 0.25s ease;
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    font: inherit;
+    font-size: 0.95rem;
+    background: var(--nx-white);
+    color: var(--nx-text);
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* PLACEHOLDER */
 .profile-registration-form-grid input::placeholder {
-    color: #94a3b8;
+    color: var(--nx-text-faint);
 }
 
-/* FOCUS */
 .profile-registration-form-grid input:focus,
 .profile-registration-form-grid select:focus {
-    border-color: #3b82f6;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    border-color: var(--nx-blue);
+    box-shadow: 0 0 0 3px rgba(44, 143, 209, 0.18);
     outline: none;
 }
 
-/* BUTTON FULL WIDTH */
 .profile-registration-form-btn {
-    grid-column: span 2;
-    margin-top: 10px;
-}
-
-/* BUTTON STYLE */
-.profile-registration-form-btn {
+    display: block;
     width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
+    margin-top: 22px;
+    padding: 14px;
+    background: var(--nx-gradient);
+    color: var(--nx-white);
+    border: 0;
+    border-radius: var(--nx-radius-sm);
+    font: inherit;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    box-shadow: 0 6px 16px -8px rgba(20, 39, 92, 0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* HOVER */
 .profile-registration-form-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(59,130,246,0.2);
+    box-shadow: 0 12px 24px -10px rgba(20, 39, 92, 0.55);
 }
 
-/* Already Have A Account */
-/* EXTRA LOGIN LINK */
 .profile-registration-extra {
-    grid-column: span 2;
     text-align: center;
-    margin-top: 10px;
-    font-size: 14px;
-    color: #64748b;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--nx-text-muted);
 }
 
 .profile-registration-extra a {
-    color: #3b82f6;
+    color: var(--nx-blue-dark);
     font-weight: 600;
     text-decoration: none;
     margin-left: 5px;
 }
 
 .profile-registration-extra a:hover {
+    color: var(--nx-navy);
     text-decoration: underline;
 }
 
-/* REGISTER STATE */
-.register-state-wrapper {
-    min-height: 80vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
+/* LOGGED-IN STATE */
 .register-state-card {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(15px);
+    background: var(--nx-white);
     padding: 40px;
-    border-radius: 20px;
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-lg);
     text-align: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
-    max-width: 400px;
+    box-shadow: var(--nx-shadow-hover);
+    max-width: 420px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .register-avatar {
     width: 70px;
     height: 70px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
-    font-size: 26px;
-    font-weight: bold;
+    background: var(--nx-gradient);
+    color: var(--nx-white);
+    font-size: 1.7rem;
+    font-weight: 800;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -139,24 +140,33 @@ body {
     margin: 0 auto 15px;
 }
 
-/* MOBILE */
+.register-state-card h2 {
+    margin: 0 0 6px;
+    color: var(--nx-navy);
+}
+
+.register-state-card .btn-primary {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 11px 20px;
+    background: var(--nx-gradient);
+    color: var(--nx-white);
+    border-radius: var(--nx-radius-sm);
+    text-decoration: none;
+    font-weight: 600;
+}
+
 @media (max-width: 600px) {
-	
-	.profile-registration-form-grid .full-width {
-		grid-column: span 1;
-	}
+    .profile-registration-form {
+        padding: 24px;
+    }
 
     .profile-registration-form-grid {
         grid-template-columns: 1fr;
-        gap: 15px;
+        gap: 14px;
     }
 
-    .profile-registration-form {
-        padding: 25px;
-		margin: 35px auto;
-    }
-
-    .profile-registration-form-btn {
+    .profile-registration-form-grid .full-width {
         grid-column: span 1;
     }
 }

@@ -21,7 +21,8 @@ class NEXORA_PROFILE_PAGE {
     =============================== */
     public function enqueue_assets() {
 
-        wp_enqueue_style('profile-page-style', NEXORA_URL . 'assets/css/profile-page.css');
+        NEXORA_System::enqueue_tokens();
+        wp_enqueue_style('profile-page-style', NEXORA_URL . 'assets/css/profile-page.css', ['nexora-tokens'], NEXORA_VERSION);
 
         wp_enqueue_script('sweetalert2','https://cdn.jsdelivr.net/npm/sweetalert2@11',[],null,true);
 
@@ -174,7 +175,7 @@ class NEXORA_PROFILE_PAGE {
                     </p>
 
                     <a href="' . esc_url(home_url('/login-page')) . '" 
-                    style="display:inline-block; padding:10px 20px; background:#2563eb; color:#fff; border-radius:8px; text-decoration:none; margin-right:10px;">
+                    style="display:inline-block; padding:10px 20px; background:#14275c; color:#fff; border-radius:8px; text-decoration:none; margin-right:10px;">
                     Login
                     </a>
 
@@ -210,8 +211,8 @@ class NEXORA_PROFILE_PAGE {
                     </p>
 
                     <a href="' . esc_url(admin_url() . '?admin_access=true') . '"
-                    style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;
-                    border-radius:10px;text-decoration:none;font-size:14px;font-weight:500;box-shadow:0 8px 20px rgba(37,99,235,0.3);transition:all 0.2s ease;">
+                    style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#14275c,#2c8fd1);color:#fff;
+                    border-radius:10px;text-decoration:none;font-size:14px;font-weight:500;box-shadow:0 8px 20px rgba(20,39,92,0.3);transition:all 0.2s ease;">
                         Go to Dashboard →
                     </a>
 
@@ -259,9 +260,9 @@ class NEXORA_PROFILE_PAGE {
                         </p>
 
                         <a href="' . esc_url(home_url()) . '"
-                        style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#2563eb,#4f46e5);
+                        style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#14275c,#2c8fd1);
                             color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:500;
-                            box-shadow:0 8px 20px rgba(37,99,235,0.3);transition:all 0.2s ease;">
+                            box-shadow:0 8px 20px rgba(20,39,92,0.3);transition:all 0.2s ease;">
                             Go to Home →
                         </a>
 

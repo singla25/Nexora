@@ -21,7 +21,8 @@ class NEXORA_Login {
 
     public function login_enqueue_assets() {
 
-        wp_enqueue_style('profile-login-style', NEXORA_URL . 'assets/css/profile-login.css');
+        NEXORA_System::enqueue_tokens();
+        wp_enqueue_style('profile-login-style', NEXORA_URL . 'assets/css/profile-login.css', ['nexora-tokens'], NEXORA_VERSION);
 
         wp_enqueue_script(
             'sweetalert2',

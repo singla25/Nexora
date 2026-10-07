@@ -60,20 +60,35 @@ class NEXORA_System {
     // ===============================
     public function enqueue_assets() {
 
+        self::enqueue_tokens();
+
         wp_enqueue_style(
             'profile-global-style',
             NEXORA_URL . 'assets/css/style.css',
-            [],
+            ['nexora-tokens'],
             NEXORA_VERSION
         );
+    }
 
-        wp_enqueue_script(
-            'profile-global-js',
-            NEXORA_URL . 'assets/js/script.js',
-            ['jquery'],
-            NEXORA_VERSION,
-            true
-        );
+    /**
+     * Shared design tokens (+ the brand font when the Nexora theme, which
+     * already loads it, is not active). Safe to call repeatedly.
+     */
+    public static function enqueue_tokens() {
+
+        $deps = [];
+
+        if (get_template() !== 'nexora-theme') {
+            wp_enqueue_style(
+                'nexora-font',
+                'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
+                [],
+                null
+            );
+            $deps[] = 'nexora-font';
+        }
+
+        wp_enqueue_style('nexora-tokens', NEXORA_URL . 'assets/css/tokens.css', $deps, NEXORA_VERSION);
     }
 
     // ===============================
