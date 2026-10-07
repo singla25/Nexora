@@ -1,0 +1,723 @@
+/* =========================================================
+   Nexora x Elementor — section styles for the bundled templates.
+   Every class below is added to an Elementor container / widget through
+   its "CSS Classes" field, so the layout is editable in Elementor and the
+   look stays consistent (FST design system: navy / blue, soft shadows).
+   Tokens come from style.css (--nxt-*).
+   ========================================================= */
+
+/* Elementor's default kit sets its own fonts/colours on widgets, so every
+   rule below is prefixed with `body` (one step more specific) and the font
+   is set explicitly on the widgets we use. */
+body .elementor-widget-heading .elementor-heading-title,
+body .elementor-widget-text-editor,
+body .elementor-widget-shortcode,
+body .elementor-widget-html,
+body .elementor-widget-button .elementor-button {
+	font-family: var(--nxt-font);
+}
+
+body .nxe-wrap,
+body .e-con.nxe-wrap {
+	width: 100%;
+	max-width: 1200px;
+	margin-inline: auto;
+	padding-inline: 24px;
+	box-sizing: border-box;
+}
+
+/* ---------- Sections ---------- */
+body .e-con.nxe-section {
+	padding: 72px 0;
+}
+
+body .e-con.nxe-section--tint {
+	background: var(--nxt-bg-tint);
+	border-block: 1px solid var(--nxt-border);
+}
+
+body .e-con.nxe-section--tight {
+	padding: 48px 0;
+}
+
+/* ---------- Typography widgets ---------- */
+body .e-con.nxe-section-title {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 36px;
+	text-align: center;
+}
+
+body .nxe-eyebrow .elementor-heading-title {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	color: var(--nxt-blue-dark);
+	font-size: 0.82rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+body .nxe-eyebrow .elementor-heading-title::before {
+	content: "";
+	flex: none;
+	width: 22px;
+	height: 3px;
+	border-radius: 2px;
+	background: var(--nxt-gradient-brand);
+}
+
+body .nxe-eyebrow--center {
+	text-align: center;
+}
+
+body .nxe-h1 .elementor-heading-title {
+	margin: 0;
+	color: var(--nxt-navy);
+	font-size: clamp(2.2rem, 1.4rem + 3vw, 3.4rem);
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	line-height: 1.1;
+}
+
+body .nxe-h2 .elementor-heading-title {
+	margin: 0;
+	color: var(--nxt-navy);
+	font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem);
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	line-height: 1.15;
+}
+
+body .nxe-h3 .elementor-heading-title {
+	margin: 0;
+	color: var(--nxt-navy);
+	font-size: 1.15rem;
+	font-weight: 800;
+}
+
+body .nxe-center,
+body .nxe-center .elementor-heading-title,
+body .nxe-center .elementor-widget-container {
+	text-align: center;
+}
+
+body .nxe-lede,
+body .nxe-lede p {
+	color: var(--nxt-text-muted);
+	font-size: 1.1rem;
+	line-height: 1.65;
+	margin: 0;
+}
+
+body .nxe-lede {
+	max-width: 62ch;
+}
+
+body .nxe-center.nxe-lede {
+	margin-inline: auto;
+}
+
+body .nxe-text,
+body .nxe-text p {
+	color: var(--nxt-text-muted);
+	line-height: 1.7;
+	margin-top: 0;
+}
+
+body .nxe-text p:last-child {
+	margin-bottom: 0;
+}
+
+/* ---------- Buttons ---------- */
+body .nxe-btn-row {
+	display: flex !important;
+	flex-direction: row !important;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+}
+
+body .nxe-btn .elementor-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 22px;
+	border-radius: var(--nxt-radius-sm);
+	font-family: var(--nxt-font);
+	font-size: 0.98rem;
+	font-weight: 600;
+	line-height: 1.2;
+	border: 1px solid transparent;
+	transition: transform var(--nxt-transition), box-shadow var(--nxt-transition), background var(--nxt-transition), color var(--nxt-transition);
+}
+
+body .nxe-btn--primary .elementor-button {
+	background: var(--nxt-gradient-brand);
+	color: var(--nxt-white);
+	box-shadow: 0 6px 16px -8px rgba(20, 39, 92, 0.5);
+}
+
+body .nxe-btn--primary .elementor-button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 24px -10px rgba(20, 39, 92, 0.55);
+	color: var(--nxt-white);
+}
+
+body .nxe-btn--secondary .elementor-button {
+	background: var(--nxt-white);
+	color: var(--nxt-navy);
+	border-color: var(--nxt-border-strong);
+}
+
+body .nxe-btn--secondary .elementor-button:hover {
+	background: var(--nxt-bg-tint);
+	border-color: var(--nxt-navy);
+	transform: translateY(-2px);
+	color: var(--nxt-navy);
+}
+
+body .nxe-btn--inverse .elementor-button {
+	background: transparent;
+	color: var(--nxt-white);
+	border-color: rgba(255, 255, 255, 0.6);
+}
+
+body .nxe-btn--inverse .elementor-button:hover {
+	background: var(--nxt-white);
+	color: var(--nxt-navy);
+}
+
+/* ---------- Hero ---------- */
+body .e-con.nxe-hero {
+	position: relative;
+	overflow: hidden;
+	padding: 72px 0;
+	background-color: var(--nxt-bg-tint);
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(234, 244, 252, 0.88) 55%, rgba(219, 238, 251, 0.9) 100%), url("../images/sample.webp");
+	background-size: cover;
+	background-position: center;
+	border-bottom: 3px solid transparent;
+	border-image: linear-gradient(90deg, var(--nxt-navy), var(--nxt-blue)) 1;
+}
+
+body .e-con.nxe-hero__grid {
+	display: grid;
+	grid-template-columns: 1.1fr 0.9fr;
+	gap: 48px;
+	align-items: center;
+}
+
+body .e-con.nxe-hero__text {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	align-items: flex-start;
+}
+
+body .nxe-media img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: var(--nxt-radius-lg);
+	box-shadow: var(--nxt-shadow-card-hover);
+	border: 1px solid var(--nxt-border);
+	object-fit: cover;
+}
+
+/* compact hero for inner pages */
+body .e-con.nxe-page-hero {
+	padding: 56px 0;
+	background-color: var(--nxt-bg-tint);
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(234, 244, 252, 0.9) 60%, rgba(219, 238, 251, 0.92) 100%), url("../images/sample.webp");
+	background-size: cover;
+	background-position: center;
+	border-bottom: 3px solid transparent;
+	border-image: linear-gradient(90deg, var(--nxt-navy), var(--nxt-blue)) 1;
+}
+
+body .e-con.nxe-page-hero .nxe-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+/* ---------- Grids + cards ---------- */
+body .e-con.nxe-grid {
+	display: grid;
+	gap: 20px;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+body .e-con.nxe-grid--2 { grid-template-columns: repeat(2, 1fr); }
+body .e-con.nxe-grid--3 { grid-template-columns: repeat(3, 1fr); }
+body .e-con.nxe-grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+body .e-con.nxe-card {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 28px 24px;
+	background: var(--nxt-white);
+	border: 1px solid var(--nxt-border);
+	border-radius: var(--nxt-radius-md);
+	box-shadow: var(--nxt-shadow-card);
+	transition: transform var(--nxt-transition), box-shadow var(--nxt-transition);
+}
+
+body .e-con.nxe-card:hover {
+	transform: translateY(-4px);
+	box-shadow: var(--nxt-shadow-card-hover);
+}
+
+body .nxe-card-icon .elementor-heading-title {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 46px;
+	height: 46px;
+	margin: 0;
+	border-radius: var(--nxt-radius-sm);
+	background: var(--nxt-bg-tint);
+	color: var(--nxt-blue-dark);
+	font-size: 1.3rem;
+}
+
+body .nxe-card .nxe-text,
+body .nxe-card .nxe-text p {
+	margin: 0;
+}
+
+/* ---------- Stats ---------- */
+body .e-con.nxe-stat {
+	align-items: center;
+	text-align: center;
+	gap: 4px;
+	padding: 26px 16px;
+	background: var(--nxt-white);
+	border: 1px solid var(--nxt-border);
+	border-radius: var(--nxt-radius-md);
+	box-shadow: var(--nxt-shadow-card);
+}
+
+body .nxe-stat__num,
+body .nxe-stat__num .elementor-shortcode {
+	color: var(--nxt-navy);
+	font-size: 2.3rem;
+	font-weight: 800;
+	line-height: 1.1;
+	text-align: center;
+}
+
+body .nxe-stat__label,
+body .nxe-stat__label p {
+	margin: 0;
+	color: var(--nxt-text-muted);
+	font-weight: 600;
+	text-align: center;
+}
+
+/* ---------- Steps ---------- */
+body .e-con.nxe-step {
+	align-items: center;
+	text-align: center;
+	gap: 10px;
+}
+
+body .nxe-step__num .elementor-heading-title {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 54px;
+	height: 54px;
+	margin: 0 auto;
+	border-radius: 50%;
+	background: var(--nxt-gradient-brand);
+	color: var(--nxt-white);
+	font-size: 1.25rem;
+	font-weight: 800;
+	box-shadow: var(--nxt-shadow-card);
+}
+
+/* ---------- Split (text + image) ---------- */
+body .e-con.nxe-split {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 56px;
+	align-items: center;
+}
+
+body .e-con.nxe-split__text {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	align-items: flex-start;
+}
+
+body .nxe-check ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+body .nxe-check li {
+	position: relative;
+	padding-left: 30px;
+	margin-bottom: 10px;
+	color: var(--nxt-text);
+	font-weight: 500;
+}
+
+body .nxe-check li::before {
+	content: "\2713";
+	position: absolute;
+	left: 0;
+	top: 1px;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: var(--nxt-bg-tint);
+	color: var(--nxt-blue-dark);
+	font-size: 0.78rem;
+	font-weight: 800;
+	line-height: 20px;
+	text-align: center;
+}
+
+/* ---------- Testimonials ---------- */
+body .e-con.nxe-quote {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 26px;
+	background: var(--nxt-white);
+	border: 1px solid var(--nxt-border);
+	border-radius: var(--nxt-radius-md);
+	box-shadow: var(--nxt-shadow-card);
+}
+
+body .nxe-quote__text,
+body .nxe-quote__text p {
+	margin: 0;
+	color: var(--nxt-text);
+	font-size: 1.05rem;
+	line-height: 1.6;
+}
+
+body .nxe-quote__who,
+body .nxe-quote__who p {
+	margin: 0;
+	color: var(--nxt-text-muted);
+	font-size: 0.9rem;
+}
+
+body .nxe-quote__who strong {
+	display: block;
+	color: var(--nxt-navy);
+	font-size: 1rem;
+}
+
+/* ---------- Team ---------- */
+body .e-con.nxe-person {
+	align-items: center;
+	text-align: center;
+	gap: 8px;
+}
+
+body .nxe-avatar img {
+	width: 120px;
+	height: 120px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 4px solid var(--nxt-white);
+	box-shadow: var(--nxt-shadow-card-hover);
+	margin-inline: auto;
+}
+
+/* ---------- CTA band ---------- */
+body .e-con.nxe-cta {
+	padding: 72px 0;
+	background-color: var(--nxt-navy);
+	background-image: linear-gradient(135deg, rgba(20, 39, 92, 0.94) 0%, rgba(44, 143, 209, 0.9) 100%), url("../images/sample.webp");
+	background-size: cover;
+	background-position: center;
+}
+
+body .e-con.nxe-cta .nxe-wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 18px;
+	text-align: center;
+}
+
+body .e-con.nxe-cta .elementor-heading-title,
+body .e-con.nxe-cta .nxe-lede,
+body .e-con.nxe-cta .nxe-lede p {
+	color: var(--nxt-white);
+}
+
+body .e-con.nxe-cta .nxe-btn-row {
+	justify-content: center;
+}
+
+/* ---------- Contact ---------- */
+body .e-con.nxe-contact {
+	display: grid;
+	grid-template-columns: 0.8fr 1.2fr;
+	gap: 40px;
+	align-items: start;
+}
+
+body .e-con.nxe-contact__info {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+body .nxe-info-item,
+body .nxe-info-item p {
+	margin: 0;
+	color: var(--nxt-text);
+	font-weight: 600;
+}
+
+body .nxe-info-item small {
+	display: block;
+	color: var(--nxt-blue-dark);
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+/* ---------- Legal / prose ---------- */
+body .nxe-prose {
+	max-width: 820px;
+	margin-inline: auto;
+	color: var(--nxt-text);
+	line-height: 1.75;
+}
+
+body .nxe-prose h2 {
+	margin: 2em 0 0.5em;
+	color: var(--nxt-navy);
+	font-size: 1.45rem;
+	font-weight: 800;
+}
+
+body .nxe-prose h3 {
+	margin: 1.5em 0 0.4em;
+	color: var(--nxt-navy);
+	font-size: 1.15rem;
+	font-weight: 700;
+}
+
+body .nxe-prose p,
+body .nxe-prose li {
+	color: var(--nxt-text-muted);
+}
+
+body .nxe-prose ul,
+body .nxe-prose ol {
+	padding-left: 1.4em;
+	list-style: revert;
+}
+
+body .nxe-prose a {
+	color: var(--nxt-blue-dark);
+	text-decoration: underline;
+}
+
+body .nxe-note {
+	padding: 14px 18px;
+	border-radius: var(--nxt-radius-md);
+	background: var(--nxt-bg-tint);
+	border: 1px solid var(--nxt-border);
+	color: var(--nxt-blue-text, #1a5f8c);
+	font-size: 0.92rem;
+}
+
+/* ---------- FAQ (native <details>, no JS needed) ---------- */
+body .nxe-faq {
+	max-width: 860px;
+	margin-inline: auto;
+}
+
+body .nxe-faq h2 {
+	margin: 1.8em 0 0.6em;
+	color: var(--nxt-navy);
+	font-size: 1.35rem;
+	font-weight: 800;
+}
+
+body .nxe-faq details {
+	margin-bottom: 10px;
+	background: var(--nxt-white);
+	border: 1px solid var(--nxt-border);
+	border-radius: var(--nxt-radius-md);
+	box-shadow: var(--nxt-shadow-xs);
+}
+
+body .nxe-faq summary {
+	cursor: pointer;
+	padding: 16px 20px;
+	color: var(--nxt-navy);
+	font-weight: 700;
+	list-style: none;
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+body .nxe-faq summary::-webkit-details-marker {
+	display: none;
+}
+
+body .nxe-faq summary::after {
+	content: "+";
+	color: var(--nxt-blue);
+	font-size: 1.3rem;
+	line-height: 1;
+}
+
+body .nxe-faq details[open] summary::after {
+	content: "\2212";
+}
+
+body .nxe-faq details[open] {
+	border-color: var(--nxt-border-strong);
+}
+
+body .nxe-faq details p {
+	margin: 0;
+	padding: 0 20px 18px;
+	color: var(--nxt-text-muted);
+	line-height: 1.7;
+}
+
+/* ---------- Header template ---------- */
+body .e-con.nxe-header {
+	position: sticky;
+	top: 0;
+	z-index: 500;
+	background: var(--nxt-white);
+	border-bottom: 3px solid transparent;
+	border-image: linear-gradient(90deg, var(--nxt-navy), var(--nxt-blue)) 1;
+	box-shadow: var(--nxt-shadow-card);
+}
+
+body .e-con.nxe-header__inner {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	padding-block: 14px;
+}
+
+body .e-con.nxe-header__right {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 20px;
+	width: auto;
+}
+
+/* ---------- Footer template ---------- */
+body .e-con.nxe-footer {
+	background: var(--nxt-white);
+	border-top: 3px solid transparent;
+	border-image: linear-gradient(90deg, var(--nxt-navy), var(--nxt-blue)) 1;
+	padding: 56px 0 24px;
+}
+
+body .e-con.nxe-footer__grid {
+	display: grid;
+	grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+	gap: 32px;
+}
+
+body .nxe-footer h4,
+body .nxe-footer .nxe-footer__title .elementor-heading-title {
+	margin: 0 0 12px;
+	color: var(--nxt-navy);
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+body .e-con.nxe-footer__bottom {
+	margin-top: 32px;
+	padding-top: 20px;
+	border-top: 1px solid var(--nxt-border);
+	text-align: center;
+}
+
+body .nxe-footer__bottom p {
+	margin: 0;
+	color: var(--nxt-text-muted);
+	font-size: 0.88rem;
+	font-weight: 600;
+}
+
+body .nxe-footer a {
+	color: var(--nxt-text-muted);
+}
+
+body .nxe-footer a:hover {
+	color: var(--nxt-navy);
+}
+
+/* ---------- 404 ---------- */
+body .e-con.nxe-404 {
+	padding: 96px 0;
+	align-items: center;
+	text-align: center;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+	body .e-con.nxe-grid--4 { grid-template-columns: repeat(2, 1fr); }
+	body .e-con.nxe-grid--3 { grid-template-columns: repeat(2, 1fr); }
+	body .e-con.nxe-footer__grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 860px) {
+	body .e-con.nxe-hero__grid,
+body .e-con.nxe-split,
+body .e-con.nxe-contact {
+		grid-template-columns: 1fr;
+		gap: 32px;
+	}
+
+	body .e-con.nxe-section { padding: 48px 0; }
+	body .e-con.nxe-hero,
+body .e-con.nxe-cta { padding: 48px 0; }
+	body .e-con.nxe-header__inner { flex-wrap: wrap; gap: 12px; }
+	body .e-con.nxe-header__right { gap: 12px; flex-wrap: wrap; }
+}
+
+@media (max-width: 600px) {
+	body .e-con.nxe-grid--2,
+body .e-con.nxe-grid--3,
+body .e-con.nxe-grid--4,
+body .e-con.nxe-footer__grid { grid-template-columns: 1fr; }
+}
+
+/* Widgets inside our row containers size to their content */
+body .e-con.nxe-btn-row > .elementor-widget,
+body .e-con.nxe-header__right > .elementor-widget,
+body .e-con.nxe-header__inner > .elementor-widget {
+	width: auto;
+	flex: 0 0 auto;
+}
+
+body .nx-auth .nx-btn {
+	white-space: nowrap;
+}

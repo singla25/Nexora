@@ -82,7 +82,7 @@ class Nexora_Home_Page {
     /**
      * Compact number: 1,250 -> 1.2K
      */
-    private function short_number($n) {
+    public static function short_number($n) {
 
         $n = (int) $n;
 
@@ -208,19 +208,19 @@ class Nexora_Home_Page {
                 <div class="nx-container">
                     <div class="nx-stats-grid">
                         <div class="nx-stat-box">
-                            <h3><?php echo esc_html($this->short_number($stats['members'])); ?></h3>
+                            <h3><?php echo esc_html(self::short_number($stats['members'])); ?></h3>
                             <p>Members</p>
                         </div>
                         <div class="nx-stat-box">
-                            <h3><?php echo esc_html($this->short_number($stats['connections'])); ?></h3>
+                            <h3><?php echo esc_html(self::short_number($stats['connections'])); ?></h3>
                             <p>Connections</p>
                         </div>
                         <div class="nx-stat-box">
-                            <h3><?php echo esc_html($this->short_number($stats['posts'])); ?></h3>
+                            <h3><?php echo esc_html(self::short_number($stats['posts'])); ?></h3>
                             <p>Posts shared</p>
                         </div>
                         <div class="nx-stat-box">
-                            <h3><?php echo esc_html($this->short_number($stats['chats'])); ?></h3>
+                            <h3><?php echo esc_html(self::short_number($stats['chats'])); ?></h3>
                             <p>Conversations</p>
                         </div>
                     </div>

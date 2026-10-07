@@ -16,3 +16,8 @@ define( 'NXT_URI', get_template_directory_uri() );
 require NXT_DIR . '/inc/theme-setup.php';
 require NXT_DIR . '/inc/helpers.php';
 require NXT_DIR . '/inc/settings-page.php';
+
+require NXT_DIR . '/inc/elementor/builder.php';
+require NXT_DIR . '/inc/elementor/templates.php';
+require NXT_DIR . '/inc/elementor/support.php';
+require NXT_DIR . '/inc/elementor/installer.php';

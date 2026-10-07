@@ -6,6 +6,12 @@
  */
 
 get_header();
+
+// An Elementor Pro "404" template replaces the built-in content below.
+if ( function_exists( 'elementor_theme_do_location' ) && elementor_theme_do_location( 'single' ) ) {
+	get_footer();
+	return;
+}
 ?>
 
 <section class="nxt-section nxt-404">
