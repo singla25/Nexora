@@ -81,7 +81,7 @@ class NEXORA_CPT {
 
         register_post_type('user_profile', [
             'label' => 'User Profiles',
-            'public' => true,
+            'public' => false,
             'show_ui' => true,
             'supports' => ['title', 'thumbnail'],
             'show_in_menu' => 'nexora-system',
@@ -332,7 +332,7 @@ class NEXORA_CPT {
                         <th>Default Profile Image</th>
                         <td>
                             <?php $profile_id = get_option('default_profile_image'); ?>
-                            <img src="<?php echo $profile_id ? wp_get_attachment_url($profile_id) : ''; ?>" 
+                            <img src="<?php echo $profile_id ? esc_url(wp_get_attachment_url($profile_id)) : ''; ?>" 
                                 style="max-width:100px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_profile_image" value="<?php echo esc_attr($profile_id); ?>">
@@ -345,7 +345,7 @@ class NEXORA_CPT {
                         <th>Default Cover Image</th>
                         <td>
                             <?php $cover_id = get_option('default_cover_image'); ?>
-                            <img src="<?php echo $cover_id ? wp_get_attachment_url($cover_id) : ''; ?>" 
+                            <img src="<?php echo $cover_id ? esc_url(wp_get_attachment_url($cover_id)) : ''; ?>" 
                                 style="max-width:150px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_cover_image" value="<?php echo esc_attr($cover_id); ?>">
@@ -358,7 +358,7 @@ class NEXORA_CPT {
                         <th>Default Document Image</th>
                         <td>
                             <?php $document_id = get_option('default_document_image'); ?>
-                            <img src="<?php echo $document_id ? wp_get_attachment_url($document_id) : ''; ?>" 
+                            <img src="<?php echo $document_id ? esc_url(wp_get_attachment_url($document_id)) : ''; ?>" 
                                 style="max-width:150px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_document_image" value="<?php echo esc_attr($document_id); ?>">
@@ -371,7 +371,7 @@ class NEXORA_CPT {
                         <th>Default Home Cover Image</th>
                         <td>
                             <?php $home_cover_id = get_option('default_home_cover_image'); ?>
-                            <img src="<?php echo $home_cover_id ? wp_get_attachment_url($home_cover_id) : ''; ?>" 
+                            <img src="<?php echo $home_cover_id ? esc_url(wp_get_attachment_url($home_cover_id)) : ''; ?>" 
                                 style="max-width:150px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_home_cover_image" value="<?php echo esc_attr($home_cover_id); ?>">
@@ -384,7 +384,7 @@ class NEXORA_CPT {
                         <th>Default Feed Experience Image</th>
                         <td>
                             <?php $feed_id = get_option('default_feed_experience_image'); ?>
-                            <img src="<?php echo $feed_id ? wp_get_attachment_url($feed_id) : ''; ?>" 
+                            <img src="<?php echo $feed_id ? esc_url(wp_get_attachment_url($feed_id)) : ''; ?>" 
                                 style="max-width:150px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_feed_experience_image" value="<?php echo esc_attr($feed_id); ?>">
@@ -397,7 +397,7 @@ class NEXORA_CPT {
                         <th>Default Real-Time Chat Image</th>
                         <td>
                             <?php $chat_id = get_option('default_real_time_chat_image'); ?>
-                            <img src="<?php echo $chat_id ? wp_get_attachment_url($chat_id) : ''; ?>" 
+                            <img src="<?php echo $chat_id ? esc_url(wp_get_attachment_url($chat_id)) : ''; ?>" 
                                 style="max-width:150px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_real_time_chat_image" value="<?php echo esc_attr($chat_id); ?>">
@@ -410,7 +410,7 @@ class NEXORA_CPT {
                         <th>Default Smart Connections Image</th>
                         <td>
                             <?php $conn_id = get_option('default_smart_connections_image'); ?>
-                            <img src="<?php echo $conn_id ? wp_get_attachment_url($conn_id) : ''; ?>" 
+                            <img src="<?php echo $conn_id ? esc_url(wp_get_attachment_url($conn_id)) : ''; ?>" 
                                 style="max-width:150px; display:block; margin-bottom:10px;">
 
                             <input type="hidden" name="default_smart_connections_image" value="<?php echo esc_attr($conn_id); ?>">
@@ -584,7 +584,7 @@ class NEXORA_CPT {
             ?>
 
             <div class="profile-upload-box">
-                <label><strong><?php echo $label; ?></strong></label><br>
+                <label><strong><?php echo esc_html($label); ?></strong></label><br>
 
                 <img src="<?php echo esc_url($image_url); ?>"
                     class="profile-preview"
@@ -750,7 +750,7 @@ class NEXORA_CPT {
                     <td><?php echo esc_html(get_the_date('Y-m-d H:i:s', $content->ID)); ?></td>
 
                     <td>
-                        <a href="<?php echo admin_url('post.php?post=' . $content->ID . '&action=edit'); ?>" 
+                        <a href="<?php echo esc_url(admin_url('post.php?post=' . $content->ID . '&action=edit')); ?>" 
                         class="button button-primary">
                         View
                         </a>
@@ -833,17 +833,17 @@ class NEXORA_CPT {
 
             echo "<tr>";
 
-            echo "<td><strong>{$other_name}</strong></td>";
+            echo "<td><strong>" . esc_html($other_name) . "</strong></td>";
 
             echo "<td>#{$conn_id}</td>";
 
             echo "<td>
                     <span style='color:white; background:{$status_color}; padding:3px 8px; border-radius:4px; font-size:12px;'>
-                        {$status}
+                        " . esc_html($status) . "
                     </span>
                 </td>";
 
-            echo "<td>{$connection_time}</td>";
+            echo "<td>" . esc_html($connection_time) . "</td>";
 
             echo "<td>";
 
@@ -857,9 +857,9 @@ class NEXORA_CPT {
                     $subject = $t->subject ?: 'No Subject';
 
                     echo "<li style='margin-bottom:5px;'>
-                            <strong>{$subject}</strong>
+                            <strong>" . esc_html($subject) . "</strong>
                             <span style='color:{$thread_color}; font-weight:600; margin-left:6px;'>
-                                ● {$t->status}
+                                ● " . esc_html($t->status) . "
                             </span>
                         </li>";
                 }
@@ -1073,6 +1073,16 @@ class NEXORA_CPT {
 
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 
+        if (wp_is_post_revision($post_id)) return;
+
+        // Only react to the real admin edit screen. Front-end AJAX handlers also
+        // call wp_insert_post() and must never be overwritten with raw $_POST data.
+        if (!is_admin() || wp_doing_ajax()) return;
+
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'update-post_' . $post_id)) return;
+
+        if (!current_user_can('edit_post', $post_id) || !current_user_can('manage_options')) return;
+
         $post_type = get_post_type($post_id);
 
         // ===============================
@@ -1091,10 +1101,10 @@ class NEXORA_CPT {
             foreach ($fields as $field) {
                 if (isset($_POST[$field])) {
 
-                    if (in_array($field, ['profile_image','cover_image','aadhaar_card','driving_license','company_id_card'])) {
-                        update_post_meta($post_id, $field, intval($_POST[$field]));
+                    if (in_array($field, ['profile_image','cover_image','aadhaar_card','driving_license','company_id_card'], true)) {
+                        update_post_meta($post_id, $field, absint($_POST[$field]));
                     } else {
-                        update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+                        update_post_meta($post_id, $field, sanitize_text_field(wp_unslash($_POST[$field])));
                     }
                 }
             }
@@ -1109,7 +1119,7 @@ class NEXORA_CPT {
 
             foreach ($fields as $field) {
                 if (isset($_POST[$field])) {
-                    update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+                    update_post_meta($post_id, $field, sanitize_text_field(wp_unslash($_POST[$field])));
                 }
             }
         }
@@ -1126,7 +1136,7 @@ class NEXORA_CPT {
 
             foreach ($fields as $field) {
                 if (isset($_POST[$field])) {
-                    update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+                    update_post_meta($post_id, $field, sanitize_text_field(wp_unslash($_POST[$field])));
                 }
             }
         }
@@ -1160,7 +1170,7 @@ class NEXORA_CPT {
             $last_name  = get_post_meta($post_id, 'last_name', true);
             $full_name  = $first_name . ' ' . $last_name;
 
-            echo $full_name;
+            echo esc_html($full_name);
         }
 
     }
@@ -1230,7 +1240,7 @@ class NEXORA_CPT {
             $last_name  = get_post_meta($user_profile_id, 'last_name', true);
             $full_name  = $first_name . ' ' . $last_name;
 
-            echo $full_name;
+            echo esc_html($full_name);
         }
     }
 

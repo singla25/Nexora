@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) exit;
 
 define('NEXORA_PATH', plugin_dir_path(__FILE__));
 define('NEXORA_URL', plugin_dir_url(__FILE__));
+define('NEXORA_VERSION', '1.0.1');
 
 require_once NEXORA_PATH . 'includes/class-cpt.php';
 require_once NEXORA_PATH . 'includes/class-registration.php';
@@ -63,14 +64,14 @@ class NEXORA_System {
             'profile-global-style',
             NEXORA_URL . 'assets/css/style.css',
             [],
-            '1.0'
+            NEXORA_VERSION
         );
 
         wp_enqueue_script(
             'profile-global-js',
             NEXORA_URL . 'assets/js/script.js',
             ['jquery'],
-            '1.0',
+            NEXORA_VERSION,
             true
         );
     }
@@ -91,56 +92,65 @@ class NEXORA_System {
     public function block_wp_admin() {
 
         // Allow AJAX
-        if (defined('DOING_AJAX') && DOING_AJAX) return;
+        if (wp_doing_ajax()) return;
 
         // Allow REST
         if (defined('REST_REQUEST') && REST_REQUEST) return;
 
+        // Allow WP-Cron and form handlers that must work for visitors
+        if (wp_doing_cron()) return;
+
+        $script = isset($_SERVER['SCRIPT_NAME']) ? basename($_SERVER['SCRIPT_NAME']) : '';
+
+        if (in_array($script, ['admin-post.php', 'admin-ajax.php'], true)) return;
+
         // Not logged in → redirect to login page
         if (!is_user_logged_in()) {
-            wp_redirect(home_url('/login-page'));
+            wp_safe_redirect(home_url('/login-page'));
             exit;
         }
 
         // Logged in but NOT admin → block wp-admin
-        if (!current_user_can('manage_options') && is_admin()) {
-            wp_redirect(home_url('/profile-page/' . wp_get_current_user()->user_login));
+        if (!current_user_can('manage_options')) {
+            $username = wp_get_current_user()->user_login;
+            wp_safe_redirect(home_url('/profile-page/' . rawurlencode($username)));
             exit;
         }
-
-        // ✅ Admin allowed freely
     }
 
     // ===============================
-    // BLOCK WP-ADMIN (NON-ADMINS)
+    // BLOCK WP-LOGIN (NON-ADMINS)
     // ===============================
     public function block_wp_login() {
 
-        // Allow logout
-        if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
+
+        // Only act on wp-login.php
+        if (strpos($request_uri, 'wp-login.php') === false) {
             return;
         }
 
-        // Allow admin to access wp-login if already logged in
+        // Allow logout, password reset links and post-password forms
+        $action = isset($_GET['action']) ? sanitize_key(wp_unslash($_GET['action'])) : '';
+
+        if (in_array($action, ['logout', 'postpass'], true)) {
+            return;
+        }
+
+        // Admins may use wp-login.php
         if (is_user_logged_in() && current_user_can('manage_options')) {
             return;
         }
 
-        // Target wp-login.php
-        if (strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false) {
-
-            // If NOT logged in → redirect to custom login
-            if (!is_user_logged_in()) {
-                wp_redirect(home_url('/login-page'));
-                exit;
-            }
-
-            // If logged in but non-admin
-            if (!current_user_can('manage_options')) {
-                wp_redirect(home_url('/profile-page'));
-                exit;
-            }
+        // Anyone else is sent to the custom pages
+        if (!is_user_logged_in()) {
+            wp_safe_redirect(home_url('/login-page'));
+            exit;
         }
+
+        $username = wp_get_current_user()->user_login;
+        wp_safe_redirect(home_url('/profile-page/' . rawurlencode($username)));
+        exit;
     }
 
     // ===============================
@@ -148,11 +158,16 @@ class NEXORA_System {
     // ===============================
     public function login_redirect($redirect_to, $request, $user) {
 
-        if (isset($user->roles) && in_array('administrator', $user->roles)) {
+        // Failed login / no user yet: leave WordPress' default untouched
+        if (!($user instanceof WP_User)) {
+            return $redirect_to;
+        }
+
+        if (user_can($user, 'manage_options')) {
             return home_url('/profile-page'); // Admin UI
         }
 
-        return home_url('/profile-page/' . $user->user_login);
+        return home_url('/profile-page/' . rawurlencode($user->user_login));
     }
 
     // ===============================

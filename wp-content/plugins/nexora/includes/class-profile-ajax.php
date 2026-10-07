@@ -47,9 +47,9 @@ class NEXORA_PROFILE_AJAX {
         $user_id = get_current_user_id();
 
         // 3. Profile check
-        $profile_id = get_user_meta($user_id, '_profile_id', true);
+        $profile_id = (int) get_user_meta($user_id, '_profile_id', true);
 
-        if (!$profile_id) {
+        if (!$profile_id || get_post_type($profile_id) !== 'user_profile') {
             wp_send_json_error('Profile not found');
         }
 
@@ -64,6 +64,30 @@ class NEXORA_PROFILE_AJAX {
         ];
     }
 
+    private function post_value($key) {
+        return isset($_POST[$key]) ? sanitize_text_field(wp_unslash($_POST[$key])) : '';
+    }
+
+    /**
+     * An attachment may only be linked to a profile by the user who uploaded it.
+     */
+    private function user_owns_attachment($attachment_id, $user_id) {
+
+        if (get_post_type($attachment_id) !== 'attachment') {
+            return false;
+        }
+
+        return (int) get_post_field('post_author', $attachment_id) === (int) $user_id
+            || current_user_can('manage_options');
+    }
+
+    /**
+     * Name shown for a profile (first + last).
+     */
+    private function profile_full_name($profile_id) {
+        return trim(get_post_meta($profile_id, 'first_name', true) . ' ' . get_post_meta($profile_id, 'last_name', true));
+    }
+
     // PERSONAL INFO
     public function update_personal_info() {
 
@@ -73,9 +97,28 @@ class NEXORA_PROFILE_AJAX {
         $fields = ['first_name','last_name','phone','gender','birthdate','linkedin_id','bio'];
 
         foreach ($fields as $field) {
-            if (isset($_POST[$field])) {
-                update_post_meta($id, $field, sanitize_text_field($_POST[$field]));
+            if (!isset($_POST[$field])) continue;
+
+            $value = ($field === 'bio')
+                ? sanitize_textarea_field(wp_unslash($_POST[$field]))
+                : $this->post_value($field);
+
+            if ($field === 'gender' && !in_array($value, ['male', 'female', 'other', ''], true)) {
+                continue;
             }
+
+            if ($field === 'birthdate' && $value !== '') {
+                $dt = DateTime::createFromFormat('Y-m-d', $value);
+                if (!$dt || $dt->format('Y-m-d') !== $value || $dt > new DateTime('today')) {
+                    wp_send_json_error('Invalid date of birth');
+                }
+            }
+
+            if ($field === 'linkedin_id') {
+                $value = sanitize_text_field($value);
+            }
+
+            update_post_meta($id, $field, $value);
         }
 
         wp_send_json_success('Personal Info Updated');
@@ -91,8 +134,8 @@ class NEXORA_PROFILE_AJAX {
 
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
-                update_post_meta($id, $field, sanitize_text_field($_POST[$field]));
-            }   
+                update_post_meta($id, $field, $this->post_value($field));
+            }
         }
 
         wp_send_json_success('Address Info Updated');
@@ -107,9 +150,18 @@ class NEXORA_PROFILE_AJAX {
         $fields = ['company_name','designation','company_email','company_phone','company_address'];
 
         foreach ($fields as $field) {
-            if (isset($_POST[$field])) {
-                update_post_meta($id, $field, sanitize_text_field($_POST[$field]));
+            if (!isset($_POST[$field])) continue;
+
+            $value = $this->post_value($field);
+
+            if ($field === 'company_email' && $value !== '') {
+                $value = sanitize_email($value);
+                if (!is_email($value)) {
+                    wp_send_json_error('Invalid company email');
+                }
             }
+
+            update_post_meta($id, $field, $value);
         }
 
         wp_send_json_success('Work Info Updated');
@@ -127,17 +179,22 @@ class NEXORA_PROFILE_AJAX {
 
             if (!isset($_POST[$field])) continue;
 
-            $value = $_POST[$field];
+            $value = trim((string) wp_unslash($_POST[$field]));
 
             // REMOVE CASE (IMPORTANT)
             if ($value === '') {
                 delete_post_meta($id, $field);
+                continue;
             }
 
-            // UPDATE CASE
-            else {
-                update_post_meta($id, $field, intval($value));
+            $attachment_id = absint($value);
+
+            // Only attachments uploaded by this user can be linked
+            if (!$attachment_id || !$this->user_owns_attachment($attachment_id, $auth['user_id'])) {
+                wp_send_json_error('Invalid file selected');
             }
+
+            update_post_meta($id, $field, $attachment_id);
         }
 
         wp_send_json_success('Documents updated');
@@ -154,29 +211,33 @@ class NEXORA_PROFILE_AJAX {
 
         $user_id = get_current_user_id();
 
-        $current_password = $_POST['current_password'];
-        $new_password     = $_POST['new_password'];
-        $confirm_password = $_POST['confirm_password'];
+        $current_password = wp_unslash($_POST['current_password'] ?? '');
+        $new_password     = wp_unslash($_POST['new_password'] ?? '');
+        $confirm_password = wp_unslash($_POST['confirm_password'] ?? '');
 
-        // 🔐 Check current password
         $user = get_user_by('id', $user_id);
 
-        if (!wp_check_password($current_password, $user->user_pass, $user_id)) {
+        if (!$user || !wp_check_password($current_password, $user->user_pass, $user_id)) {
             wp_send_json_error('Current password is incorrect');
         }
 
-        // ❌ match check
+        if (strlen($new_password) < 8) {
+            wp_send_json_error('Password must be at least 8 characters');
+        }
+
         if ($new_password !== $confirm_password) {
             wp_send_json_error('Passwords do not match');
         }
 
-        // ❌ prevent same password
         if ($current_password === $new_password) {
             wp_send_json_error('New password must be different');
         }
 
-        // ✅ Update password
         wp_set_password($new_password, $user_id);
+
+        // wp_set_password() destroys the session; keep this user logged in
+        wp_set_current_user($user_id);
+        wp_set_auth_cookie($user_id, true);
 
         wp_send_json_success('Password updated successfully');
     }
@@ -187,49 +248,37 @@ class NEXORA_PROFILE_AJAX {
     // GET NEW USER
     public function get_add_new_users() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
+        $auth       = $this->validate_request();
+        $profile_id = $auth['profile_id'];
 
-        $user_id = get_current_user_id();
-        $profile_id = get_user_meta($user_id, '_profile_id', true);
-
-        // Get all connections of current user
+        // Profiles that already have a pending / accepted connection with me
         $connections = get_posts([
-            'post_type' => 'user_connections',
+            'post_type'      => 'user_connections',
             'posts_per_page' => -1,
-            'meta_query' => [
+            'fields'         => 'ids',
+            'meta_query'     => [
                 'relation' => 'OR',
-                [
-                    'key' => 'sender_profile_id',
-                    'value' => $profile_id
-                ],
-                [
-                    'key' => 'receiver_profile_id',
-                    'value' => $profile_id
-                ]
+                ['key' => 'sender_profile_id',   'value' => $profile_id],
+                ['key' => 'receiver_profile_id', 'value' => $profile_id]
             ]
         ]);
 
         $blocked_ids = [$profile_id];
 
-        foreach ($connections as $conn) {
+        foreach ($connections as $conn_id) {
 
-            $status = get_post_meta($conn->ID, 'status', true);
+            $status = get_post_meta($conn_id, 'status', true);
 
-            if (in_array($status, ['pending', 'accepted'])) {
-
-                $sender = get_post_meta($conn->ID, 'sender_profile_id', true);
-                $receiver = get_post_meta($conn->ID, 'receiver_profile_id', true);
-
-                $blocked_ids[] = $sender;
-                $blocked_ids[] = $receiver;
+            if (in_array($status, ['pending', 'accepted'], true)) {
+                $blocked_ids[] = (int) get_post_meta($conn_id, 'sender_profile_id', true);
+                $blocked_ids[] = (int) get_post_meta($conn_id, 'receiver_profile_id', true);
             }
         }
 
-        // Get users excluding blocked
         $users = get_posts([
-            'post_type' => 'user_profile',
-            'posts_per_page' => -1,
-            'post__not_in' => $blocked_ids
+            'post_type'      => 'user_profile',
+            'posts_per_page' => 200,
+            'post__not_in'   => array_values(array_unique($blocked_ids))
         ]);
 
         $data = [];
@@ -238,9 +287,9 @@ class NEXORA_PROFILE_AJAX {
 
             $data[] = [
                 'profile_id' => $user->ID,
-                'username' => get_post_meta($user->ID, 'user_name', true),
-                'name' => get_post_meta($user->ID, 'first_name', true) . ' ' . get_post_meta($user->ID, 'last_name', true),
-                'image' => NEXORA_PROFILE_HELPER::get_profile_image($user->ID)
+                'username'   => get_post_meta($user->ID, 'user_name', true),
+                'name'       => $this->profile_full_name($user->ID),
+                'image'      => NEXORA_PROFILE_HELPER::get_profile_image($user->ID)
             ];
         }
 
@@ -250,21 +299,64 @@ class NEXORA_PROFILE_AJAX {
     // SEND CONNECTION REQUEST
     public function send_connection_request() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
+        $auth              = $this->validate_request();
+        $sender_user_id    = $auth['user_id'];
+        $sender_profile_id = $auth['profile_id'];
+        $sender_user_name  = get_post_meta($sender_profile_id, 'user_name', true);
 
-        $sender_user_id = get_current_user_id();
-        $sender_profile_id = get_user_meta($sender_user_id, '_profile_id', true);
-        $sender_user_name = get_post_meta($sender_profile_id, 'user_name', true);
+        $receiver_profile_id = absint($_POST['receiver_profile_id'] ?? 0);
 
-        $receiver_profile_id = intval($_POST['receiver_profile_id']);
-        $receiver_user_id   = get_post_meta($receiver_profile_id, '_wp_user_id', true);
+        if (!$receiver_profile_id || get_post_type($receiver_profile_id) !== 'user_profile') {
+            wp_send_json_error('User not found');
+        }
+
+        if ($receiver_profile_id === $sender_profile_id) {
+            wp_send_json_error('You cannot connect with yourself');
+        }
+
+        // No duplicate pending / accepted connection in either direction
+        $existing = get_posts([
+            'post_type'      => 'user_connections',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                [
+                    'key'     => 'status',
+                    'value'   => ['pending', 'accepted'],
+                    'compare' => 'IN'
+                ],
+                [
+                    'relation' => 'OR',
+                    [
+                        'relation' => 'AND',
+                        ['key' => 'sender_profile_id',   'value' => $sender_profile_id],
+                        ['key' => 'receiver_profile_id', 'value' => $receiver_profile_id]
+                    ],
+                    [
+                        'relation' => 'AND',
+                        ['key' => 'sender_profile_id',   'value' => $receiver_profile_id],
+                        ['key' => 'receiver_profile_id', 'value' => $sender_profile_id]
+                    ]
+                ]
+            ]
+        ]);
+
+        if (!empty($existing)) {
+            wp_send_json_error('A connection or request already exists');
+        }
+
+        $receiver_user_id   = (int) get_post_meta($receiver_profile_id, '_wp_user_id', true);
         $receiver_user_name = get_post_meta($receiver_profile_id, 'user_name', true);
 
         $post_id = wp_insert_post([
-            'post_type' => 'user_connections',
+            'post_type'   => 'user_connections',
             'post_status' => 'publish',
-            'post_title' => $sender_user_name . '->' . $receiver_user_name
+            'post_title'  => $sender_user_name . '->' . $receiver_user_name
         ]);
+
+        if (is_wp_error($post_id) || !$post_id) {
+            wp_send_json_error('Could not send request');
+        }
 
         update_post_meta($post_id, 'sender_user_id', $sender_user_id);
         update_post_meta($post_id, 'sender_profile_id', $sender_profile_id);
@@ -276,21 +368,16 @@ class NEXORA_PROFILE_AJAX {
 
         update_post_meta($post_id, 'status', 'pending');
 
-        $data = [
-            'actor_user_id'     => $sender_user_id,
-            'actor_user_name'   => $sender_user_name,
-
-            'receiver_user_id'    => $receiver_user_id,
-            'receiver_user_name'  => $receiver_user_name,
-
-            'type' => 'request',
-            'connection_id' => $post_id,
-
-            'message' => "{$sender_user_name} sent a connection request to {$receiver_user_name}"
-        ];
-        
         $notification = new NEXORA_Notification();
-        $notifications = $notification->insert($data);
+        $notification->insert([
+            'actor_user_id'      => $sender_user_id,
+            'actor_user_name'    => $sender_user_name,
+            'receiver_user_id'   => $receiver_user_id,
+            'receiver_user_name' => $receiver_user_name,
+            'type'               => 'request',
+            'connection_id'      => $post_id,
+            'message'            => "{$sender_user_name} sent a connection request to {$receiver_user_name}"
+        ]);
 
         wp_send_json_success('Request sent');
     }
@@ -298,10 +385,8 @@ class NEXORA_PROFILE_AJAX {
     // GET REQUESTS
     public function get_requests() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
-
-        $user_id = get_current_user_id();
-        $profile_id = get_user_meta($user_id, '_profile_id', true);
+        $auth       = $this->validate_request();
+        $profile_id = $auth['profile_id'];
 
         $requests = get_posts([
             'post_type' => 'user_connections',
@@ -328,7 +413,7 @@ class NEXORA_PROFILE_AJAX {
                 'connection_id' => $conn->ID,
                 'profile_id' => $sender,
                 'username' => get_post_meta($sender, 'user_name', true),
-                'name' => get_post_meta($sender, 'first_name', true) . ' ' . get_post_meta($sender, 'last_name', true),
+                'name' => $this->profile_full_name($sender),
                 'image' => NEXORA_PROFILE_HELPER::get_profile_image($sender)
             ];
         }
@@ -339,12 +424,40 @@ class NEXORA_PROFILE_AJAX {
     // REQUEST ACCEPTED / REJECT / REMOVED
     public function update_connection_status() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
+        $auth            = $this->validate_request();
+        $current_user_id = $auth['user_id'];
 
-        $current_user_id = get_current_user_id();
+        $connection_id = absint($_POST['connection_id'] ?? 0);
+        $status        = $this->post_value('status');
 
-        $connection_id = intval($_POST['connection_id']);
-        $status = sanitize_text_field($_POST['status']);
+        if (!$connection_id || get_post_type($connection_id) !== 'user_connections') {
+            wp_send_json_error('Connection not found');
+        }
+
+        if (!in_array($status, ['accepted', 'rejected', 'removed'], true)) {
+            wp_send_json_error('Invalid status');
+        }
+
+        $sender_user_id   = (int) get_post_meta($connection_id, 'sender_user_id', true);
+        $receiver_user_id = (int) get_post_meta($connection_id, 'receiver_user_id', true);
+        $old_status       = get_post_meta($connection_id, 'status', true);
+
+        // Only the two people on the connection may change it
+        if ($current_user_id !== $sender_user_id && $current_user_id !== $receiver_user_id) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        // Only the receiver may accept / reject, and only a pending request
+        if (in_array($status, ['accepted', 'rejected'], true)) {
+            if ($current_user_id !== $receiver_user_id || $old_status !== 'pending') {
+                wp_send_json_error('Unauthorized');
+            }
+        }
+
+        // Only an accepted connection can be removed
+        if ($status === 'removed' && $old_status !== 'accepted') {
+            wp_send_json_error('Connection is not active');
+        }
 
         update_post_meta($connection_id, 'status', $status);
 
@@ -355,26 +468,20 @@ class NEXORA_PROFILE_AJAX {
         }
 
         // Fetch connection data (here sender and reciever are from user_connection cpt)
-        $sender_user_id      = get_post_meta($connection_id, 'sender_user_id', true);
         $sender_user_name    = get_post_meta($connection_id, 'sender_user_name', true);
-
-        $receiver_user_id    = get_post_meta($connection_id, 'receiver_user_id', true);
         $receiver_user_name  = get_post_meta($connection_id, 'receiver_user_name', true);
 
         if ($current_user_id == $sender_user_id) {
 
-            $actor_user_id = $sender_user_id;
+            $actor_user_id   = $sender_user_id;
             $actor_user_name = $sender_user_name;
-
-            $receiver_user_id = $receiver_user_id;
-            $receiver_user_name = $receiver_user_name;
 
         } else {
 
-            $actor_user_id = $receiver_user_id;
+            $actor_user_id   = $receiver_user_id;
             $actor_user_name = $receiver_user_name;
 
-            $receiver_user_id = $sender_user_id;
+            $receiver_user_id   = $sender_user_id;
             $receiver_user_name = $sender_user_name;
         }
         
@@ -383,11 +490,7 @@ class NEXORA_PROFILE_AJAX {
         } elseif ($status === 'rejected') {
             $message = "{$actor_user_name} rejected {$receiver_user_name} connection request";
         } elseif ($status === 'removed') {
-            if ($sender_user_id === $current_user_id) {
-                $message = "{$receiver_user_name} removed connection with {$actor_user_name}";
-            } else {
-                $message = "{$actor_user_name} removed connection with {$receiver_user_name}";
-            }
+            $message = "{$actor_user_name} removed connection with {$receiver_user_name}";
         } else {
             $message = "Connection status updated";
         }
@@ -414,10 +517,8 @@ class NEXORA_PROFILE_AJAX {
     // HISTORY
     public function get_history() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
-
-        $user_id = get_current_user_id();
-        $profile_id = get_user_meta($user_id, '_profile_id', true);
+        $auth       = $this->validate_request();
+        $profile_id = $auth['profile_id'];
 
         // ===============================
         // RECEIVED
@@ -464,13 +565,13 @@ class NEXORA_PROFILE_AJAX {
                     $sender_id = get_post_meta($conn->ID, 'sender_profile_id', true);
                     
                     $username = get_post_meta($sender_id,'user_name',true);
-                    $name     = get_post_meta($sender_id,'first_name',true) . ' ' . get_post_meta($sender_id,'last_name',true);
+                    $name     = $this->profile_full_name($sender_id);
                     $image    = NEXORA_PROFILE_HELPER::get_profile_image($sender_id);
 
                     $date = get_the_date('d M Y', $conn->ID);
                     $time = get_the_time('h:i A', $conn->ID);
 
-                    $link = site_url('/profile-page/' . $username);
+                    $link = site_url('/profile-page/' . rawurlencode($username));
                 ?>
 
                 <div class="history-card">
@@ -515,13 +616,13 @@ class NEXORA_PROFILE_AJAX {
                     $receiver_id = get_post_meta($conn->ID, 'receiver_profile_id', true);
                    
                     $username = get_post_meta($receiver_id,'user_name',true);
-                    $name     = get_post_meta($receiver_id,'first_name',true) . ' ' . get_post_meta($receiver_id,'last_name',true);
+                    $name     = $this->profile_full_name($receiver_id);
                     $image    = NEXORA_PROFILE_HELPER::get_profile_image($receiver_id);
 
                     $date = get_the_date('d M Y', $conn->ID);
                     $time = get_the_time('h:i A', $conn->ID);
 
-                    $link = site_url('/profile-page/' . $username);
+                    $link = site_url('/profile-page/' . rawurlencode($username));
                 ?>
 
                 <div class="history-card">
@@ -564,40 +665,27 @@ class NEXORA_PROFILE_AJAX {
     // VIEW ALL CONNECTIONS
     public function view_all_connection() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
+        $this->validate_request();
 
-        $profile_id = intval($_POST['profile_id']);
+        $profile_id = absint($_POST['profile_id'] ?? 0);
 
-        $connections = get_posts([
-            'post_type' => 'user_connections',
-            'posts_per_page' => -1,
-            'meta_query' => [
-                [
-                    'key' => 'status',
-                    'value' => 'accepted'
-                ]
-            ]
-        ]);
+        if (!$profile_id || get_post_type($profile_id) !== 'user_profile') {
+            wp_send_json_error('Profile not found');
+        }
 
         $data = [];
 
-        foreach ($connections as $conn) {
+        foreach (NEXORA_PROFILE_HELPER::get_user_connection_ids($profile_id) as $other_id) {
 
-            $sender = get_post_meta($conn->ID, 'sender_profile_id', true);
-            $receiver = get_post_meta($conn->ID, 'receiver_profile_id', true);
+            $username = get_post_meta($other_id, 'user_name', true);
 
-            if ($sender == $profile_id || $receiver == $profile_id) {
-
-                $other_id = ($sender == $profile_id) ? $receiver : $sender;
-
-                $data[] = [
-                    'profile_id' => $other_id,
-                    'username' => get_post_meta($other_id, 'user_name', true),
-                    'name' => get_post_meta($other_id, 'first_name', true) . ' ' . get_post_meta($other_id, 'last_name', true),
-                    'image' => NEXORA_PROFILE_HELPER::get_profile_image($other_id),
-                    'profile_link' => site_url('/profile-page/' . get_post_meta($other_id, 'user_name', true))
-                ];
-            }
+            $data[] = [
+                'profile_id'   => $other_id,
+                'username'     => $username,
+                'name'         => $this->profile_full_name($other_id),
+                'image'        => NEXORA_PROFILE_HELPER::get_profile_image($other_id),
+                'profile_link' => site_url('/profile-page/' . rawurlencode($username))
+            ];
         }
 
         ob_start();
@@ -639,12 +727,13 @@ class NEXORA_PROFILE_AJAX {
     // VIEW MUTUAL CONNECTIONS
     public function view_mutual_connection() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
+        $auth               = $this->validate_request();
+        $other_profile_id   = absint($_POST['profile_id'] ?? 0);
+        $current_profile_id = $auth['profile_id'];
 
-        $other_profile_id = intval($_POST['profile_id']);
-
-        $current_user_id = get_current_user_id();
-        $current_profile_id = get_user_meta($current_user_id, '_profile_id', true);
+        if (!$other_profile_id || get_post_type($other_profile_id) !== 'user_profile') {
+            wp_send_json_error('Profile not found');
+        }
 
         // 1. Get connections of both
         $current_connections = NEXORA_PROFILE_HELPER::get_user_connection_ids($current_profile_id);
@@ -660,9 +749,9 @@ class NEXORA_PROFILE_AJAX {
             $data[] = [
                 'profile_id' => $id,
                 'username' => get_post_meta($id, 'user_name', true),
-                'name' => get_post_meta($id, 'first_name', true) . ' ' . get_post_meta($id, 'last_name', true),
+                'name' => $this->profile_full_name($id),
                 'image' => NEXORA_PROFILE_HELPER::get_profile_image($id),
-                'profile_link' => site_url('/profile-page/' . get_post_meta($id, 'user_name', true))
+                'profile_link' => site_url('/profile-page/' . rawurlencode(get_post_meta($id, 'user_name', true)))
             ];
         }
 
@@ -676,7 +765,7 @@ class NEXORA_PROFILE_AJAX {
                     <div class="conn-cover"></div>
 
                     <div class="conn-avatar">
-                        <img src="<?php echo $user['image']; ?>">
+                        <img src="<?php echo esc_url($user['image']); ?>">
                     </div>
 
                     <div class="conn-body">
@@ -704,64 +793,25 @@ class NEXORA_PROFILE_AJAX {
         wp_send_json_success($html);
     }
 
-    private function get_user_connection_ids($profile_id) {
-
-        $connections = get_posts([
-            'post_type' => 'user_connections',
-            'posts_per_page' => -1,
-            'meta_query' => [
-                [
-                    'key' => 'status',
-                    'value' => 'accepted'
-                ],
-                [
-                    'relation' => 'OR',
-                    [
-                        'key' => 'sender_profile_id',
-                        'value' => $profile_id
-                    ],
-                    [
-                        'key' => 'receiver_profile_id',
-                        'value' => $profile_id
-                    ]
-                ]
-            ]
-        ]);
-
-        $ids = [];
-
-        foreach ($connections as $conn) {
-
-            $sender = get_post_meta($conn->ID, 'sender_profile_id', true);
-            $receiver = get_post_meta($conn->ID, 'receiver_profile_id', true);
-
-            if ($sender == $profile_id) {
-                $ids[] = $receiver;
-            } else {
-                $ids[] = $sender;
-            }
-        }
-
-        return $ids;
-    }
-
     /* ===============================
        NOTIFICATION
     =============================== */
     public function mark_notification_read() {
 
+        check_ajax_referer('profile_nonce', 'nonce');
+
         if (!is_user_logged_in()) {
             wp_send_json_error('Not logged in');
         }
 
-        $id = intval($_POST['id']);
+        $id = absint($_POST['id'] ?? 0);
         $user_id = get_current_user_id();
 
         $notification = new NEXORA_Notification();
 
         $row = $notification->get_row($id);
 
-        if (!$row || $row->receiver_user_id != $user_id) {
+        if (!$row || (int) $row->receiver_user_id !== (int) $user_id) {
             wp_send_json_error('Unauthorized');
         }
 
@@ -778,40 +828,40 @@ class NEXORA_PROFILE_AJAX {
     // ADD NEW CONTENT
     public function save_user_content() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
+        $auth       = $this->validate_request();
+        $user_id    = $auth['user_id'];
+        $profile_id = $auth['profile_id'];
 
-        if (!is_user_logged_in()) {
-            wp_send_json_error('Not logged in');
+        $title       = $this->post_value('title');
+        $description = sanitize_textarea_field(wp_unslash($_POST['description'] ?? ''));
+        $image_id    = absint($_POST['image'] ?? 0);
+
+        if ($title === '') {
+            wp_send_json_error('Title is required');
         }
 
-        $user_id = get_current_user_id();
-        $profile_id = get_user_meta($user_id, '_profile_id', true);
+        if ($image_id && !$this->user_owns_attachment($image_id, $user_id)) {
+            wp_send_json_error('Invalid image selected');
+        }
 
-        $title       = sanitize_text_field($_POST['title']);
-        $description = sanitize_textarea_field($_POST['description']);
-        $image_id    = intval($_POST['image']);
-
-        // Get user name from profile
         $user_name = get_post_meta($profile_id, 'user_name', true);
 
-        // Create post
         $post_id = wp_insert_post([
-            'post_type'   => 'user_content',
-            'post_title'  => $title,
-            'post_content'=> $description,
-            'post_status' => 'publish'
+            'post_type'    => 'user_content',
+            'post_title'   => $title,
+            'post_content' => $description,
+            'post_status'  => 'publish',
+            'post_author'  => $user_id
         ]);
 
-        if (!$post_id) {
+        if (is_wp_error($post_id) || !$post_id) {
             wp_send_json_error('Failed to create post');
         }
 
-        // Set featured image
         if ($image_id) {
             set_post_thumbnail($post_id, $image_id);
         }
 
-        // Save meta
         update_post_meta($post_id, 'user_id', $user_id);
         update_post_meta($post_id, 'user_profile_id', $profile_id);
         update_post_meta($post_id, 'user_name', $user_name);
@@ -822,19 +872,13 @@ class NEXORA_PROFILE_AJAX {
     //  HISTORY
     public function get_user_content_history() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
-
-        if (!is_user_logged_in()) {
-            wp_send_json_error('Not logged in');
-        }
-
-        $user_id = get_current_user_id();
-        $profile_id = get_user_meta($user_id, '_profile_id', true);
+        $auth       = $this->validate_request();
+        $profile_id = $auth['profile_id'];
 
         // Fetch only current user's content
         $posts = get_posts([
             'post_type' => 'user_content',
-            'posts_per_page' => -1,
+            'posts_per_page' => 100,
             'meta_query' => [
                 [
                     'key' => 'user_profile_id',

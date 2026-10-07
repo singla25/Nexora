@@ -1,6 +1,22 @@
+# Secrets / environment
 .env
+wp-config.php
+
+# Dependencies
 node_modules/
 vendor/
-wp-config.php      # if WordPress
+
+# Logs / OS
 *.log
 .DS_Store
+
+# Backups, caches, uploads (never commit; contain user data)
+wp-content/updraft/
+wp-content/ai1wm-backups/
+wp-content/litespeed/
+wp-content/cache/
+wp-content/uploads/
+wp-content/upgrade/
+*.sql
+*.sql.gz
+*.wpress

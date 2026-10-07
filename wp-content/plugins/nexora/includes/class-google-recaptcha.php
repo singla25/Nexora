@@ -12,14 +12,13 @@ class Nexora_ReCaptcha {
         $this->enabled    = get_option('recaptcha_enabled');
     }
 
+    /**
+     * Captcha is skipped only when WordPress itself reports a local environment
+     * (WP_ENVIRONMENT_TYPE = local). The Host header is client controlled and
+     * must never be used to decide this.
+     */
     public function is_local() {
-        $host = $_SERVER['HTTP_HOST'];
-
-        return (
-            strpos($host, 'localhost') !== false ||
-            strpos($host, '.local') !== false ||   // 🔥 this handles your case
-            in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])
-        );
+        return function_exists('wp_get_environment_type') && wp_get_environment_type() === 'local';
     }
 
     // 🔹 Check if captcha is enabled
@@ -86,8 +85,9 @@ class Nexora_ReCaptcha {
                 'body' => [
                     'secret'   => $this->secret_key,
                     'response' => $captcha_response,
-                    'remoteip' => $_SERVER['REMOTE_ADDR']
-                ]
+                    'remoteip' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : ''
+                ],
+                'timeout' => 10
             ]
         );
 

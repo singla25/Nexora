@@ -51,6 +51,7 @@ jQuery(document).ready(function ($) {
     // ==============================
 
     let forgotUserId = null;
+    let forgotToken = null;
 
     $(document).on('click', '#forgot-password-btn[data-type="forgot-password"]', function (e) {
 
@@ -185,6 +186,9 @@ jQuery(document).ready(function ($) {
                         return;
                     }
 
+                    // Keep the one-time reset token returned after OTP verification
+                    forgotToken = res.data.token;
+
                     // STEP 3 → RESET PASSWORD
                     showResetPasswordPopup();
                 }
@@ -226,16 +230,16 @@ jQuery(document).ready(function ($) {
 
             preConfirm: () => {
 
-                let pass = $('#new_password').val().trim();
-                let confirm = $('#confirm_password').val().trim();
+                let pass = $('#new_password').val();
+                let confirm = $('#confirm_password').val();
 
                 if (!pass || !confirm) {
                     Swal.showValidationMessage('All fields required');
                     return false;
                 }
 
-                if (pass.length < 6) {
-                    Swal.showValidationMessage('Min 6 characters');
+                if (pass.length < 8) {
+                    Swal.showValidationMessage('Min 8 characters');
                     return false;
                 }
 
@@ -258,6 +262,7 @@ jQuery(document).ready(function ($) {
                     action: 'reset_password',
                     password: result.value,
                     user_id: forgotUserId,
+                    token: forgotToken,
                     nonce: profileData.nonce
                 },
 

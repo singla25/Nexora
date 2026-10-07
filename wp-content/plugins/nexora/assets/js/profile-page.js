@@ -1,5 +1,15 @@
 jQuery(document).ready(function ($) {
 
+    // Escape server / user supplied text before putting it into HTML templates
+    function esc(value) {
+        return String(value === null || value === undefined ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     // ===============================
     // TAB SWITCH
     // ===============================
@@ -33,13 +43,9 @@ jQuery(document).ready(function ($) {
     // UPDATE INFORMATION
     // ===============================
     let data = profilePageData.userData;
-
-    console.log(data)
-
     $(document).on('click', '.user-edit-info', function () {
 
         let type = $(this).data('type');
-        console.log(type);
         let html = '';
 
         // PERSONAL
@@ -49,27 +55,27 @@ jQuery(document).ready(function ($) {
 
                     <div class="form-group">
                         <label>User Name</label>
-                        <input type="text" value="${data.user_name}" disabled>
+                        <input type="text" value="${esc(data.user_name)}" disabled>
                     </div>
 
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" value="${data.email}" disabled>
+                        <input type="email" value="${esc(data.email)}" disabled>
                     </div>
 
                     <div class="form-group">
                         <label>First Name</label>
-                        <input name="first_name" value="${data.first_name || ''}">
+                        <input name="first_name" value="${esc(data.first_name)}">
                     </div>
 
                     <div class="form-group">
                         <label>Last Name</label>
-                        <input name="last_name" value="${data.last_name || ''}">
+                        <input name="last_name" value="${esc(data.last_name)}">
                     </div>
 
                     <div class="form-group">
                         <label>Phone</label>
-                        <input name="phone" value="${data.phone || ''}">
+                        <input name="phone" value="${esc(data.phone)}">
                     </div>
 
                     <div class="form-group">
@@ -83,17 +89,17 @@ jQuery(document).ready(function ($) {
 
                     <div class="form-group">
                         <label>Birthdate</label>
-                        <input type="date" name="birthdate" value="${data.birthdate || ''}">
+                        <input type="date" name="birthdate" value="${esc(data.birthdate)}">
                     </div>
 
                     <div class="form-group">
                         <label>LinkedIn</label>
-                        <input name="linkedin_id" value="${data.linkedin_id || ''}">
+                        <input name="linkedin_id" value="${esc(data.linkedin_id)}">
                     </div>
 
                     <div class="form-group full">
                         <label>Bio</label>
-                        <textarea name="bio">${data.bio || ''}</textarea>
+                        <textarea name="bio">${esc(data.bio)}</textarea>
                     </div>
 
                     <button class="form-submit">Save</button>
@@ -110,24 +116,24 @@ jQuery(document).ready(function ($) {
                         <h4>Permanent Address</h4>
 
                         <div class="form-group full">
-                            <input name="perm_address" value="${data.perm_address || ''}" placeholder="Address">
+                            <input name="perm_address" value="${esc(data.perm_address)}" placeholder="Address">
                         </div>
 
-                        <div class="form-group"><input name="perm_city" value="${data.perm_city || ''}" placeholder="City"></div>
-                        <div class="form-group"><input name="perm_state" value="${data.perm_state || ''}" placeholder="State"></div>
-                        <div class="form-group"><input name="perm_pincode" value="${data.perm_pincode || ''}" placeholder="Pincode"></div>
+                        <div class="form-group"><input name="perm_city" value="${esc(data.perm_city)}" placeholder="City"></div>
+                        <div class="form-group"><input name="perm_state" value="${esc(data.perm_state)}" placeholder="State"></div>
+                        <div class="form-group"><input name="perm_pincode" value="${esc(data.perm_pincode)}" placeholder="Pincode"></div>
                     </div>
 
                     <div class="form-section">
                         <h4>Correspondence Address</h4>
 
                         <div class="form-group full">
-                            <input name="corr_address" value="${data.corr_address || ''}" placeholder="Address">
+                            <input name="corr_address" value="${esc(data.corr_address)}" placeholder="Address">
                         </div>
 
-                        <div class="form-group"><input name="corr_city" value="${data.corr_city || ''}" placeholder="City"></div>
-                        <div class="form-group"><input name="corr_state" value="${data.corr_state || ''}" placeholder="State"></div>
-                        <div class="form-group"><input name="corr_pincode" value="${data.corr_pincode || ''}" placeholder="Pincode"></div>
+                        <div class="form-group"><input name="corr_city" value="${esc(data.corr_city)}" placeholder="City"></div>
+                        <div class="form-group"><input name="corr_state" value="${esc(data.corr_state)}" placeholder="State"></div>
+                        <div class="form-group"><input name="corr_pincode" value="${esc(data.corr_pincode)}" placeholder="Pincode"></div>
                     </div>
 
                     <button class="form-submit">Save</button>
@@ -140,13 +146,13 @@ jQuery(document).ready(function ($) {
             html = `
                 <form class="info-form grid-form" data-type="work-info">
 
-                    <div class="form-group"><input name="company_name" value="${data.company_name || ''}" placeholder="Company"></div>
-                    <div class="form-group"><input name="designation" value="${data.designation || ''}" placeholder="Designation"></div>
-                    <div class="form-group"><input name="company_email" value="${data.company_email || ''}" placeholder="Email"></div>
-                    <div class="form-group"><input name="company_phone" value="${data.company_phone || ''}" placeholder="Phone"></div>
+                    <div class="form-group"><input name="company_name" value="${esc(data.company_name)}" placeholder="Company"></div>
+                    <div class="form-group"><input name="designation" value="${esc(data.designation)}" placeholder="Designation"></div>
+                    <div class="form-group"><input name="company_email" value="${esc(data.company_email)}" placeholder="Email"></div>
+                    <div class="form-group"><input name="company_phone" value="${esc(data.company_phone)}" placeholder="Phone"></div>
 
                     <div class="form-group full">
-                        <textarea name="company_address" placeholder="Address">${data.company_address || ''}</textarea>
+                        <textarea name="company_address" placeholder="Address">${esc(data.company_address)}</textarea>
                     </div>
 
                     <button class="form-submit">Save</button>
@@ -170,7 +176,7 @@ jQuery(document).ready(function ($) {
 
                                     ${
                                         data[key] 
-                                        ? `<img src="${data[key]}" class="doc-preview">`
+                                        ? `<img src="${esc(data[key])}" class="doc-preview">`
                                         : `<div class="doc-placeholder">No Image</div>`
                                     }
 
@@ -190,7 +196,7 @@ jQuery(document).ready(function ($) {
                                 </span>
 
                                 <!-- ⚠️ IMPORTANT: hidden should store ID, not URL -->
-                                <input type="hidden" name="${key}" value="${data[key + '_id'] || ''}">
+                                <input type="hidden" name="${key}" value="${esc(data[key + '_id'])}">
 
                             </div>
 
@@ -263,7 +269,7 @@ jQuery(document).ready(function ($) {
             container.find('input[type="hidden"]').val(attachment.id);
 
             container.find('.doc-image-wrapper').html(`
-                <img src="${attachment.url}" class="doc-preview">
+                <img src="${esc(attachment.url)}" class="doc-preview">
                 <div class="doc-overlay">
                     <button type="button" class="upload-btn">Upload</button>
                     <button type="button" class="remove-btn">Remove</button>
@@ -283,8 +289,6 @@ jQuery(document).ready(function ($) {
 
         // ✅ get existing ID (optional debug)
         let oldId = input.val();
-        console.log("Removing ID:", oldId);
-
         // ✅ clear value (this is actual remove signal)
         input.val('');
 
@@ -384,7 +388,7 @@ jQuery(document).ready(function ($) {
 
                     let profileLink = user.profile_link 
                         ? user.profile_link 
-                        : `${profilePageData.homeUrl}/profile-page/${user.username}`;
+                        : `${profilePageData.homeUrl}/profile-page/${encodeURIComponent(user.username)}`;
                     
                     html += `
                         <div class="connection-card">
@@ -392,18 +396,18 @@ jQuery(document).ready(function ($) {
                             <div class="conn-cover"></div>
 
                             <div class="conn-avatar">
-                                <img src="${user.image ? user.image : profilePageData.userData.profile_image}">
+                                <img src="${esc(user.image ? user.image : profilePageData.userData.profile_image)}">
                             </div>
 
                             <div class="conn-body">
 
-                                <a href="${profileLink}" class="conn-username" target="_blank">
-                                    ${user.username}
+                                <a href="${esc(profileLink)}" class="conn-username" target="_blank">
+                                    ${esc(user.username)}
                                 </a>
 
-                                <p class="conn-name">${user.name}</p>
+                                <p class="conn-name">${esc(user.name)}</p>
 
-                                <button class="connect-btn" data-id="${user.profile_id}">
+                                <button class="connect-btn" data-id="${esc(user.profile_id)}">
                                     Connect
                                 </button>
 
@@ -456,7 +460,7 @@ jQuery(document).ready(function ($) {
 
                     let profileLink = user.profile_link 
                         ? user.profile_link 
-                        : `${profilePageData.homeUrl}/profile-page/${user.username}`;
+                        : `${profilePageData.homeUrl}/profile-page/${encodeURIComponent(user.username)}`;
 
                     html += `
                         <div class="connection-card">
@@ -464,22 +468,22 @@ jQuery(document).ready(function ($) {
                             <div class="conn-cover"></div>
 
                             <div class="conn-avatar">
-                                <img src="${user.image ? user.image : profilePageData.userData.profile_image}">
+                                <img src="${esc(user.image ? user.image : profilePageData.userData.profile_image)}">
                             </div>
 
                             <div class="conn-body">
 
-                                <a href="${profileLink}" class="conn-username" target="_blank">
-                                    ${user.username}
+                                <a href="${esc(profileLink)}" class="conn-username" target="_blank">
+                                    ${esc(user.username)}
                                 </a>
 
-                                <p class="conn-name">${user.name}</p>
+                                <p class="conn-name">${esc(user.name)}</p>
 
-                                <button class="accept-btn" data-id="${user.connection_id}">
+                                <button class="accept-btn" data-id="${esc(user.connection_id)}">
                                     Accept
                                 </button>
 
-                                <button class="reject-btn" data-id="${user.connection_id}">
+                                <button class="reject-btn" data-id="${esc(user.connection_id)}">
                                     Reject
                                 </button>
 
@@ -678,14 +682,14 @@ jQuery(document).ready(function ($) {
             html: `
                 <div class="noti-popup">
 
-                    <img src="${avatar}" class="noti-popup-avatar">
+                    <img src="${esc(avatar)}" class="noti-popup-avatar">
 
                     <div class="noti-popup-message">
-                        ${message}
+                        ${esc(message)}
                     </div>
 
                     <div class="noti-popup-time">
-                        ${item.find('.noti-time').text()}
+                        ${esc(item.find('.noti-time').text())}
                     </div>
 
                 </div>
@@ -737,29 +741,29 @@ jQuery(document).ready(function ($) {
             html: `
                 <div class="modern-post">
 
-                    <img src="${image}" class="modern-post-img">
+                    <img src="${esc(image)}" class="modern-post-img">
 
                     <div class="modern-post-body">
 
                         <!-- TITLE -->
-                        <h2 class="modern-post-title">${title}</h2>
+                        <h2 class="modern-post-title">${esc(title)}</h2>
 
                         <!-- DESCRIPTION -->
-                        <p class="modern-post-desc">${content}</p>
+                        <p class="modern-post-desc">${esc(content)}</p>
 
                         <!-- USER ROW -->
                         <div class="modern-post-meta">
 
-                            <a href="${profile}" target="_blank" class="meta-username">
-                                ${username}
+                            <a href="${esc(profile)}" target="_blank" class="meta-username">
+                                ${esc(username)}
                             </a>
 
                             <span class="meta-fullname">
-                                ${fullname}
+                                ${esc(fullname)}
                             </span>
 
                             <span class="meta-date">
-                                ${date}
+                                ${esc(date)}
                             </span>
 
                         </div>
@@ -913,15 +917,15 @@ jQuery(document).ready(function ($) {
             html: `
                 <div class="modern-post">
 
-                    <img src="${image}" class="modern-post-img">
+                    <img src="${esc(image)}" class="modern-post-img">
 
                     <div class="modern-post-body">
 
                         <!-- TITLE -->
-                        <h2 class="modern-post-title">${title}</h2>
+                        <h2 class="modern-post-title">${esc(title)}</h2>
 
                         <!-- DESCRIPTION -->
-                        <p class="modern-post-desc">${content}</p>
+                        <p class="modern-post-desc">${esc(content)}</p>
 
                         <!-- FOOTER -->
                         <div class="modern-post-meta">
@@ -929,7 +933,7 @@ jQuery(document).ready(function ($) {
                             <span></span>
 
                             <span class="meta-date">
-                                Posted on: ${date}
+                                Posted on: ${esc(date)}
                             </span>
 
                         </div>

@@ -29,102 +29,94 @@ class NEXORA_PROFILE_PAGE {
 
         wp_enqueue_media(); // To upload Media by Using wp.media()
 
-        // FIX STARTS HERE
-        $profile_id = 0;
-        $email = '';
-        $phone = '';
-
-        if (is_user_logged_in()) {
-            $user_id = get_current_user_id();
-            $profile_id = get_user_meta($user_id, '_profile_id', true);
-
-            $email = get_post_meta($profile_id,'email',true);
-            $phone = get_post_meta($profile_id,'phone',true);
-        }
-
         $current_user_id = get_current_user_id();
+        $profile_id      = 0;
+        $owner_user_id   = 0;
+
         $username = get_query_var('username');
 
-        $owner_user_id = 0;
-
         if ($username) {
-            $query = new WP_Query([
-                'post_type' => 'user_profile',
-                'posts_per_page' => 1,
-                'meta_query' => [
-                    [
-                        'key' => 'user_name',
-                        'value' => $username,
-                        'compare' => '='
-                    ]
-                ]
-            ]);
+            $profile_id = $this->get_profile_id_by_username($username);
 
-            if ($query->have_posts()) {
-                $query->the_post();
-                $profile_id = get_the_ID();
-                $owner_user_id = get_post_meta($profile_id, '_wp_user_id', true);
-                wp_reset_postdata();
+            if ($profile_id) {
+                $owner_user_id = (int) get_post_meta($profile_id, '_wp_user_id', true);
             }
-        } else {
+        } elseif ($current_user_id) {
+            $profile_id    = (int) get_user_meta($current_user_id, '_profile_id', true);
             $owner_user_id = $current_user_id;
         }
 
-        // 🔥 ROLE
         $role_type = $this->get_user_role_type($current_user_id, $owner_user_id);
 
+        // Public data: safe for any visitor
+        $user_data = [
+            'profile_id'    => $profile_id,
+            'user_name'     => get_post_meta($profile_id, 'user_name', true),
+            'first_name'    => get_post_meta($profile_id, 'first_name', true),
+            'last_name'     => get_post_meta($profile_id, 'last_name', true),
+            'bio'           => get_post_meta($profile_id, 'bio', true),
+            'profile_image' => wp_get_attachment_url((int) get_post_meta($profile_id, 'profile_image', true)),
+            'cover_image'   => wp_get_attachment_url((int) get_post_meta($profile_id, 'cover_image', true)),
+        ];
+
+        // Private data (contact details, address, ID documents) is only ever sent to the owner
+        if ($role_type === 'owner' && $profile_id) {
+
+            $private_fields = [
+                'email', 'phone', 'gender', 'birthdate', 'linkedin_id',
+                'perm_address', 'perm_city', 'perm_state', 'perm_pincode',
+                'corr_address', 'corr_city', 'corr_state', 'corr_pincode',
+                'company_name', 'designation', 'company_email', 'company_phone', 'company_address'
+            ];
+
+            foreach ($private_fields as $field) {
+                $user_data[$field] = get_post_meta($profile_id, $field, true);
+            }
+
+            foreach (['profile_image', 'cover_image', 'aadhaar_card', 'driving_license', 'company_id_card'] as $doc) {
+                $doc_id = (int) get_post_meta($profile_id, $doc, true);
+
+                $user_data[$doc . '_id'] = $doc_id ?: '';
+                $user_data[$doc]         = $doc_id ? wp_get_attachment_url($doc_id) : '';
+            }
+        }
+
         wp_localize_script('profile-page-js', 'profilePageData', [
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce'   => wp_create_nonce('profile_nonce'),
-            'homeUrl' => home_url(),
-            'current_user_id' => get_current_user_id(),
-            'roleType' => $role_type,
+            'ajaxUrl'         => admin_url('admin-ajax.php'),
+            'nonce'           => wp_create_nonce('profile_nonce'),
+            'homeUrl'         => home_url(),
+            'current_user_id' => $current_user_id,
+            'roleType'        => $role_type,
+            'userData'        => $user_data
+        ]);
+    }
 
-            // USER INFORMATION BLOCK
-            'userData' => [
-                'profile_id' => $profile_id,
-                'user_name'  => get_post_meta($profile_id,'user_name',true),
-                'email'      => $email,
-                'phone'      => $phone,
+    /**
+     * Resolve a profile post ID from the username in the URL.
+     */
+    private function get_profile_id_by_username($username) {
 
-                'first_name' => get_post_meta($profile_id,'first_name',true),
-                'last_name'  => get_post_meta($profile_id,'last_name',true),
-                'gender'     => get_post_meta($profile_id,'gender',true),
-                'birthdate'  => get_post_meta($profile_id,'birthdate',true),
-                'linkedin_id'=> get_post_meta($profile_id,'linkedin_id',true),
-                'bio'        => get_post_meta($profile_id,'bio',true),
+        $username = sanitize_user($username, true);
 
-                // ADDRESS
-                'perm_address'=> get_post_meta($profile_id,'perm_address',true),
-                'perm_city'   => get_post_meta($profile_id,'perm_city',true),
-                'perm_state'  => get_post_meta($profile_id,'perm_state',true),
-                'perm_pincode'=> get_post_meta($profile_id,'perm_pincode',true),
+        if ($username === '') {
+            return 0;
+        }
 
-                'corr_address'=> get_post_meta($profile_id,'corr_address',true),
-                'corr_city'   => get_post_meta($profile_id,'corr_city',true),
-                'corr_state'  => get_post_meta($profile_id,'corr_state',true),
-                'corr_pincode'=> get_post_meta($profile_id,'corr_pincode',true),
-
-                // WORK
-                'company_name'   => get_post_meta($profile_id,'company_name',true),
-                'designation'    => get_post_meta($profile_id,'designation',true),
-                'company_email'  => get_post_meta($profile_id,'company_email',true),
-                'company_phone'  => get_post_meta($profile_id,'company_phone',true),
-                'company_address'=> get_post_meta($profile_id,'company_address',true),
-
-                // DOCUMENTS (IDs)
-                'profile_image_id' => get_post_meta($profile_id,'profile_image',true),
-                'profile_image'   => wp_get_attachment_url(get_post_meta($profile_id,'profile_image',true)),
-                'cover_image_id' => get_post_meta($profile_id,'cover_image',true),
-                'cover_image'     => wp_get_attachment_url(get_post_meta($profile_id,'cover_image',true)),
-                'aadhaar_card_id' => get_post_meta($profile_id,'aadhaar_card',true),
-                'aadhaar_card'    => wp_get_attachment_url(get_post_meta($profile_id,'aadhaar_card',true)),
-                'driving_license_id' => get_post_meta($profile_id,'driving_license',true),
-                'driving_license' => wp_get_attachment_url(get_post_meta($profile_id,'driving_license',true)),
-                'company_id_card_id' => get_post_meta($profile_id,'company_id_card',true),
-                'company_id_card' => wp_get_attachment_url(get_post_meta($profile_id,'company_id_card',true)),
+        $ids = get_posts([
+            'post_type'      => 'user_profile',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                [
+                    'key'     => 'user_name',
+                    'value'   => $username,
+                    'compare' => '='
+                ]
             ]
         ]);
+
+        return $ids ? (int) $ids[0] : 0;
     }
 
     /* ===============================
@@ -173,7 +165,7 @@ class NEXORA_PROFILE_PAGE {
         $current_user_name = get_post_meta($current_profile_id, 'user_name', true);
 
         // CASE 1: Guest User
-        if (!$username && !$current_user_id) {
+        if (!$current_user_id) {
             return '
                 <div style="max-width:500px;margin:100px auto;text-align:center;padding:40px;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1);">
                     <h2 style="margin-bottom:10px;">🔒 Access Restricted</h2>
@@ -234,26 +226,20 @@ class NEXORA_PROFILE_PAGE {
                 return "<p>Please login</p>";
             }
 
-            $profile_id = get_user_meta($current_user_id, '_profile_id', true);
+            $profile_id = (int) get_user_meta($current_user_id, '_profile_id', true);
             $owner_user_id = $current_user_id;
+
+            if (!$profile_id) {
+                return '<p>Profile not found.</p>';
+            }
         }
 
         // CASE 4: Other user's profile (/profile-page/username)
         else {
 
-            $query = new WP_Query([
-                'post_type' => 'user_profile',
-                'posts_per_page' => 1,
-                'meta_query' => [
-                    [
-                        'key' => 'user_name',
-                        'value' => $username,
-                        'compare' => '='
-                    ]
-                ]
-            ]);
+            $profile_id = $this->get_profile_id_by_username($username);
 
-            if (!$query->have_posts()) {
+            if (!$profile_id) {
                 return '
                     <div style="max-width:520px;margin:120px auto;text-align:center;padding:50px 40px;background:#ffffff;border-radius:16px;
                         box-shadow:0 20px 50px rgba(0,0,0,0.08);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
@@ -283,10 +269,6 @@ class NEXORA_PROFILE_PAGE {
                 ';
             }
 
-            $query->the_post();
-            $profile_id = get_the_ID();
-            wp_reset_postdata();
-
             $owner_user_id = get_post_meta($profile_id, '_wp_user_id', true);
         }
 
@@ -298,8 +280,9 @@ class NEXORA_PROFILE_PAGE {
 
         $name     = get_the_title($profile_id);
         $username = get_post_meta($profile_id, 'user_name', true);
-        $email    = get_post_meta($profile_id, 'email', true);
-        $phone    = get_post_meta($profile_id, 'phone', true);
+        // Contact details are private to the owner
+        $email    = $is_owner ? get_post_meta($profile_id, 'email', true) : '';
+        $phone    = $is_owner ? get_post_meta($profile_id, 'phone', true) : '';
 
         $profile_image_id  = get_post_meta($profile_id, 'profile_image', true);
         $cover_image_id  = get_post_meta($profile_id, 'cover_image', true);
@@ -331,7 +314,9 @@ class NEXORA_PROFILE_PAGE {
                     <img src="<?php echo esc_url($profile_image); ?>" class="profile-avatar">
                     <h2><?php echo esc_html($username); ?></h2>
                     <h4><?php echo esc_html($name); ?></h4>
-                    <p><?php echo esc_html($email); ?> | <?php echo esc_html($phone); ?></p>
+                    <?php if ($is_owner): ?>
+                        <p><?php echo esc_html($email); ?> | <?php echo esc_html($phone); ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <!-- TABS -->
@@ -344,7 +329,7 @@ class NEXORA_PROFILE_PAGE {
                             Notifications
                             <?php if ($unread_count > 0): ?>
                                 <span class="noti-badge">
-                                    <?php echo $unread_count; ?>
+                                    <?php echo (int) $unread_count; ?>
                                 </span>
                             <?php endif; ?>
                         </button>
@@ -392,10 +377,12 @@ class NEXORA_PROFILE_PAGE {
                                         <span class="info-value"><?php echo esc_html($username); ?></span>
                                     </div>
 
+                                    <?php if ($is_owner): ?>
                                     <div class="info-item">
                                         <span class="info-label">Email</span>
                                         <span class="info-value"><?php echo esc_html($email); ?></span>
                                     </div>
+                                    <?php endif; ?>
 
                                     <div class="info-item">
                                         <span class="info-label">First Name</span>
@@ -412,15 +399,19 @@ class NEXORA_PROFILE_PAGE {
                                         <span class="info-value"><?php echo esc_html(get_post_meta($profile_id,'gender',true)); ?></span>
                                     </div>
 
+                                    <?php if ($is_owner): ?>
                                     <div class="info-item">
                                         <span class="info-label">Birthdate</span>
                                         <span class="info-value"><?php echo esc_html(get_post_meta($profile_id,'birthdate',true)); ?></span>
                                     </div>
+                                    <?php endif; ?>
 
+                                    <?php if ($is_owner): ?>
                                     <div class="info-item">
                                         <span class="info-label">Phone</span>
                                         <span class="info-value"><?php echo esc_html($phone); ?></span>
                                     </div>
+                                    <?php endif; ?>
                                     
                                     <div class="info-item">
                                         <span class="info-label">LinkedIn</span>
@@ -436,6 +427,7 @@ class NEXORA_PROFILE_PAGE {
                             </div>
 
                             <!-- ADDRESS INFO -->
+                            <?php if ($is_owner): ?>
                             <div class="info-card">
                                 <h3>Address Information</h3>
 
@@ -493,6 +485,7 @@ class NEXORA_PROFILE_PAGE {
                                     </div>
                                 </div>
                             </div>
+                            <?php endif; ?>
 
                             <!-- WORK INFO -->
                             <div class="info-card">
@@ -544,6 +537,11 @@ class NEXORA_PROFILE_PAGE {
 
                                     foreach ($docs as $key => $label):
 
+                                        // ID documents are private to the owner
+                                        if (!$is_owner && !in_array($key, ['profile_image', 'cover_image'], true)) {
+                                            continue;
+                                        }
+
                                         $id  = get_post_meta($profile_id,$key,true);
                                         $url = $id ? wp_get_attachment_url($id) : '';
 
@@ -560,7 +558,7 @@ class NEXORA_PROFILE_PAGE {
                                     ?>
 
                                         <div class="doc-card">
-                                            <span class="doc-title"><?php echo $label; ?></span>
+                                            <span class="doc-title"><?php echo esc_html($label); ?></span>
 
                                             <?php if ($url): ?>
                                                 <a href="<?php echo esc_url($url); ?>" target="_blank">
@@ -609,11 +607,11 @@ class NEXORA_PROFILE_PAGE {
                                 </div>
 
                                 <div class="conn-right"> 
-                                    <button class="conn-tab" data-type="view-all-conn" data-profile="<?php echo $profile_id; ?>">
+                                    <button class="conn-tab" data-type="view-all-conn" data-profile="<?php echo (int) $profile_id; ?>">
                                         All Connections
                                     </button>
 
-                                    <button class="conn-tab" data-type="view-common-conn" data-profile="<?php echo $profile_id; ?>">
+                                    <button class="conn-tab" data-type="view-common-conn" data-profile="<?php echo (int) $profile_id; ?>">
                                         Mutual
                                     </button>
                                 </div>
@@ -670,7 +668,7 @@ class NEXORA_PROFILE_PAGE {
 
                                                 <!-- AVATAR -->
                                                 <div class="conn-avatar">
-                                                    <img src="<?php echo $user['image']; ?>" alt="">
+                                                    <img src="<?php echo esc_url($user['image']); ?>" alt="">
                                                 </div>
 
                                                 <!-- INFO -->
@@ -685,7 +683,7 @@ class NEXORA_PROFILE_PAGE {
                                                     </p>
 
                                                     <?php if ($is_owner): ?>
-                                                        <button class="remove-connection-btn" data-id="<?php echo $user['connection_id']; ?>">
+                                                        <button class="remove-connection-btn" data-id="<?php echo (int) $user['connection_id']; ?>">
                                                             Remove
                                                         </button>
                                                     <?php endif; ?>
@@ -746,7 +744,7 @@ class NEXORA_PROFILE_PAGE {
                                         </div>
 
                                         <?php if ($is_logged_in): ?>
-                                            <button class="view-all-btn" data-type="view-all-conn" data-profile="<?php echo $profile_id; ?>">
+                                            <button class="view-all-btn" data-type="view-all-conn" data-profile="<?php echo (int) $profile_id; ?>">
                                                 View All Connections
                                             </button>
                                         <?php endif; ?>
@@ -848,7 +846,7 @@ class NEXORA_PROFILE_PAGE {
                                         <!-- ACTION -->
                                         <button 
                                             class="notification-view"
-                                            data-id="<?php echo $noti->id; ?>"
+                                            data-id="<?php echo (int) $noti->id; ?>"
                                             data-type="received"
                                         >
                                             View
@@ -983,7 +981,7 @@ class NEXORA_PROFILE_PAGE {
             <!-- LOG OUT -->
             <?php if ($is_owner): ?>                    
                 <div style="text-align:center; margin-top:30px;">
-                    <a class="logout-btn" href="<?php echo wp_logout_url(home_url('/login-page')); ?>" 
+                    <a class="logout-btn" href="<?php echo esc_url(wp_logout_url(home_url('/login-page'))); ?>" 
                     style="display:inline-block; padding:12px 25px; background:#ef4444; color:#fff; border-radius:10px; text-decoration:none;">
                         Logout
                     </a>
@@ -1011,8 +1009,27 @@ class NEXORA_PROFILE_PAGE {
 
         $role = get_role('subscriber'); // or your custom role
 
-        if ($role) {
-            $role->add_cap('upload_files'); // THIS FIXES IT
+        // Only write to the DB when the capability is actually missing
+        if ($role && !$role->has_cap('upload_files')) {
+            $role->add_cap('upload_files');
         }
+
+        // Members may only upload images and PDFs
+        add_filter('upload_mimes', [$this, 'restrict_member_mimes']);
+    }
+
+    function restrict_member_mimes($mimes) {
+
+        if (current_user_can('manage_options')) {
+            return $mimes;
+        }
+
+        return [
+            'jpg|jpeg|jpe' => 'image/jpeg',
+            'png'          => 'image/png',
+            'gif'          => 'image/gif',
+            'webp'         => 'image/webp',
+            'pdf'          => 'application/pdf',
+        ];
     }
 }

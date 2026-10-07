@@ -49,62 +49,86 @@ class NEXORA_Login {
     }
 
     // ---------------------------
+    //      HELPERS
+    // ---------------------------
+    private function client_ip() {
+        return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+    }
+
+    /**
+     * Simple transient based rate limiter. Returns true when the limit is exceeded.
+     */
+    private function rate_limited($bucket, $limit, $window) {
+        $key   = 'nx_rl_' . md5($bucket . '|' . $this->client_ip());
+        $count = (int) get_transient($key);
+
+        if ($count >= $limit) {
+            return true;
+        }
+
+        set_transient($key, $count + 1, $window);
+        return false;
+    }
+
+    private function clear_otp($user_id) {
+        delete_user_meta($user_id, 'reset_otp');
+        delete_user_meta($user_id, 'otp_expiry');
+        delete_user_meta($user_id, 'otp_attempts');
+        delete_user_meta($user_id, 'reset_token');
+        delete_user_meta($user_id, 'reset_token_expiry');
+    }
+
+    // ---------------------------
     //      SEND OTP
     // ---------------------------
     public function send_otp() {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        $username = sanitize_text_field($_POST['username']);
-        $email    = sanitize_email($_POST['email']);
-
-        $user = get_user_by('login', $username);
-
-        if (!$user) {
-            wp_send_json_error('Invalid username');
+        if ($this->rate_limited('send_otp', 5, 15 * MINUTE_IN_SECONDS)) {
+            wp_send_json_error('Too many requests. Please try again later.');
         }
 
-        if ($user->user_email !== $email) {
-            wp_send_json_error('Email does not match with username');
+        $username = sanitize_user(wp_unslash($_POST['username'] ?? ''));
+        $email    = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+
+        $generic = [
+            'user_id' => 0,
+            'message' => 'If the details are correct, an OTP has been sent to your email.'
+        ];
+
+        $user = $username ? get_user_by('login', $username) : false;
+
+        // Same response for unknown user / wrong email (no account enumeration)
+        if (!$user || !$email || strcasecmp($user->user_email, $email) !== 0) {
+            wp_send_json_success($generic);
         }
 
-        // Check existing OTP
-        $existing_otp = get_user_meta($user->ID, 'reset_otp', true);
-        $expiry       = get_user_meta($user->ID, 'otp_expiry', true);
+        // Do not issue a new OTP while a valid one exists (prevents mail flooding)
+        $expiry = (int) get_user_meta($user->ID, 'otp_expiry', true);
 
-        // If OTP exists and not expired
-        if ($existing_otp && $expiry && time() < $expiry) {
-
-            $remaining_seconds = $expiry - time();
-            $remaining_minutes = ceil($remaining_seconds / 60);
-
-            // Send SAME OTP again
-            $subject = "Your OTP is still valid - Nexora";
-            $message = "Your OTP is: $existing_otp\n\nThis OTP is still valid for $remaining_minutes minute(s).";
-
-            wp_mail($email, $subject, $message);
-
-            wp_send_json_success([
-                'user_id' => $user->ID,
-                'message' => "OTP already sent. Valid for $remaining_minutes minute(s)."
-            ]);
+        if ($expiry && time() < $expiry) {
+            $generic['user_id'] = $user->ID;
+            $generic['message'] = 'An OTP was already sent. Please check your email or wait for it to expire.';
+            wp_send_json_success($generic);
         }
 
-        // Generate NEW OTP
-        $otp = rand(100000, 999999);
+        $otp = (string) random_int(100000, 999999);
 
-        update_user_meta($user->ID, 'reset_otp', $otp);
+        // Store only a hash of the OTP
+        update_user_meta($user->ID, 'reset_otp', wp_hash_password($otp));
         update_user_meta($user->ID, 'otp_expiry', time() + 600);
+        update_user_meta($user->ID, 'otp_attempts', 0);
+        delete_user_meta($user->ID, 'reset_token');
+        delete_user_meta($user->ID, 'reset_token_expiry');
 
-        $subject = "Reset Password OTP - Nexora";
-        $message = "Your OTP is: $otp\n\nThis OTP is valid for 10 minutes.";
+        $subject = 'Reset Password OTP - Nexora';
+        $message = "Your OTP is: $otp\n\nThis OTP is valid for 10 minutes. If you did not request it, ignore this email.";
 
-        wp_mail($email, $subject, $message);
+        wp_mail($user->user_email, $subject, $message);
 
-        wp_send_json_success([
-            'user_id' => $user->ID,
-            'message' => "New OTP sent successfully"
-        ]);
+        $generic['user_id'] = $user->ID;
+        wp_send_json_success($generic);
     }
 
     // ---------------------------
@@ -114,25 +138,50 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        $user_id = intval($_POST['user_id']);
-        $otp     = sanitize_text_field($_POST['otp']);
+        if ($this->rate_limited('verify_otp', 20, 15 * MINUTE_IN_SECONDS)) {
+            wp_send_json_error('Too many attempts. Please try again later.');
+        }
 
-        $saved_otp = get_user_meta($user_id, 'reset_otp', true);
-        $expiry    = get_user_meta($user_id, 'otp_expiry', true);
+        $user_id = absint($_POST['user_id'] ?? 0);
+        $otp     = sanitize_text_field(wp_unslash($_POST['otp'] ?? ''));
 
-        if (!$saved_otp) {
+        $saved_hash = get_user_meta($user_id, 'reset_otp', true);
+        $expiry     = (int) get_user_meta($user_id, 'otp_expiry', true);
+        $attempts   = (int) get_user_meta($user_id, 'otp_attempts', true);
+
+        if (!$user_id || !$saved_hash) {
             wp_send_json_error('No OTP found');
         }
 
-        if ($otp != $saved_otp) {
-            wp_send_json_error('Invalid OTP');
-        }
-
         if (time() > $expiry) {
+            $this->clear_otp($user_id);
             wp_send_json_error('OTP expired');
         }
 
-        wp_send_json_success('OTP verified');
+        if ($attempts >= 5) {
+            $this->clear_otp($user_id);
+            wp_send_json_error('Too many wrong attempts. Please request a new OTP.');
+        }
+
+        if (!wp_check_password($otp, $saved_hash)) {
+            update_user_meta($user_id, 'otp_attempts', $attempts + 1);
+            wp_send_json_error('Invalid OTP');
+        }
+
+        // OTP is single use; swap it for a short lived reset token
+        $token = wp_generate_password(32, false);
+
+        delete_user_meta($user_id, 'reset_otp');
+        delete_user_meta($user_id, 'otp_expiry');
+        delete_user_meta($user_id, 'otp_attempts');
+
+        update_user_meta($user_id, 'reset_token', wp_hash_password($token));
+        update_user_meta($user_id, 'reset_token_expiry', time() + 600);
+
+        wp_send_json_success([
+            'message' => 'OTP verified',
+            'token'   => $token
+        ]);
     }
 
     // ---------------------------
@@ -142,34 +191,47 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        $user_id = intval($_POST['user_id']);
-        $password = $_POST['password'];
+        $user_id  = absint($_POST['user_id'] ?? 0);
+        $token    = sanitize_text_field(wp_unslash($_POST['token'] ?? ''));
+        $password = wp_unslash($_POST['password'] ?? '');
 
-        if (empty($password)) {
-            wp_send_json_error('Password cannot be empty');
+        if (!$user_id || $token === '') {
+            wp_send_json_error('Invalid request');
         }
 
-        // Update password
-        wp_set_password($password, $user_id);
+        // The OTP must have been verified first (proves ownership of the email)
+        $saved_token = get_user_meta($user_id, 'reset_token', true);
+        $expiry      = (int) get_user_meta($user_id, 'reset_token_expiry', true);
 
-        // Clear OTP
-        delete_user_meta($user_id, 'reset_otp');
-        delete_user_meta($user_id, 'otp_expiry');
+        if (!$saved_token || time() > $expiry || !wp_check_password($token, $saved_token)) {
+            wp_send_json_error('Reset session expired. Please verify OTP again.');
+        }
 
-        // Get user data
+        if (strlen($password) < 8) {
+            wp_send_json_error('Password must be at least 8 characters');
+        }
+
         $user = get_userdata($user_id);
 
-        // SEND CONFIRMATION EMAIL
-        $to = $user->user_email;
-        $subject = "Password Reset Successful - Nexora";
+        if (!$user) {
+            wp_send_json_error('Invalid request');
+        }
+
+        wp_set_password($password, $user_id);
+
+        // Token / OTP are single use
+        $this->clear_otp($user_id);
+
+        $to      = $user->user_email;
+        $subject = 'Password Reset Successful - Nexora';
 
         $message = "
         <div style='font-family:Segoe UI, sans-serif; padding:20px; background:#f8fafc;'>
             <div style='max-width:500px; margin:auto; background:#fff; padding:20px; border-radius:10px;'>
-                <h2 style='color:#16a34a;'>Password Reset Successful ✅</h2>
-                <p>Hi <strong>{$user->display_name}</strong>,</p>
+                <h2 style='color:#16a34a;'>Password Reset Successful</h2>
+                <p>Hi <strong>" . esc_html($user->display_name) . "</strong>,</p>
                 <p>Your password has been successfully reset.</p>
-                <p>If this was you, enjoy using <b>Nexora</b> 🚀</p>
+                <p>If this was you, enjoy using <b>Nexora</b>.</p>
                 <p style='color:#ef4444;'>If not, please contact support immediately.</p>
                 <hr>
                 <p style='font-size:12px; color:#64748b;'>— Nexora Team</p>
@@ -177,18 +239,18 @@ class NEXORA_Login {
         </div>
         ";
 
-        $headers = ['Content-Type: text/html; charset=UTF-8'];
-
-        wp_mail($to, $subject, $message, $headers);
+        wp_mail($to, $subject, $message, ['Content-Type: text/html; charset=UTF-8']);
 
         // Auto login
         wp_set_current_user($user_id);
         wp_set_auth_cookie($user_id);
 
-        $user = get_userdata($user_id);
+        $redirect = user_can($user_id, 'manage_options')
+            ? home_url('/profile-page')
+            : home_url('/profile-page/' . rawurlencode($user->user_login));
 
         wp_send_json_success([
-            'redirect' => home_url('/profile-page/' . $user->user_login)
+            'redirect' => $redirect
         ]);
     }
 
@@ -209,18 +271,18 @@ class NEXORA_Login {
                     <div class="login-state-card">
 
                         <div class="login-avatar">
-                            <span>' . strtoupper(substr($current_user->display_name, 0, 1)) . '</span>
+                            <span>' . esc_html(mb_strtoupper(mb_substr($current_user->display_name, 0, 1))) . '</span>
                         </div>
 
                         <h2>Welcome back, ' . esc_html($current_user->display_name) . ' 👋</h2>
                         <p>You are already logged in</p>
 
                         <div class="login-actions">
-                            <a href="' . home_url('/profile-page/' . $current_user->user_login) . '" class="btn-primary">
+                            <a href="' . esc_url(home_url('/profile-page/' . rawurlencode($current_user->user_login))) . '" class="btn-primary">
                                 Go to Profile
                             </a>
 
-                            <a href="' . wp_logout_url(home_url('/login-page')) . '" class="btn-danger">
+                            <a href="' . esc_url(wp_logout_url(home_url('/login-page'))) . '" class="btn-danger">
                                 Logout
                             </a>
                         </div>
@@ -260,7 +322,7 @@ class NEXORA_Login {
 
                     <div class="profile-login-extra">
                         Don’t have an account? 
-                        <a href="<?php echo home_url('/registration-page'); ?>">Register</a>
+                        <a href="<?php echo esc_url(home_url('/registration-page')); ?>">Register</a>
                     </div>
 
                     <div class="profile-login-password">
@@ -280,55 +342,52 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
+        if ($this->rate_limited('login', 10, 15 * MINUTE_IN_SECONDS)) {
+            wp_send_json_error('Too many login attempts. Please try again later.');
+        }
+
         $captcha = new Nexora_ReCaptcha();
 
-        $result = $captcha->verify($_POST['g-recaptcha-response'] ?? '');
+        $result = $captcha->verify(sanitize_text_field(wp_unslash($_POST['g-recaptcha-response'] ?? '')));
 
         if (!$result['success']) {
-            error_log($result['message']); // debug
             wp_send_json_error($result['message']);
         }
 
-        $login_input = sanitize_text_field($_POST['user_name']);
-        $password    = $_POST['password'];
+        $login_input = sanitize_text_field(wp_unslash($_POST['user_name'] ?? ''));
+        $password    = wp_unslash($_POST['password'] ?? '');
 
-        // Check if input is email
-        if (is_email($login_input)) {
-
-            $user = get_user_by('email', $login_input);
-
-            if ($user) {
-                $login_input = $user->user_login; // convert email → username
-            } else {
-                wp_send_json_error('No user found with this email');
-            }
+        if ($login_input === '' || $password === '') {
+            wp_send_json_error('Invalid username or password');
         }
 
-        $creds = [
+        // Allow login with email
+        if (is_email($login_input)) {
+
+            $by_email = get_user_by('email', $login_input);
+
+            // Same error as a wrong password (no account enumeration)
+            if (!$by_email) {
+                wp_send_json_error('Invalid username or password');
+            }
+
+            $login_input = $by_email->user_login;
+        }
+
+        $user = wp_signon([
             'user_login'    => $login_input,
             'user_password' => $password,
             'remember'      => true
-        ];
-
-        // is_ssl()is a WordPress conditional function that checks if the current page is loaded over HTTPS or via port 443.
-        // It returns true if the connection is secure and false otherwise [1, 3]. 
-        // It is essential for ensuring that scripts, stylesheets, and site URLs use the https protocol to avoid mixed content errors.
-        $user = wp_signon($creds, is_ssl());
+        ], is_ssl());
 
         if (is_wp_error($user)) {
             wp_send_json_error('Invalid username or password');
         }
 
-        wp_set_current_user($user->ID);
-        wp_set_auth_cookie($user->ID);
-
-        // ✅ Correct way to get username
-        $username = $user->user_login;
-
-        if (in_array('administrator', $user->roles)) {
+        if (user_can($user, 'manage_options')) {
             $redirect = home_url('/profile-page');
         } else {
-            $redirect = home_url('/profile-page/' . $username);
+            $redirect = home_url('/profile-page/' . rawurlencode($user->user_login));
         }
 
         wp_send_json_success([
