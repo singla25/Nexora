@@ -1,7 +1,0 @@
-0000.000 (1) Opened log file at time: Wed, 07 Oct 2026 07:50:00 +0000 on http://localhost83.local.com/nexora
-0000.008 (1) UpdraftPlus WordPress backup plugin (https://updraftplus.com): 1.26.8 WP: 7.1 PHP: 8.3.30 (fpm-fcgi, Linux intersoft-admin-To-be-filled-by-O-E-M 7.0.0-34-generic #34~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 15:38:29 UTC 2 x86_64) MySQL: 8.0.46-0ubuntu0.24.04.4 (max packet size=67108864) WPLANG: en_US Server: Apache/2.4.58 (Ubuntu) safe_mode: 0 max_execution_time: 900 memory_limit: 512M (used: 14M | 16M) multisite: N openssl: OpenSSL 3.0.13 30 Jan 2024 mcrypt: Y LANG:  WP Proxy: disabled ZipArchive::addFile: Y
-0000.010 (1) Free space on disk containing Updraft's temporary directory: 62325.8 MB
-0000.013 (1) Requesting backup semaphore lock (udp_backupjob_aad0368a6cc9)
-0000.020 (1) [Debug] Lock option (updraft_lock_udp_backupjob_aad0368a6cc9, wp_options) was created in the database
-0000.021 (1) [Info] Lock (updraft_lock_udp_backupjob_aad0368a6cc9, wp_options) acquired after initialising the database
-0000.023 (1) This backup task (aad0368a6cc9) is either complete or began over 2 days ago: ending (1791359400.5274, ) (existing jobdata keys: )

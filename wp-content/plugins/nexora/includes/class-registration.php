@@ -49,13 +49,13 @@ class NEXORA_Registration {
                     <div class="register-state-card">
 
                         <div class="register-avatar">
-                            <span>' . strtoupper(substr($current_user->display_name, 0, 1)) . '</span>
+                            <span>' . esc_html(mb_strtoupper(mb_substr($current_user->display_name, 0, 1))) . '</span>
                         </div>
 
                         <h2>Hey ' . esc_html($current_user->display_name) . ' 👋</h2>
                         <p>You are already logged in</p>
 
-                        <a href="' . home_url('/profile-page/' . $current_user->user_login) . '" class="btn-primary">
+                        <a href="' . esc_url(home_url('/profile-page/' . rawurlencode($current_user->user_login))) . '" class="btn-primary">
                             Go to Profile
                         </a>
 
@@ -92,13 +92,12 @@ class NEXORA_Registration {
 
                     <!-- ROW 3 -->
                     <input type="text" name="phone" placeholder="Phone *" required>
-<!--                     <input type="date" name="birthdate" placeholder="Date *" required> -->
-					<input type="text" placeholder="Date of Birth *"
-						   onfocus="(this.type='date')"
-						   onblur="if(!this.value)this.type='text'">
+<input type="text" name="birthdate" placeholder="Date of Birth *" required
+                           onfocus="(this.type='date')"
+                           onblur="if(!this.value)this.type='text'">
 
                     <!-- ROW 4 -->
-                    <input type="password" name="password" placeholder="Password *" required>
+                    <input type="password" name="password" placeholder="Password * (min 8 characters)" minlength="8" required>
                     <input type="password" name="confirm_password" placeholder="Confirm Password *" required>
 
                     <!-- 🔥 Toggle Switch -->
@@ -121,7 +120,7 @@ class NEXORA_Registration {
 
                 <div class="profile-registration-extra">
                     Already have an account? 
-                    <a href="<?php echo home_url('/login-page'); ?>">Login</a>
+                    <a href="<?php echo esc_url(home_url('/login-page')); ?>">Login</a>
                 </div>
             </form>
         </div>
@@ -134,33 +133,72 @@ class NEXORA_Registration {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
+        // Basic throttling: max 5 sign-ups per IP per hour
+        $ip      = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+        $rl_key  = 'nx_reg_' . md5($ip);
+        $rl_hits = (int) get_transient($rl_key);
+
+        if ($rl_hits >= 5) {
+            wp_send_json_error('Too many registrations. Please try again later.');
+        }
+
         $captcha = new Nexora_ReCaptcha();
 
-        $result = $captcha->verify($_POST['g-recaptcha-response'] ?? '');
+        $result = $captcha->verify(sanitize_text_field(wp_unslash($_POST['g-recaptcha-response'] ?? '')));
 
         if (!$result['success']) {
-            error_log($result['message']); // debug
             wp_send_json_error($result['message']);
         }
 
-        $data = $_POST;
+        $email        = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+        $user_name    = sanitize_user(wp_unslash($_POST['user_name'] ?? ''), true);
+        $password     = wp_unslash($_POST['password'] ?? '');
+        $confirm_pass = wp_unslash($_POST['confirm_password'] ?? '');
 
-        $email = sanitize_email($data['email'] ?? '');
-        $user_name = sanitize_user($data['user_name'] ?? '');
-        $password = $data['password'] ?? '';
-        $confirm_pass = $data['confirm_password'] ?? '';
+        $first_name = sanitize_text_field(wp_unslash($_POST['first_name'] ?? ''));
+        $last_name  = sanitize_text_field(wp_unslash($_POST['last_name'] ?? ''));
+        $phone      = sanitize_text_field(wp_unslash($_POST['phone'] ?? ''));
+        $gender     = sanitize_text_field(wp_unslash($_POST['gender'] ?? ''));
+        $birthdate  = sanitize_text_field(wp_unslash($_POST['birthdate'] ?? ''));
 
         if (empty($email) || empty($user_name) || empty($password) || empty($confirm_pass)) {
             wp_send_json_error('Required fields missing');
+        }
+
+        if (!is_email($email)) {
+            wp_send_json_error('Invalid email address');
+        }
+
+        // The username is used in profile URLs and as a lookup key
+        if (!preg_match('/^[A-Za-z0-9_.-]{3,30}$/', $user_name)) {
+            wp_send_json_error('Username must be 3-30 characters (letters, numbers, . _ -)');
+        }
+
+        if (strlen($password) < 8) {
+            wp_send_json_error('Password must be at least 8 characters');
         }
 
         if ($password !== $confirm_pass) {
             wp_send_json_error('Passwords do not match');
         }
 
+        if (!in_array($gender, ['male', 'female', 'other', ''], true)) {
+            $gender = '';
+        }
+
+        if ($birthdate !== '') {
+            $dt = DateTime::createFromFormat('Y-m-d', $birthdate);
+
+            if (!$dt || $dt->format('Y-m-d') !== $birthdate || $dt > new DateTime('today')) {
+                wp_send_json_error('Invalid date of birth');
+            }
+        }
+
         if (username_exists($user_name) || email_exists($email)) {
             wp_send_json_error('User already exists');
         }
+
+        set_transient($rl_key, $rl_hits + 1, HOUR_IN_SECONDS);
 
         // Create WP User
         $wp_user_id = wp_create_user($user_name, $password, $email);
@@ -169,51 +207,52 @@ class NEXORA_Registration {
             wp_send_json_error('User creation failed');
         }
 
-        // 🔥 SEND ADMIN EMAIL
-        $first_name = sanitize_text_field($data['first_name'] ?? '');
-        $last_name  = sanitize_text_field($data['last_name'] ?? '');
-        $full_name = trim($first_name . ' ' . $last_name);
-        $this->nexora_send_admin_notification($user_name, $email, $full_name);
-
         wp_update_user([
-            'ID' => $wp_user_id,
-            'user_nicename' => $user_name,
-            'first_name' => sanitize_text_field($data['first_name'] ?? ''),
-            'last_name'  => sanitize_text_field($data['last_name'] ?? '')
+            'ID'            => $wp_user_id,
+            'user_nicename' => sanitize_title($user_name),
+            'first_name'    => $first_name,
+            'last_name'     => $last_name
         ]);
 
         // Create Profile CPT
         $post_id = wp_insert_post([
-            'post_type' => 'user_profile',
-            'post_title' => $user_name,
-            'post_name'  => sanitize_title($user_name),
+            'post_type'   => 'user_profile',
+            'post_title'  => $user_name,
+            'post_name'   => sanitize_title($user_name),
             'post_status' => 'publish',
             'post_author' => $wp_user_id
         ]);
 
+        if (is_wp_error($post_id) || !$post_id) {
+            // Roll back so the user can try again
+            require_once ABSPATH . 'wp-admin/includes/user.php';
+            wp_delete_user($wp_user_id);
+            wp_send_json_error('Profile creation failed');
+        }
+
         update_post_meta($post_id, '_wp_user_id', $wp_user_id);
 
         // Save Meta
-        update_post_meta($post_id, 'user_name', sanitize_text_field($data['user_name']));
+        update_post_meta($post_id, 'user_name', $user_name);
         update_post_meta($post_id, 'first_name', $first_name);
         update_post_meta($post_id, 'last_name', $last_name);
         update_post_meta($post_id, 'email', $email);
-        update_post_meta($post_id, 'phone', sanitize_text_field($data['phone']));
-        update_post_meta($post_id, 'gender', sanitize_text_field($data['gender']));
-        update_post_meta($post_id, 'birthdate', sanitize_text_field($data['birthdate']));
+        update_post_meta($post_id, 'phone', $phone);
+        update_post_meta($post_id, 'gender', $gender);
+        update_post_meta($post_id, 'birthdate', $birthdate);
 
         // Link profile
         update_user_meta($wp_user_id, '_profile_id', $post_id);
+
+        $this->nexora_send_admin_notification($user_name, $email, trim($first_name . ' ' . $last_name));
 
         // Auto Login
         wp_set_current_user($wp_user_id);
         wp_set_auth_cookie($wp_user_id);
 
-        $username = get_post_meta($post_id, 'user_name', true);
-
         wp_send_json_success([
-            'message' => 'Registration successful',
-            'redirect' => home_url('/profile-page/' . $username)
+            'message'  => 'Registration successful',
+            'redirect' => home_url('/profile-page/' . rawurlencode($user_name))
         ]);
     }
 
@@ -230,9 +269,9 @@ class NEXORA_Registration {
 
         $message = "
             <h2>New User Registration</h2>
-            <p><strong>Username:</strong> {$user_name}</p>
-            <p><strong>Name:</strong> {$full_name}</p>
-            <p><strong>Email:</strong> {$email}</p>
+            <p><strong>Username:</strong> " . esc_html($user_name) . "</p>
+            <p><strong>Name:</strong> " . esc_html($full_name) . "</p>
+            <p><strong>Email:</strong> " . esc_html($email) . "</p>
             <p><strong>Time:</strong> " . current_time('mysql') . "</p>
         ";
 

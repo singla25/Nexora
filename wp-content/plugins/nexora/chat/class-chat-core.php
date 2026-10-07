@@ -25,18 +25,21 @@ class NEXORA_CHAT_CORE {
 
     public function enqueue_assets() {
 
+        // Chat is for logged-in members only
+        if (!is_user_logged_in()) return;
+
         wp_enqueue_style(
             'nexora-chat-css',
             NEXORA_URL . 'chat/assets/css/chat.css',
             [],
-            '1.0'
+            NEXORA_VERSION
         );
 
         wp_enqueue_script(
             'nexora-chat-js',
             NEXORA_URL . 'chat/assets/js/chat.js',
             ['jquery'],
-            '1.0',
+            NEXORA_VERSION,
             true
         );
 

@@ -29,13 +29,15 @@ class NEXORA_CHAT_DB {
         // THREADS
         $threads = "CREATE TABLE {$this->threads_table} (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            connection_id BIGINT,
+            connection_id BIGINT UNSIGNED NULL,
             status VARCHAR(20) DEFAULT 'active',
             type VARCHAR(20) DEFAULT 'private',
             subject VARCHAR(255) NULL,
             last_message_id BIGINT UNSIGNED NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+            INDEX idx_connection_id (connection_id)
         ) $charset;";
 
         // PARTICIPANTS
@@ -95,7 +97,7 @@ class NEXORA_CHAT_DB {
         global $wpdb;
 
         $wpdb->insert($this->threads_table, [
-            'connection_id' => $connection_id,
+            'connection_id' => (int) $connection_id,
             'status' => $thread_status,
             'type' => $type,
             'subject' => $subject,
@@ -103,12 +105,16 @@ class NEXORA_CHAT_DB {
             'updated_at' => current_time('mysql')
         ]);
 
-        $thread_id = $wpdb->insert_id;
+        $thread_id = (int) $wpdb->insert_id;
+
+        if (!$thread_id) {
+            return 0;
+        }
 
         foreach ($users as $user_id) {
             $wpdb->insert($this->participants_table, [
                 'thread_id' => $thread_id,
-                'user_id' => $user_id
+                'user_id'   => (int) $user_id
             ]);
         }
 
@@ -186,7 +192,7 @@ class NEXORA_CHAT_DB {
         ", $user_id, $user_id));
 
         // 🔥 ADD USER NAME (IMPORTANT)
-        foreach ($results as &$row) {
+        foreach ($results as $row) {
 
             $user = get_userdata($row->other_user_id);
 

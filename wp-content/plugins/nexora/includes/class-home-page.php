@@ -34,14 +34,14 @@ class Nexora_Home_Page {
                         </p>
 
                         <div class="nx-cta">
-                            <a href="<?php echo site_url('/registration-page'); ?>" class="nx-btn nx-primary">Get Started</a>
-                            <a href="<?php echo site_url('/login-page'); ?>" class="nx-btn nx-outline">Login</a>
+                            <a href="<?php echo esc_url(site_url('/registration-page')); ?>" class="nx-btn nx-primary">Get Started</a>
+                            <a href="<?php echo esc_url(site_url('/login-page')); ?>" class="nx-btn nx-outline">Login</a>
                         </div>
                     </div>
 
                     <div class="nx-hero-preview">
                         <div class="nx-glass-card">
-                            <img src="<?php echo $home_cover_id ? wp_get_attachment_url($home_cover_id) : ''; ?>" alt="Preview">
+                            <img src="<?php echo $home_cover_id ? esc_url(wp_get_attachment_url($home_cover_id)) : ''; ?>" alt="Preview">
                         </div>
                     </div>
 
@@ -126,17 +126,17 @@ class Nexora_Home_Page {
 
                     <div class="nx-demo-grid">
                         <div class="nx-demo-card">
-                            <img src="<?php echo $feed_experience_id ? wp_get_attachment_url($feed_experience_id) : ''; ?>" alt="Preview">
+                            <img src="<?php echo $feed_experience_id ? esc_url(wp_get_attachment_url($feed_experience_id)) : ''; ?>" alt="Preview">
                             <p>Feed Experience</p>
                         </div>
 
                         <div class="nx-demo-card">
-                            <img src="<?php echo $real_time_chat_id ? wp_get_attachment_url($real_time_chat_id) : ''; ?>" alt="Preview">
+                            <img src="<?php echo $real_time_chat_id ? esc_url(wp_get_attachment_url($real_time_chat_id)) : ''; ?>" alt="Preview">
                             <p>Real-time Chat</p>
                         </div>
 
                         <div class="nx-demo-card">
-                            <img src="<?php echo $smart_connections_id ? wp_get_attachment_url($smart_connections_id) : ''; ?>" alt="Preview">
+                            <img src="<?php echo $smart_connections_id ? esc_url(wp_get_attachment_url($smart_connections_id)) : ''; ?>" alt="Preview">
                             <p>Smart Connections</p>
                         </div>
                     </div>
@@ -183,7 +183,7 @@ class Nexora_Home_Page {
             <!-- CTA -->
             <section class="nx-final-cta">
                 <h2>Join Nexora Today</h2>
-                <a href="<?php echo site_url('/registration-page'); ?>" class="nx-btn nx-primary">Get Started</a>
+                <a href="<?php echo esc_url(site_url('/registration-page')); ?>" class="nx-btn nx-primary">Get Started</a>
             </section>
 
         </div>

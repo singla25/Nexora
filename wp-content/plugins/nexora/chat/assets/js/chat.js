@@ -1,4 +1,16 @@
 /* ===============================
+   HTML ESCAPE (all server text must go through this before being put in HTML)
+=============================== */
+function nxEsc(value) {
+    return String(value === null || value === undefined ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/* ===============================
    GLOBAL STATE
 =============================== */
 let currentThread = null;
@@ -36,10 +48,10 @@ function renderSearchList(users){
 
     users.forEach(user => {
         html += `<div class="chat-user" 
-                    data-user="${user.user_id}"
-                    data-connection-id="${user.connection_id}"
-                    data-status="${user.status}">
-                    ${user.username}
+                    data-user="${nxEsc(user.user_id)}"
+                    data-connection-id="${nxEsc(user.connection_id)}"
+                    data-status="${nxEsc(user.status)}">
+                    ${nxEsc(user.username)}
                 </div>`
         ;
     });
@@ -250,14 +262,14 @@ function loadMessages() {
             });
 
             let name = currentUserContext && msg.sender_name
-                ? `<div class="chat-name">${msg.sender_name}</div>`
+                ? `<div class="chat-name">${nxEsc(msg.sender_name)}</div>`
                 : '';
 
             html += `
                 <div class="chat-msg ${side}">
                     <div class="chat-text">
                         ${name}
-                        ${msg.message}
+                        ${nxEsc(msg.message)}
                         <div class="chat-time">${time}</div>
                     </div>
                 </div>
@@ -360,7 +372,7 @@ function loadUserThreads() {
             let last_message = thread.last_message || 'No messages yet';
 
             let badge = thread.unread_count > 0
-                ? `<span class="chat-badge">${thread.unread_count}</span>`
+                ? `<span class="chat-badge">${nxEsc(thread.unread_count)}</span>`
                 : '';
 
             let time = new Date(thread.updated_at).toLocaleString([], {
@@ -372,16 +384,16 @@ function loadUserThreads() {
 
             let item = `
                 <div class="chat-thread" 
-                    data-thread="${thread.id}" 
-                    data-user="${thread.other_user_id}" 
-                    data-connection-id="${thread.connection_id}" 
-                    data-status="${thread.status}">
+                    data-thread="${nxEsc(thread.id)}" 
+                    data-user="${nxEsc(thread.other_user_id)}" 
+                    data-connection-id="${nxEsc(thread.connection_id)}" 
+                    data-status="${nxEsc(thread.status)}">
                     
-                    <div class="chat-thread-name">${thread.name}</div>
+                    <div class="chat-thread-name">${nxEsc(thread.name)}</div>
                     <div class="chat-thread-badge">${badge}</div>
                     <div class="chat-thread-last">
-                        ${subject}
-                        <div class="chat-thread-time">${last_message} : ${time}</div>
+                        ${nxEsc(subject)}
+                        <div class="chat-thread-time">${nxEsc(last_message)} : ${nxEsc(time)}</div>
                     </div>
                 </div>
             `;
@@ -446,7 +458,7 @@ jQuery(document).on('click', '.chat-thread', function(){
 function updateChatHeader() {
 
     let title = currentUserContext
-        ? `Chat Between ${currentChatPairName}`
+        ? `Chat Between ${nxEsc(currentChatPairName)}`
         : (currentChatUserName || 'Select Chat');
 
     jQuery('#chat-title').text(title);
@@ -479,7 +491,7 @@ function renderSubjectUI(subject = '', isNew = false) {
     else {
 
         html = `
-            <div class="chat-subject-text">${subject}</div>
+            <div class="chat-subject-text">${nxEsc(subject)}</div>
         `;
     }
 
@@ -618,8 +630,8 @@ function openAdminChat(threadId, userId, name) {
             html += `
                 <div class="chat-msg ${side}">
                     <div class="chat-text">
-                        <div class="chat-name">${msg.sender_name || ''}</div>
-                        ${msg.message}
+                        <div class="chat-name">${nxEsc(msg.sender_name)}</div>
+                        ${nxEsc(msg.message)}
                         <div class="chat-time">${time}</div>
                     </div>
                 </div>
