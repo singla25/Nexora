@@ -1,0 +1,54 @@
+<?php
+
+namespace Nexora\Content;
+
+if (!defined('ABSPATH')) exit;
+
+/**
+ * Member posts (user_content). Meta: user_id, user_profile_id, user_name.
+ */
+class Repository {
+
+    /**
+     * @return int New post id, 0 on failure.
+     */
+    public static function create($user_id, $profile_id, $title, $description, $image_id = 0) {
+
+        $post_id = wp_insert_post([
+            'post_type'    => 'user_content',
+            'post_title'   => $title,
+            'post_content' => $description,
+            'post_status'  => 'publish',
+            'post_author'  => $user_id
+        ]);
+
+        if (is_wp_error($post_id) || !$post_id) {
+            return 0;
+        }
+
+        if ($image_id) {
+            set_post_thumbnail($post_id, $image_id);
+        }
+
+        update_post_meta($post_id, 'user_id', $user_id);
+        update_post_meta($post_id, 'user_profile_id', $profile_id);
+        update_post_meta($post_id, 'user_name', get_post_meta($profile_id, 'user_name', true));
+
+        return (int) $post_id;
+    }
+
+    /** A profile's own posts, newest first. */
+    public static function for_profile($profile_id, $limit = 100) {
+
+        return get_posts([
+            'post_type' => 'user_content',
+            'posts_per_page' => $limit,
+            'meta_query' => [
+                [
+                    'key' => 'user_profile_id',
+                    'value' => $profile_id
+                ]
+            ]
+        ]);
+    }
+}

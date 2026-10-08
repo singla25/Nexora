@@ -18,6 +18,9 @@ class Plugin {
         new \Nexora\Admin\Cpt();
         new \Nexora\Profile\Page();
         new \Nexora\Profile\Ajax();
+        new \Nexora\Connections\Ajax();
+        new \Nexora\Notifications\Ajax();
+        new \Nexora\Content\Ajax();
         new \Nexora\Profile\Private_Documents();
         new \Nexora\Profile\Upload_Policy();
         new \Nexora\Shortcodes\Home();

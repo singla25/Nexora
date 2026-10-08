@@ -754,8 +754,8 @@ class Page {
                                         $current_user_id = get_current_user_id();
                                         $current_profile_id = get_user_meta($current_user_id, '_profile_id', true);
 
-                                        $current_connections = \Nexora\Profile\Repository::get_user_connection_ids($current_profile_id);
-                                        $other_connections   = \Nexora\Profile\Repository::get_user_connection_ids($profile_id);
+                                        $current_connections = \Nexora\Connections\Repository::accepted_profile_ids($current_profile_id);
+                                        $other_connections   = \Nexora\Connections\Repository::accepted_profile_ids($profile_id);
 
                                         $mutual_ids = array_intersect($current_connections, $other_connections);
 
