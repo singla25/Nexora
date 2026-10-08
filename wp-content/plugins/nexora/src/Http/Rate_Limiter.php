@@ -46,7 +46,7 @@ class Rate_Limiter {
 	}
 
 	private static function now() {
-		return self::$time_override !== null ? (int) self::$time_override : time();
+		return null !== self::$time_override ? (int) self::$time_override : time();
 	}
 
 	/**
@@ -77,7 +77,7 @@ class Rate_Limiter {
 
 	private static function key( $name, $subject, $window ) {
 
-		$subject = ( $subject === null || $subject === '' ) ? self::client_ip() : (string) $subject;
+		$subject = ( null === $subject || '' === $subject ) ? self::client_ip() : (string) $subject;
 		$slot    = (int) floor( self::now() / $window );
 
 		return 'nexora_rl_' . md5( $name . '|' . $subject ) . '_' . $slot;
@@ -141,7 +141,7 @@ class Rate_Limiter {
 			$count = self::count( $name, $subject );
 
 			// Drop expired windows for this subject (keeps the options table small)
-			if ( $count === 1 ) {
+			if ( 1 === $count ) {
 				$prefix = substr( $key, 0, strrpos( $key, '_' ) + 1 );
 				$wpdb->query(
 					$wpdb->prepare(

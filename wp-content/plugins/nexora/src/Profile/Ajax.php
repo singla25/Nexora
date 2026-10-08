@@ -38,22 +38,22 @@ class Ajax extends Member_Ajax {
 				continue;
 			}
 
-			$value = ( $field === 'bio' )
+			$value = ( 'bio' === $field )
 				? sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) )
 				: $this->post_value( $field );
 
-			if ( $field === 'gender' && ! in_array( $value, array( 'male', 'female', 'other', '' ), true ) ) {
+			if ( 'gender' === $field && ! in_array( $value, array( 'male', 'female', 'other', '' ), true ) ) {
 				continue;
 			}
 
-			if ( $field === 'birthdate' && $value !== '' ) {
+			if ( 'birthdate' === $field && '' !== $value ) {
 				$dt = \DateTime::createFromFormat( 'Y-m-d', $value );
 				if ( ! $dt || $dt->format( 'Y-m-d' ) !== $value || $dt > new \DateTime( 'today' ) ) {
 					wp_send_json_error( 'Invalid date of birth' );
 				}
 			}
 
-			if ( $field === 'linkedin_id' ) {
+			if ( 'linkedin_id' === $field ) {
 				$value = sanitize_text_field( $value );
 			}
 
@@ -95,7 +95,7 @@ class Ajax extends Member_Ajax {
 
 			$value = $this->post_value( $field );
 
-			if ( $field === 'company_email' && $value !== '' ) {
+			if ( 'company_email' === $field && '' !== $value ) {
 				$value = sanitize_email( $value );
 				if ( ! is_email( $value ) ) {
 					wp_send_json_error( 'Invalid company email' );
@@ -122,10 +122,10 @@ class Ajax extends Member_Ajax {
 				continue;
 			}
 
-			$value = trim( (string) wp_unslash( $_POST[ $field ] ) );
+			$value = trim( $this->post_value( $field ) );
 
-			// REMOVE CASE (IMPORTANT)
-			if ( $value === '' ) {
+			// An empty value means the member removed the file.
+			if ( '' === $value ) {
 				delete_post_meta( $id, $field );
 				continue;
 			}
@@ -165,9 +165,12 @@ class Ajax extends Member_Ajax {
 			wp_send_json_error( Rate_Limiter::message() );
 		}
 
+		// Passwords are compared and hashed as typed: sanitizing would alter them.
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$current_password = wp_unslash( $_POST['current_password'] ?? '' );
 		$new_password     = wp_unslash( $_POST['new_password'] ?? '' );
 		$confirm_password = wp_unslash( $_POST['confirm_password'] ?? '' );
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		$user = get_user_by( 'id', $user_id );
 

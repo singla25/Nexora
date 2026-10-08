@@ -25,7 +25,7 @@ class Privacy {
 			return self::GUEST;
 		}
 
-		if ( $current_user_id == $owner_user_id ) {
+		if ( (int) $current_user_id === (int) $owner_user_id ) {
 			return self::OWNER;
 		}
 
@@ -48,7 +48,7 @@ class Privacy {
 			'cover_image'   => wp_get_attachment_url( (int) get_post_meta( $profile_id, 'cover_image', true ) ),
 		);
 
-		if ( $role === self::OWNER && $profile_id ) {
+		if ( self::OWNER === $role && $profile_id ) {
 
 			foreach ( Fields::owner_only() as $field ) {
 				$data[ $field ] = get_post_meta( $profile_id, $field, true );
@@ -57,7 +57,7 @@ class Privacy {
 			foreach ( Fields::DOCUMENTS as $doc ) {
 				$doc_id = (int) get_post_meta( $profile_id, $doc, true );
 
-				$data[ $doc . '_id' ] = $doc_id ?: '';
+				$data[ $doc . '_id' ] = $doc_id ? $doc_id : '';
 				$data[ $doc ]         = $doc_id ? wp_get_attachment_url( $doc_id ) : '';
 			}
 		}

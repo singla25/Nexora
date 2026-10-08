@@ -139,7 +139,7 @@
 									<p class="nx-quote">&ldquo;<?php echo esc_html( $t[2] ); ?>&rdquo;</p>
 									<div class="nx-test-top">
 										<strong><?php echo esc_html( $t[0] ); ?></strong>
-										<?php if ( $t[1] !== '' ) : ?>
+										<?php if ( '' !== $t[1] ) : ?>
 											<span><?php echo esc_html( $t[1] ); ?></span>
 										<?php endif; ?>
 									</div>

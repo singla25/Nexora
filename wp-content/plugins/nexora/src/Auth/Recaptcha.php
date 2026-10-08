@@ -38,7 +38,7 @@ class Recaptcha {
 
 		$host = apply_filters( 'nexora_captcha_site_host', (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
 
-		if ( $host === '' ) {
+		if ( '' === $host ) {
 			return false;
 		}
 
@@ -83,6 +83,8 @@ class Recaptcha {
 			return;
 		}
 
+		// Google's own script: versioned by Google.
+		// phpcs:disable WordPress.WP.EnqueuedResourceParameters.MissingVersion
 		wp_enqueue_script(
 			'google-recaptcha',
 			'https://www.google.com/recaptcha/api.js',
@@ -90,6 +92,7 @@ class Recaptcha {
 			null,
 			true
 		);
+		// phpcs:enable WordPress.WP.EnqueuedResourceParameters.MissingVersion
 	}
 
 	// 🔹 Verify captcha (Backend)

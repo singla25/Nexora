@@ -32,7 +32,7 @@ class List_Columns {
 			$new_columns[ $key ] = $value;
 
 			// Add after Title column
-			if ( $key === 'title' ) {
+			if ( 'title' === $key ) {
 				$new_columns['user_full_name'] = 'Name';
 			}
 		}
@@ -42,7 +42,7 @@ class List_Columns {
 
 	public function manage_name_column( $column, $post_id ) {
 
-		if ( $column === 'user_full_name' ) {
+		if ( 'user_full_name' === $column ) {
 
 			$first_name = get_post_meta( $post_id, 'first_name', true );
 			$last_name  = get_post_meta( $post_id, 'last_name', true );
@@ -61,7 +61,7 @@ class List_Columns {
 			$new_columns[ $key ] = $value;
 
 			// Add after Title column
-			if ( $key === 'title' ) {
+			if ( 'title' === $key ) {
 				$new_columns['connection_status'] = 'Status';
 			}
 		}
@@ -71,7 +71,7 @@ class List_Columns {
 
 	public function manage_status_column( $column, $post_id ) {
 
-		if ( $column === 'connection_status' ) {
+		if ( 'connection_status' === $column ) {
 
 			$status = get_post_meta( $post_id, 'status', true );
 
@@ -79,11 +79,11 @@ class List_Columns {
 				$status = 'pending';
 			}
 
-			if ( $status === 'accepted' ) {
+			if ( 'accepted' === $status ) {
 				echo '<span style="color: green; font-weight: 600;">Accepted</span>';
-			} elseif ( $status === 'rejected' ) {
+			} elseif ( 'rejected' === $status ) {
 				echo '<span style="color: red; font-weight: 600;">Rejected</span>';
-			} elseif ( $status === 'removed' ) {
+			} elseif ( 'removed' === $status ) {
 				echo '<span style="color: #374151; font-weight: 600;">Removed</span>';
 			} else {
 				echo '<span style="color: orange; font-weight: 600;">Pending</span>';
@@ -100,7 +100,7 @@ class List_Columns {
 			$new_columns[ $key ] = $value;
 
 			// Add after Title column
-			if ( $key === 'title' ) {
+			if ( 'title' === $key ) {
 				$new_columns['user_name'] = 'Name';
 			}
 		}
@@ -110,7 +110,7 @@ class List_Columns {
 
 	public function manage_user_name_column( $column, $post_id ) {
 
-		if ( $column === 'user_name' ) {
+		if ( 'user_name' === $column ) {
 
 			$user_profile_id = get_post_meta( $post_id, 'user_profile_id', true );
 			$first_name      = get_post_meta( $user_profile_id, 'first_name', true );

@@ -24,7 +24,7 @@ class Repository {
 
 		$username = sanitize_user( $username, true );
 
-		if ( $username === '' ) {
+		if ( '' === $username ) {
 			return 0;
 		}
 

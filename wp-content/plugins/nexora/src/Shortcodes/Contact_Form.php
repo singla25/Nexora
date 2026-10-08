@@ -37,6 +37,8 @@ class Contact_Form {
 
 	public function render() {
 
+		// Display-only status flag set by our own redirect; nothing is changed by it.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$status = isset( $_GET['nx_contact'] ) ? sanitize_key( wp_unslash( $_GET['nx_contact'] ) ) : '';
 
 		$user = wp_get_current_user();
@@ -94,7 +96,7 @@ class Contact_Form {
 		$subject = sanitize_text_field( wp_unslash( $_POST['nx_subject'] ?? '' ) );
 		$message = sanitize_textarea_field( wp_unslash( $_POST['nx_message'] ?? '' ) );
 
-		if ( $name === '' || ! is_email( $email ) || $message === '' ) {
+		if ( '' === $name || ! is_email( $email ) || '' === $message ) {
 			$back( 'invalid' );
 		}
 
@@ -104,7 +106,7 @@ class Contact_Form {
 		}
 
 		$subject = '[' . wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . '] '
-			. ( $subject !== '' ? $subject : 'New contact message' );
+			. ( '' !== $subject ? $subject : 'New contact message' );
 
 		$body = "Name: {$name}\nEmail: {$email}\n\n{$message}\n";
 

@@ -37,6 +37,7 @@ class Documents_Migration {
 
 		$placeholders = implode( ',', array_fill( 0, count( Private_Documents::DOC_KEYS ), '%s' ) );
 
+		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- one %s per key is built into $placeholders above.
 		$ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT DISTINCT pm.meta_value FROM {$wpdb->postmeta} pm
@@ -45,6 +46,7 @@ class Documents_Migration {
 				Private_Documents::DOC_KEYS
 			)
 		);
+		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
 		foreach ( $ids as $id ) {
 

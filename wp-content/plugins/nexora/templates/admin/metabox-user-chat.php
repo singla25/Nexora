@@ -4,9 +4,9 @@
  * @var array[] $rows   rows: name, conn_id, status, status_color, time, threads[] (subject, status, color)
  */
 ?>
-<?php if ( $state === 'no_user' ) : ?>
+<?php if ( 'no_user' === $state ) : ?>
 <p>No user linked.</p>
-<?php elseif ( $state === 'no_connections' ) : ?>
+<?php elseif ( 'no_connections' === $state ) : ?>
 <p>No connections found.</p>
 <?php else : ?>
 <h3>💬 User Chat Overview</h3>

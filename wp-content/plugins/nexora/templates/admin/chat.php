@@ -25,9 +25,9 @@
 
 					<tr>
 						<td><?php echo esc_html( $thread->id ); ?></td>
-						<td><?php echo esc_html( $thread->connection_id ?: '-' ); ?></td>
+						<td><?php echo esc_html( ! empty( $thread->connection_id ) ? $thread->connection_id : '-' ); ?></td>
 						<td>
-												<?php if ( $thread->status === 'active' ) : ?>
+												<?php if ( 'active' === $thread->status ) : ?>
 								<span style="color: green; font-weight: 600;">Active</span>
 							<?php else : ?>
 								<span style="color: red; font-weight: 600;">Inactive</span>
@@ -35,7 +35,7 @@
 						</td>
 						<td><?php echo esc_html( $thread->user1 ); ?></td>
 						<td><?php echo esc_html( $thread->user2 ); ?></td>
-						<td><?php echo esc_html( $thread->subject ?: '-' ); ?></td>
+						<td><?php echo esc_html( ! empty( $thread->subject ) ? $thread->subject : '-' ); ?></td>
 						<td><?php echo esc_html( $thread->last_message_text ); ?></td>
 
 						<td>

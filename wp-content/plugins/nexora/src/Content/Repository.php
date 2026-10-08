@@ -75,7 +75,7 @@ class Repository {
 
 		foreach ( $all as $post ) {
 
-			if ( get_post_meta( $post->ID, 'user_profile_id', true ) == $profile_id ) {
+			if ( (int) get_post_meta( $post->ID, 'user_profile_id', true ) === (int) $profile_id ) {
 				continue;
 			}
 

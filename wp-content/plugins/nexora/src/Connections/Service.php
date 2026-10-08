@@ -85,19 +85,19 @@ class Service {
 
 		// Only the receiver may accept / reject, and only a pending request
 		if ( in_array( $status, array( 'accepted', 'rejected' ), true ) ) {
-			if ( $current_user_id !== $receiver_user_id || $old_status !== 'pending' ) {
+			if ( $current_user_id !== $receiver_user_id || 'pending' !== $old_status ) {
 				return $this->fail( 'Unauthorized' );
 			}
 		}
 
 		// Only an accepted connection can be removed
-		if ( $status === 'removed' && $old_status !== 'accepted' ) {
+		if ( 'removed' === $status && 'accepted' !== $old_status ) {
 			return $this->fail( 'Connection is not active' );
 		}
 
 		Repository::set_status( $connection_id, $status );
 
-		if ( $status === 'removed' ) {
+		if ( 'removed' === $status ) {
 			( new Chat() )->inactive_threads_by_connection( $connection_id );
 		}
 
@@ -115,7 +115,7 @@ class Service {
 		$sender_user_name   = get_post_meta( $connection_id, 'sender_user_name', true );
 		$receiver_user_name = get_post_meta( $connection_id, 'receiver_user_name', true );
 
-		if ( $current_user_id == $sender_user_id ) {
+		if ( (int) $current_user_id === (int) $sender_user_id ) {
 
 			$actor_user_id   = $sender_user_id;
 			$actor_user_name = $sender_user_name;
@@ -129,11 +129,11 @@ class Service {
 			$receiver_user_name = $sender_user_name;
 		}
 
-		if ( $status === 'accepted' ) {
+		if ( 'accepted' === $status ) {
 			$message = "{$actor_user_name} accepted {$receiver_user_name} connection request";
-		} elseif ( $status === 'rejected' ) {
+		} elseif ( 'rejected' === $status ) {
 			$message = "{$actor_user_name} rejected {$receiver_user_name} connection request";
-		} elseif ( $status === 'removed' ) {
+		} elseif ( 'removed' === $status ) {
 			$message = "{$actor_user_name} removed connection with {$receiver_user_name}";
 		} else {
 			$message = 'Connection status updated';

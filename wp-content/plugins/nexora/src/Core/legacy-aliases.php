@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 return array(
-	'NEXORA_System'                   => 'Nexora\Core\Assets',   // static helpers only: enqueue_tokens(), enqueue_sweetalert(), is_page_for()
+	'NEXORA_System'                   => 'Nexora\Core\Assets',   // only its static helper methods are used (tokens, SweetAlert, page detection)
 	'Nexora_Ajax'                     => 'Nexora\Http\Ajax',
 	'Nexora_Rate_Limiter'             => 'Nexora\Http\Rate_Limiter',
 	'NEXORA_Notification'             => 'Nexora\Notifications\Repository',

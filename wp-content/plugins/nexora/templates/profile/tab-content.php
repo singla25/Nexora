@@ -1,4 +1,4 @@
-<?php /** Variables come from Nexora\Profile\Page::view_data(). */ extract( $ctx ); ?>
+<?php /** Variables come from Nexora\Profile\Page::view_data(). */ ?>
 					<!-- CONTENT -->
 					<div class="tab-content" id="content">
 						<div class="content-header">

@@ -100,7 +100,7 @@ class Ajax {
 
 			$username = get_post_meta( $other, 'user_name', true );
 
-			if ( $keyword === '' || stripos( $username, $keyword ) !== false ) {
+			if ( '' === $keyword || false !== stripos( $username, $keyword ) ) {
 
 				$results[] = array(
 					'user_id'       => (int) get_post_meta( $other, '_wp_user_id', true ),
@@ -197,7 +197,7 @@ class Ajax {
 		$thread_id = absint( $_POST['thread_id'] ?? 0 );
 		$message   = trim( sanitize_textarea_field( wp_unslash( $_POST['message'] ?? '' ) ) );
 
-		if ( ! $thread_id || $message === '' ) {
+		if ( ! $thread_id || '' === $message ) {
 			wp_send_json_error( 'Invalid data' );
 		}
 
@@ -217,7 +217,7 @@ class Ajax {
 			wp_send_json_error( 'Thread not found' );
 		}
 
-		if ( $thread->status !== 'active' ) {
+		if ( 'active' !== $thread->status ) {
 			wp_send_json_error( 'This conversation is closed' );
 		}
 
@@ -242,7 +242,7 @@ class Ajax {
 		$subject       = sanitize_text_field( wp_unslash( $_POST['subject'] ?? '' ) );
 		$connection_id = absint( $_POST['connection_id'] ?? 0 );
 
-		if ( ! $user2 || $subject === '' || ! $connection_id ) {
+		if ( ! $user2 || '' === $subject || ! $connection_id ) {
 			wp_send_json_error( 'Invalid data' );
 		}
 
@@ -305,7 +305,7 @@ class Ajax {
 		$thread_id = absint( $_POST['thread_id'] ?? 0 );
 		$subject   = sanitize_text_field( wp_unslash( $_POST['subject'] ?? '' ) );
 
-		if ( $subject === '' || mb_strlen( $subject ) > 255 ) {
+		if ( '' === $subject || mb_strlen( $subject ) > 255 ) {
 			wp_send_json_error( 'Invalid subject' );
 		}
 

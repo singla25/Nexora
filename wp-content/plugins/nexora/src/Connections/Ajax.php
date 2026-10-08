@@ -23,7 +23,7 @@ class Ajax extends Member_Ajax {
 
 	public function __construct( Service $service = null ) {
 
-		$this->service = $service ?: new Service();
+		$this->service = null !== $service ? $service : new Service();
 
 		Http::register( 'get_add_new_users', array( $this, 'get_add_new_users' ) );
 		Http::register( 'send_connection_request', array( $this, 'send_connection_request' ) );
@@ -42,6 +42,8 @@ class Ajax extends Member_Ajax {
 		$users = get_posts(
 			array(
 				'post_type'      => 'user_profile',
+				// Capped list of members to offer (a search box is the longer-term fix).
+				// phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page
 				'posts_per_page' => 200,
 				'post__not_in'   => Repository::unavailable_profile_ids( $auth['profile_id'] ),
 			)

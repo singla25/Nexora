@@ -144,12 +144,14 @@ class Login {
 			wp_send_json_error( 'Too many requests. Please try again later.' );
 		}
 
-		$ref      = sanitize_text_field( wp_unslash( $_POST['user_id'] ?? '' ) );
-		$user_id  = Otp::resolve_ref( $ref );
-		$token    = sanitize_text_field( wp_unslash( $_POST['token'] ?? '' ) );
+		$ref     = sanitize_text_field( wp_unslash( $_POST['user_id'] ?? '' ) );
+		$user_id = Otp::resolve_ref( $ref );
+		$token   = sanitize_text_field( wp_unslash( $_POST['token'] ?? '' ) );
+		// Passwords are stored hashed as typed: sanitizing would alter them.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$password = wp_unslash( $_POST['password'] ?? '' );
 
-		if ( ! $user_id || $token === '' ) {
+		if ( ! $user_id || '' === $token ) {
 			wp_send_json_error( 'Invalid request' );
 		}
 
@@ -240,9 +242,11 @@ class Login {
 		}
 
 		$login_input = sanitize_text_field( wp_unslash( $_POST['user_name'] ?? '' ) );
-		$password    = wp_unslash( $_POST['password'] ?? '' );
+		// Passwords are checked as typed: sanitizing would alter them.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$password = wp_unslash( $_POST['password'] ?? '' );
 
-		if ( $login_input === '' || $password === '' ) {
+		if ( '' === $login_input || '' === $password ) {
 			wp_send_json_error( 'Invalid username or password' );
 		}
 

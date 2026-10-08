@@ -121,8 +121,11 @@ class Registration {
 		return array(
 			'email'        => sanitize_email( wp_unslash( $_POST['email'] ?? '' ) ),
 			'user_name'    => sanitize_user( wp_unslash( $_POST['user_name'] ?? '' ), true ),
+			// Passwords are hashed as typed: sanitizing would alter them.
+			// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			'password'     => wp_unslash( $_POST['password'] ?? '' ),
 			'confirm_pass' => wp_unslash( $_POST['confirm_password'] ?? '' ),
+			// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			'first_name'   => sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) ),
 			'last_name'    => sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) ),
 			'phone'        => sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) ),
@@ -162,7 +165,7 @@ class Registration {
 			$input['gender'] = '';
 		}
 
-		if ( $input['birthdate'] !== '' ) {
+		if ( '' !== $input['birthdate'] ) {
 			$dt = \DateTime::createFromFormat( 'Y-m-d', $input['birthdate'] );
 
 			if ( ! $dt || $dt->format( 'Y-m-d' ) !== $input['birthdate'] || $dt > new \DateTime( 'today' ) ) {

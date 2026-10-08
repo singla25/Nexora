@@ -51,8 +51,10 @@ class Pages {
 			// The participant who is not the logged-in admin
 			$thread->other_user = null;
 
+			$admin_id = get_current_user_id();
+
 			foreach ( $user_ids as $uid ) {
-				if ( $uid != get_current_user_id() ) {
+				if ( (int) $uid !== $admin_id ) {
 					$thread->other_user = $uid;
 					break;
 				}

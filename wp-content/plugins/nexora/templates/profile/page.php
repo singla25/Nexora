@@ -1,4 +1,4 @@
-<?php /** Variables come from Nexora\Profile\Page::view_data(). */ extract( $ctx ); ?>
+<?php /** Variables come from Nexora\Profile\Page::view_data(). */ ?>
 		<div class="profile-container">
 			<div class="profile-wrapper">
 
@@ -35,8 +35,8 @@
 				<!-- MAIN CONTENT -->
 				<div class="profile-content">
 					
-<?php foreach ( array( 'tab-info', 'tab-connections', 'tab-notifications', 'tab-content' ) as $tab ) : ?>
-	<?php \Nexora\Core\View::output( 'profile/' . $tab, array( 'ctx' => $ctx ) ); ?>
+<?php foreach ( array( 'tab-info', 'tab-connections', 'tab-notifications', 'tab-content' ) as $partial ) : ?>
+	<?php \Nexora\Core\View::output( 'profile/' . $partial, $vars ); ?>
 <?php endforeach; ?>
 				</div>
 			</div>

@@ -88,7 +88,7 @@ class Page {
 	===============================
 		ROUTING RULES
 	=============================== */
-	function rewrite_rule() {
+	public function rewrite_rule() {
 		add_rewrite_rule(
 			'^profile-page/([^/]+)/?$',
 			'index.php?pagename=profile-page&username=$matches[1]',
@@ -96,7 +96,7 @@ class Page {
 		);
 	}
 
-	function query_vars( $vars ) {
+	public function query_vars( $vars ) {
 		$vars[] = 'username';
 		return $vars;
 	}
@@ -146,10 +146,9 @@ class Page {
 			if ( ! $profile_id ) {
 				return '<p>Profile not found.</p>';
 			}
-		}
+		} else {
 
-		// CASE 4: Other user's profile (/profile-page/username)
-		else {
+			// CASE 4: Other user's profile (/profile-page/username)
 
 			$profile_id = Repository::id_by_username( $username );
 
@@ -162,7 +161,7 @@ class Page {
 
 		$role_type = Privacy::role( $current_user_id, $owner_user_id );
 
-		return View::render( 'profile/page', array( 'ctx' => $this->view_data( $profile_id, $role_type, $current_user_id ) ) );
+		return View::render( 'profile/page', $this->view_data( $profile_id, $role_type, $current_user_id ) );
 	}
 
 	/**
@@ -170,8 +169,8 @@ class Page {
 	 */
 	private function view_data( $profile_id, $role_type, $current_user_id ) {
 
-		$is_owner     = ( $role_type === Privacy::OWNER );
-		$is_logged_in = ( $role_type !== Privacy::GUEST );
+		$is_owner     = ( Privacy::OWNER === $role_type );
+		$is_logged_in = ( Privacy::GUEST !== $role_type );
 
 		$default_profile = $this->default_image_url( 'default_profile_image' );
 		$default_cover   = $this->default_image_url( 'default_cover_image' );
@@ -267,9 +266,9 @@ class Page {
 
 			// Fallback to the default image
 			if ( ! $url ) {
-				if ( $key === 'profile_image' ) {
+				if ( 'profile_image' === $key ) {
 					$url = $default_profile;
-				} elseif ( $key === 'cover_image' ) {
+				} elseif ( 'cover_image' === $key ) {
 					$url = $default_cover;
 				} else {
 					$url = $default_doc;
@@ -323,7 +322,7 @@ class Page {
 				'is_read'     => (bool) $noti->is_read,
 				'message'     => $this->format_notification_message( $noti ),
 				'actor_image' => Repository::get_profile_image( $actor_profile_id ),
-				'time'        => date( 'd M Y • h:i A', strtotime( $noti->created_at ) ),
+				'time'        => gmdate( 'd M Y • h:i A', strtotime( $noti->created_at ) ),
 			);
 		}
 

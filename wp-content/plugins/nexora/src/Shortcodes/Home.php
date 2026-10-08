@@ -123,7 +123,7 @@ class Home {
 
 			$line = trim( $line );
 
-			if ( $line === '' ) {
+			if ( '' === $line ) {
 				continue;
 			}
 
@@ -150,6 +150,20 @@ class Home {
 	===============================
 		RENDER
 	=============================== */
+	/**
+	 * An option's value, or the default when it is empty.
+	 *
+	 * @param string $name    Option name.
+	 * @param string $fallback Text used when the option is empty.
+	 * @return string
+	 */
+	private function option_or( $name, $fallback ) {
+
+		$value = get_option( $name );
+
+		return $value ? $value : $fallback;
+	}
+
 	public function render_home_page() {
 
 		$logged_in = is_user_logged_in();
@@ -181,9 +195,9 @@ class Home {
 			'logged_in'    => $logged_in,
 			'login_url'    => Urls::login( true ),
 			'reg_url'      => Urls::registration( true ),
-			'eyebrow'      => get_option( 'nexora_home_eyebrow' ) ?: 'Your professional network',
-			'title'        => get_option( 'nexora_home_title' ) ?: 'Connect. Grow. Discover.',
-			'subtitle'     => get_option( 'nexora_home_subtitle' ) ?: 'Nexora helps you connect, share, and grow your network in real-time.',
+			'eyebrow'      => $this->option_or( 'nexora_home_eyebrow', 'Your professional network' ),
+			'title'        => $this->option_or( 'nexora_home_title', 'Connect. Grow. Discover.' ),
+			'subtitle'     => $this->option_or( 'nexora_home_subtitle', 'Nexora helps you connect, share, and grow your network in real-time.' ),
 			'cover'        => $cover_id ? wp_get_attachment_url( $cover_id ) : '',
 			'stats'        => array_map( array( self::class, 'short_number' ), $stats ),
 			'features'     => $features,

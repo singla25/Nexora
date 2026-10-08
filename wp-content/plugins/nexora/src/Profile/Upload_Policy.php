@@ -91,6 +91,8 @@ class Upload_Policy {
 	private function upload_context() {
 
 		if ( wp_doing_ajax() ) {
+			// Context check only (which request is this?); no data is read from it or changed by it.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$action = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( $_REQUEST['action'] ) ) : '';
 			return in_array( $action, self::UPLOAD_ACTIONS, true );
 		}
@@ -152,6 +154,7 @@ class Upload_Policy {
 		global $wpdb;
 
 		$limit = (int) apply_filters( 'nexora_member_max_files', self::DEFAULT_MAX_FILES );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- counting a member's attachments; attachments are not published, so count_user_posts() would return 0.
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_author = %d",

@@ -29,7 +29,7 @@ class Urls {
 	 */
 	public static function profile( $username = '', $trailing_slash = false ) {
 
-		if ( $username === '' || $username === null ) {
+		if ( '' === $username || null === $username ) {
 			return home_url( '/' . self::PROFILE_SLUG . ( $trailing_slash ? '/' : '' ) );
 		}
 

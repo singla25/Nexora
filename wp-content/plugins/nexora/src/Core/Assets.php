@@ -37,12 +37,15 @@ class Assets {
 		$deps = array();
 
 		if ( get_template() !== 'nexora-theme' ) {
+			// External font stylesheet: its URL carries the version.
+			// phpcs:disable WordPress.WP.EnqueuedResourceParameters.MissingVersion
 			wp_enqueue_style(
 				'nexora-font',
 				'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
 				array(),
 				null
 			);
+			// phpcs:enable WordPress.WP.EnqueuedResourceParameters.MissingVersion
 			$deps[] = 'nexora-font';
 		}
 

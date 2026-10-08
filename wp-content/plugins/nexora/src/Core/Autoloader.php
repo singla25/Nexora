@@ -33,11 +33,11 @@ class Autoloader {
 		spl_autoload_register( array( self::class, 'load' ) );
 	}
 
-	public static function load( $class ) {
+	public static function load( $class_name ) {
 
-		if ( strncmp( $class, self::PREFIX, strlen( self::PREFIX ) ) === 0 ) {
+		if ( strncmp( $class_name, self::PREFIX, strlen( self::PREFIX ) ) === 0 ) {
 
-			$file = self::$base . str_replace( '\\', '/', substr( $class, strlen( self::PREFIX ) ) ) . '.php';
+			$file = self::$base . str_replace( '\\', '/', substr( $class_name, strlen( self::PREFIX ) ) ) . '.php';
 
 			if ( is_file( $file ) ) {
 				require_once $file;
@@ -46,10 +46,10 @@ class Autoloader {
 			return;
 		}
 
-		$key = strtolower( $class );
+		$key = strtolower( $class_name );
 
 		if ( isset( self::$legacy[ $key ] ) && class_exists( self::$legacy[ $key ] ) ) {
-			class_alias( self::$legacy[ $key ], $class );
+			class_alias( self::$legacy[ $key ], $class_name );
 		}
 	}
 }

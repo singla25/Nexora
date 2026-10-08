@@ -54,7 +54,7 @@ class Ajax {
 	 */
 	public static function member( $nonce_action = 'profile_nonce', $require_profile = true, $unauth_message = 'Unauthorized access', $request = null ) {
 
-		if ( $request !== null ) {
+		if ( null !== $request ) {
 			$_REQUEST = array_merge( $_REQUEST, $request );
 		}
 

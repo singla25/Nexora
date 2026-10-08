@@ -182,16 +182,16 @@ class Meta_Boxes {
 			$status      = get_post_meta( $conn_id, 'status', true );
 
 			// Other user
-			$other_user_id = ( $sender_id == $user_id ) ? $receiver_id : $sender_id;
+			$other_user_id = ( (int) $sender_id === (int) $user_id ) ? $receiver_id : $sender_id;
 			$other_user    = get_userdata( $other_user_id );
 
 			$threads = array();
 
 			foreach ( $chat_db->get_threads_by_connection( $conn_id ) as $t ) {
 				$threads[] = array(
-					'subject' => $t->subject ?: 'No Subject',
+					'subject' => ! empty( $t->subject ) ? $t->subject : 'No Subject',
 					'status'  => $t->status,
-					'color'   => $t->status === 'active' ? '#16a34a' : '#dc2626',
+					'color'   => 'active' === $t->status ? '#16a34a' : '#dc2626',
 				);
 			}
 
@@ -269,9 +269,9 @@ class Meta_Boxes {
 			$threads[] = array(
 				'id'         => $thread->id,
 				'users'      => $user1 . ' & ' . $user2,
-				'subject'    => $thread->subject ?: 'No Subject',
+				'subject'    => ! empty( $thread->subject ) ? $thread->subject : 'No Subject',
 				'status'     => $thread->status,
-				'color'      => $thread->status === 'active' ? '#16a34a' : '#dc2626',
+				'color'      => 'active' === $thread->status ? '#16a34a' : '#dc2626',
 				// Admin screen: never use the logged-in admin as the "other" user
 				'other_user' => $user_ids[1] ?? $user_ids[0] ?? 0,
 				'name'       => $user1 . ' and ' . $user2,
@@ -323,7 +323,7 @@ class Meta_Boxes {
 		// ===============================
 		// USER PROFILE SAVE
 		// ===============================
-		if ( $post_type === 'user_profile' ) {
+		if ( 'user_profile' === $post_type ) {
 
 			$fields = Fields::admin_editable();
 
@@ -342,7 +342,7 @@ class Meta_Boxes {
 		// ===============================
 		// USER CONTENT SAVE
 		// ===============================
-		if ( $post_type === 'user_content' ) {
+		if ( 'user_content' === $post_type ) {
 
 			$fields = array( 'user_id', 'user_profile_id', 'user_name' );
 
@@ -356,7 +356,7 @@ class Meta_Boxes {
 		// ===============================
 		// USER CONNECTION SAVE
 		// ===============================
-		if ( $post_type === 'user_connections' ) {
+		if ( 'user_connections' === $post_type ) {
 
 			$fields = array(
 				'sender_user_id',

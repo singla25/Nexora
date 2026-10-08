@@ -11,20 +11,20 @@
 
 	<?php
 	if ( $posts ) :
-		foreach ( $posts as $post ) :
+		foreach ( $posts as $entry ) :
 			?>
 
 		<tr>
-			<td style="padding:8px;"><?php echo esc_html( $post['title'] ); ?></td>
-			<td style="padding:8px;"><?php echo esc_html( $post['date'] ); ?></td>
+			<td style="padding:8px;"><?php echo esc_html( $entry['title'] ); ?></td>
+			<td style="padding:8px;"><?php echo esc_html( $entry['date'] ); ?></td>
 			<td style="padding:8px;">
 				
 				<button 
 					class="view-content-btn"
-					data-title="<?php echo esc_attr( $post['title'] ); ?>"
-					data-content="<?php echo esc_attr( $post['content'] ); ?>"
-					data-image="<?php echo esc_url( $post['image'] ); ?>"
-					data-date="<?php echo esc_attr( $post['date'] ); ?>"
+					data-title="<?php echo esc_attr( $entry['title'] ); ?>"
+					data-content="<?php echo esc_attr( $entry['content'] ); ?>"
+					data-image="<?php echo esc_url( $entry['image'] ); ?>"
+					data-date="<?php echo esc_attr( $entry['date'] ); ?>"
 				>
 					View
 				</button>

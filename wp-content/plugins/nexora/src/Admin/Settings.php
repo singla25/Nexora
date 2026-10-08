@@ -55,7 +55,7 @@ class Settings {
 
 					// The field shows a mask, never the real secret: keep the stored key
 					// unless the admin typed a new one.
-					if ( $value === '' || preg_match( '/^\*+$/', $value ) ) {
+					if ( '' === $value || preg_match( '/^\*+$/', $value ) ) {
 						return get_option( 'recaptcha_secret_key' );
 					}
 

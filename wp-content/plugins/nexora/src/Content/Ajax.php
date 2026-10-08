@@ -33,7 +33,7 @@ class Ajax extends Member_Ajax {
 		$description = sanitize_textarea_field( wp_unslash( $_POST['description'] ?? '' ) );
 		$image_id    = absint( $_POST['image'] ?? 0 );
 
-		if ( $title === '' ) {
+		if ( '' === $title ) {
 			wp_send_json_error( 'Title is required' );
 		}
 

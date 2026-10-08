@@ -63,7 +63,7 @@ class Private_Documents {
 			'id'     => (int) $attachment_id,
 		);
 
-		if ( $size !== '' ) {
+		if ( '' !== $size ) {
 			$args['size'] = $size;
 		}
 
@@ -102,6 +102,8 @@ class Private_Documents {
 		$htaccess = $dir . '/.htaccess';
 
 		if ( ! file_exists( $htaccess ) ) {
+			// Writing two small guard files; WP_Filesystem would add nothing here.
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 			file_put_contents(
 				$htaccess,
 				"# Nexora private documents: never served directly.\n"
@@ -111,6 +113,7 @@ class Private_Documents {
 		}
 
 		if ( ! file_exists( $dir . '/index.php' ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 			file_put_contents( $dir . '/index.php', "<?php\n// Silence is golden.\n" );
 		}
 
@@ -177,10 +180,11 @@ class Private_Documents {
 		// 1. copy and verify
 		$copied = array();
 		foreach ( $map as $old => $new ) {
-			if ( ! @copy( $old, $new ) || filesize( $old ) !== filesize( $new ) ) {
+			if ( ! copy( $old, $new ) || filesize( $old ) !== filesize( $new ) ) {
 				foreach ( $copied as $c ) {
-					@unlink( $c ); }
-				@unlink( $new );
+					wp_delete_file( $c );
+				}
+				wp_delete_file( $new );
 				return false;
 			}
 			$copied[] = $new;
@@ -204,7 +208,7 @@ class Private_Documents {
 
 		// 3. delete the public originals
 		foreach ( array_keys( $map ) as $old ) {
-			@unlink( $old );
+			wp_delete_file( $old );
 		}
 
 		return true;
@@ -231,6 +235,7 @@ class Private_Documents {
 		return self::is_private( $attachment_id ) ? self::url_for( $attachment_id ) : $url;
 	}
 
+	// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- $icon: required by the filter's four arguments.
 	public function filter_image_src( $image, $attachment_id, $size, $icon ) {
 
 		if ( ! $image || ! self::is_private( $attachment_id ) ) {
@@ -308,7 +313,7 @@ class Private_Documents {
 			return null;
 		}
 
-		if ( $size === '' ) {
+		if ( '' === $size ) {
 			return $file;
 		}
 
@@ -324,8 +329,11 @@ class Private_Documents {
 
 	public function serve() {
 
+		// Read-only download: access is decided by login + ownership (can_view), not by a nonce, so plain <img> links work.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$id   = absint( $_GET['id'] ?? 0 );
 		$size = isset( $_GET['size'] ) ? sanitize_key( wp_unslash( $_GET['size'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		if ( ! is_user_logged_in() ) {
 			wp_die( 'Please log in.', '', array( 'response' => 401 ) );
@@ -345,7 +353,7 @@ class Private_Documents {
 		}
 
 		$type   = wp_check_filetype( $path );
-		$mime   = $type['type'] ?: 'application/octet-stream';
+		$mime   = ! empty( $type['type'] ) ? $type['type'] : 'application/octet-stream';
 		$inline = strpos( $mime, 'image/' ) === 0;
 
 		$headers = array(
@@ -362,6 +370,8 @@ class Private_Documents {
 			header( $name . ': ' . $value );
 		}
 
+		// Streams a private file after can_view() authorized the request.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
 		readfile( $path );
 		exit;
 	}

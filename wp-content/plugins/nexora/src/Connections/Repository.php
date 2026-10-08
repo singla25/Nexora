@@ -46,7 +46,7 @@ class Repository {
 			$sender   = get_post_meta( $conn->ID, 'sender_profile_id', true );
 			$receiver = get_post_meta( $conn->ID, 'receiver_profile_id', true );
 
-			$ids[] = ( $sender == $profile_id ) ? $receiver : $sender;
+			$ids[] = ( (int) $sender === (int) $profile_id ) ? $receiver : $sender;
 		}
 
 		return $ids;
@@ -92,7 +92,7 @@ class Repository {
 
 			$pairs[] = array(
 				'connection_id' => $conn->ID,
-				'profile_id'    => ( $sender == $profile_id ) ? $receiver : $sender,
+				'profile_id'    => ( (int) $sender === (int) $profile_id ) ? $receiver : $sender,
 			);
 		}
 

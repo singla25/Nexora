@@ -44,7 +44,7 @@ class Access_Control {
 			return;
 		}
 
-		$script = isset( $_SERVER['SCRIPT_NAME'] ) ? basename( $_SERVER['SCRIPT_NAME'] ) : '';
+		$script = isset( $_SERVER['SCRIPT_NAME'] ) ? basename( sanitize_text_field( wp_unslash( $_SERVER['SCRIPT_NAME'] ) ) ) : '';
 
 		if ( in_array( $script, array( 'admin-post.php', 'admin-ajax.php' ), true ) ) {
 			return;
@@ -66,7 +66,7 @@ class Access_Control {
 
 	public function block_wp_login() {
 
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 
 		// Only act on wp-login.php
 		if ( strpos( $request_uri, 'wp-login.php' ) === false ) {
@@ -74,6 +74,8 @@ class Access_Control {
 		}
 
 		// Allow logout, password reset links and post-password forms
+		// Reads a routing parameter only; nothing is changed by it, so there is no nonce to check.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
 
 		if ( in_array( $action, array( 'logout', 'postpass' ), true ) ) {
