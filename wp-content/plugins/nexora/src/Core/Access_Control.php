@@ -42,14 +42,14 @@ class Access_Control {
 
         // Not logged in → redirect to login page
         if (!is_user_logged_in()) {
-            wp_safe_redirect(home_url('/login-page'));
+            wp_safe_redirect(\Nexora\Core\Urls::login());
             exit;
         }
 
         // Logged in but NOT admin → block wp-admin
         if (!current_user_can('manage_options')) {
             $username = wp_get_current_user()->user_login;
-            wp_safe_redirect(home_url('/profile-page/' . rawurlencode($username)));
+            wp_safe_redirect(\Nexora\Core\Urls::profile($username));
             exit;
         }
     }
@@ -77,12 +77,12 @@ class Access_Control {
 
         // Anyone else is sent to the custom pages
         if (!is_user_logged_in()) {
-            wp_safe_redirect(home_url('/login-page'));
+            wp_safe_redirect(\Nexora\Core\Urls::login());
             exit;
         }
 
         $username = wp_get_current_user()->user_login;
-        wp_safe_redirect(home_url('/profile-page/' . rawurlencode($username)));
+        wp_safe_redirect(\Nexora\Core\Urls::profile($username));
         exit;
     }
 
@@ -93,10 +93,6 @@ class Access_Control {
             return $redirect_to;
         }
 
-        if (user_can($user, 'manage_options')) {
-            return home_url('/profile-page'); // Admin UI
-        }
-
-        return home_url('/profile-page/' . rawurlencode($user->user_login));
+        return \Nexora\Core\Urls::profile_for($user);
     }
 }

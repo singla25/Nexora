@@ -21,7 +21,7 @@ foreach ( $files as $f ) {
 	$is_name = function ( $i ) use ( $tid ) { return in_array( $tid( $i ), array( T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED ), true ); };
 	for ( $i = 0; $i < $n; $i++ ) {
 		if ( T_NAMESPACE === $tid( $i ) && $is_name( $i + 1 ) ) { $ns = $val( $i + 1 ); }
-		if ( T_USE === $tid( $i ) && $is_name( $i + 1 ) && $ns !== '' && $depth0 ?? true ) {
+		if ( T_USE === $tid( $i ) && $is_name( $i + 1 ) ) {
 			// top-level imports only (class-body `use` of traits would follow `{`); good enough: record alias
 			$fq = ltrim( $val( $i + 1 ), '\\' ); $alias = substr( strrchr( '\\' . $fq, '\\' ), 1 );
 			if ( T_AS === $tid( $i + 2 ) ) { $alias = $val( $i + 3 ); }

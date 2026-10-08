@@ -36,20 +36,18 @@ class Stats {
 
         if (!is_user_logged_in()) {
             return '<span class="nx-auth">'
-                . '<a class="nx-btn nx-outline" href="' . esc_url(home_url('/login-page/')) . '">Log in</a>'
-                . '<a class="nx-btn nx-primary" href="' . esc_url(home_url('/registration-page/')) . '">Sign up</a>'
+                . '<a class="nx-btn nx-outline" href="' . esc_url(\Nexora\Core\Urls::login(true)) . '">Log in</a>'
+                . '<a class="nx-btn nx-primary" href="' . esc_url(\Nexora\Core\Urls::registration(true)) . '">Sign up</a>'
                 . '</span>';
         }
 
         $user = wp_get_current_user();
 
-        $profile = user_can($user, 'manage_options')
-            ? home_url('/profile-page/')
-            : home_url('/profile-page/' . rawurlencode($user->user_login));
+        $profile = \Nexora\Core\Urls::profile_for($user, true);
 
         return '<span class="nx-auth">'
             . '<a class="nx-btn nx-outline" href="' . esc_url($profile) . '">' . esc_html($user->display_name) . '</a>'
-            . '<a class="nx-btn nx-primary" href="' . esc_url(wp_logout_url(home_url('/login-page/'))) . '">Log out</a>'
+            . '<a class="nx-btn nx-primary" href="' . esc_url(wp_logout_url(\Nexora\Core\Urls::login(true))) . '">Log out</a>'
             . '</span>';
     }
 }

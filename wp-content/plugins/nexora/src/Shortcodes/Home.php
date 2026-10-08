@@ -156,14 +156,12 @@ class Home {
             ['default_smart_connections_image',  'Smart connections'],
         ];
 
-        $login_url = home_url('/login-page/');
-        $reg_url   = home_url('/registration-page/');
+        $login_url = \Nexora\Core\Urls::login(true);
+        $reg_url   = \Nexora\Core\Urls::registration(true);
 
         if ($logged_in) {
             $user        = wp_get_current_user();
-            $primary_url = user_can($user, 'manage_options')
-                ? home_url('/profile-page/')
-                : home_url('/profile-page/' . rawurlencode($user->user_login));
+            $primary_url = \Nexora\Core\Urls::profile_for($user, true);
         }
 
         ob_start();

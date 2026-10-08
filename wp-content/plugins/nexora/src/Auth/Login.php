@@ -2,6 +2,10 @@
 
 namespace Nexora\Auth;
 
+use Nexora\Core\Urls;
+use Nexora\Core\View;
+use Nexora\Http\Rate_Limiter;
+
 if (!defined('ABSPATH')) exit;
 
 class Login {
@@ -49,55 +53,13 @@ class Login {
     }
 
     // ---------------------------
-    //      HELPERS
-    // ---------------------------
-    /**
-     * The browser never learns a user id. send_otp hands back an opaque reference that
-     * maps to the account server-side (only for a real username+email pair); for any
-     * other input it hands back a random value of the same shape that maps to nothing.
-     */
-    const REF_PREFIX = 'nexora_otp_ref_';
-    const REF_TTL    = 25 * MINUTE_IN_SECONDS;
-
-    private function new_ref($user_id = 0) {
-
-        $ref = bin2hex(random_bytes(16));
-
-        if ($user_id) {
-            set_transient(self::REF_PREFIX . $ref, (int) $user_id, self::REF_TTL);
-        }
-
-        return $ref;
-    }
-
-    /** Account id behind a reference, or 0. */
-    private function resolve_ref($ref) {
-
-        $ref = is_string($ref) ? $ref : '';
-
-        if (!preg_match('/^[a-f0-9]{32}$/', $ref)) {
-            return 0;
-        }
-
-        return (int) get_transient(self::REF_PREFIX . $ref);
-    }
-
-    private function clear_otp($user_id) {
-        delete_user_meta($user_id, 'reset_otp');
-        delete_user_meta($user_id, 'otp_expiry');
-        delete_user_meta($user_id, 'otp_attempts');
-        delete_user_meta($user_id, 'reset_token');
-        delete_user_meta($user_id, 'reset_token_expiry');
-    }
-
-    // ---------------------------
     //      SEND OTP
     // ---------------------------
     public function send_otp() {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if (\Nexora\Http\Rate_Limiter::hit('otp_send')) {
+        if (Rate_Limiter::hit('otp_send')) {
             wp_send_json_error('Too many requests. Please try again later.');
         }
 
@@ -106,7 +68,7 @@ class Login {
 
         $reply = function ($user_id = 0) {
             return [
-                'user_id' => $this->new_ref($user_id),
+                'user_id' => Otp::issue_ref($user_id),
                 'message' => 'If the details are correct, an OTP has been sent to your email.'
             ];
         };
@@ -119,20 +81,11 @@ class Login {
         }
 
         // Do not issue a new OTP while a valid one exists (prevents mail flooding)
-        $expiry = (int) get_user_meta($user->ID, 'otp_expiry', true);
-
-        if ($expiry && time() < $expiry) {
+        if (Otp::has_active_otp($user->ID)) {
             wp_send_json_success($reply($user->ID));
         }
 
-        $otp = (string) random_int(100000, 999999);
-
-        // Store only a hash of the OTP
-        update_user_meta($user->ID, 'reset_otp', wp_hash_password($otp));
-        update_user_meta($user->ID, 'otp_expiry', time() + 600);
-        update_user_meta($user->ID, 'otp_attempts', 0);
-        delete_user_meta($user->ID, 'reset_token');
-        delete_user_meta($user->ID, 'reset_token_expiry');
+        $otp = Otp::issue($user->ID);
 
         $subject = 'Reset Password OTP - Nexora';
         $message = "Your OTP is: $otp\n\nThis OTP is valid for 10 minutes. If you did not request it, ignore this email.";
@@ -149,53 +102,26 @@ class Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if (\Nexora\Http\Rate_Limiter::hit('otp_verify')) {
+        if (Rate_Limiter::hit('otp_verify')) {
             wp_send_json_error('Too many attempts. Please try again later.');
         }
 
-        $user_id = $this->resolve_ref(sanitize_text_field(wp_unslash($_POST['user_id'] ?? '')));
+        $user_id = Otp::resolve_ref(sanitize_text_field(wp_unslash($_POST['user_id'] ?? '')));
         $otp     = sanitize_text_field(wp_unslash($_POST['otp'] ?? ''));
 
         if (!$user_id) {
             wp_send_json_error('Invalid or expired OTP');
         }
 
-        $saved_hash = get_user_meta($user_id, 'reset_otp', true);
-        $expiry     = (int) get_user_meta($user_id, 'otp_expiry', true);
-        $attempts   = (int) get_user_meta($user_id, 'otp_attempts', true);
+        $result = Otp::verify($user_id, $otp);
 
-        if (!$user_id || !$saved_hash) {
-            wp_send_json_error('No OTP found');
+        if (!$result['ok']) {
+            wp_send_json_error($result['message']);
         }
-
-        if (time() > $expiry) {
-            $this->clear_otp($user_id);
-            wp_send_json_error('OTP expired');
-        }
-
-        if ($attempts >= 5) {
-            $this->clear_otp($user_id);
-            wp_send_json_error('Too many wrong attempts. Please request a new OTP.');
-        }
-
-        if (!wp_check_password($otp, $saved_hash)) {
-            update_user_meta($user_id, 'otp_attempts', $attempts + 1);
-            wp_send_json_error('Invalid OTP');
-        }
-
-        // OTP is single use; swap it for a short lived reset token
-        $token = wp_generate_password(32, false);
-
-        delete_user_meta($user_id, 'reset_otp');
-        delete_user_meta($user_id, 'otp_expiry');
-        delete_user_meta($user_id, 'otp_attempts');
-
-        update_user_meta($user_id, 'reset_token', wp_hash_password($token));
-        update_user_meta($user_id, 'reset_token_expiry', time() + 600);
 
         wp_send_json_success([
             'message' => 'OTP verified',
-            'token'   => $token
+            'token'   => $result['token']
         ]);
     }
 
@@ -206,12 +132,12 @@ class Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if (\Nexora\Http\Rate_Limiter::hit('reset_password')) {
+        if (Rate_Limiter::hit('reset_password')) {
             wp_send_json_error('Too many requests. Please try again later.');
         }
 
         $ref      = sanitize_text_field(wp_unslash($_POST['user_id'] ?? ''));
-        $user_id  = $this->resolve_ref($ref);
+        $user_id  = Otp::resolve_ref($ref);
         $token    = sanitize_text_field(wp_unslash($_POST['token'] ?? ''));
         $password = wp_unslash($_POST['password'] ?? '');
 
@@ -220,10 +146,7 @@ class Login {
         }
 
         // The OTP must have been verified first (proves ownership of the email)
-        $saved_token = get_user_meta($user_id, 'reset_token', true);
-        $expiry      = (int) get_user_meta($user_id, 'reset_token_expiry', true);
-
-        if (!$saved_token || time() > $expiry || !wp_check_password($token, $saved_token)) {
+        if (!Otp::token_valid($user_id, $token)) {
             wp_send_json_error('Reset session expired. Please verify OTP again.');
         }
 
@@ -240,41 +163,24 @@ class Login {
         wp_set_password($password, $user_id);
 
         // Token / OTP are single use, and so is the reference the browser held
-        $this->clear_otp($user_id);
-        delete_transient(self::REF_PREFIX . $ref);
+        Otp::clear($user_id);
+        Otp::forget_ref($ref);
 
-        $to      = $user->user_email;
-        $subject = 'Password Reset Successful - Nexora';
-
-        $message = "
-        <div style='font-family:Segoe UI, sans-serif; padding:20px; background:#f8fafc;'>
-            <div style='max-width:500px; margin:auto; background:#fff; padding:20px; border-radius:10px;'>
-                <h2 style='color:#16a34a;'>Password Reset Successful</h2>
-                <p>Hi <strong>" . esc_html($user->display_name) . "</strong>,</p>
-                <p>Your password has been successfully reset.</p>
-                <p>If this was you, enjoy using <b>Nexora</b>.</p>
-                <p style='color:#ef4444;'>If not, please contact support immediately.</p>
-                <hr>
-                <p style='font-size:12px; color:#64748b;'>— Nexora Team</p>
-            </div>
-        </div>
-        ";
-
-        wp_mail($to, $subject, $message, ['Content-Type: text/html; charset=UTF-8']);
+        wp_mail(
+            $user->user_email,
+            'Password Reset Successful - Nexora',
+            View::render('mail/password-reset-success', ['user' => $user]),
+            ['Content-Type: text/html; charset=UTF-8']
+        );
 
         // Auto login
         wp_set_current_user($user_id);
         wp_set_auth_cookie($user_id);
 
-        $redirect = user_can($user_id, 'manage_options')
-            ? home_url('/profile-page')
-            : home_url('/profile-page/' . rawurlencode($user->user_login));
-
         wp_send_json_success([
-            'redirect' => $redirect
+            'redirect' => Urls::profile_for($user)
         ]);
     }
-
 
     // ---------------------------
     //      LogIn Form
@@ -286,88 +192,30 @@ class Login {
 
             $current_user = wp_get_current_user();
 
-            return '
-                <div class="login-state-wrapper">
-
-                    <div class="login-state-card">
-
-                        <div class="login-avatar">
-                            <span>' . esc_html(mb_strtoupper(mb_substr($current_user->display_name, 0, 1))) . '</span>
-                        </div>
-
-                        <h2>Welcome back, ' . esc_html($current_user->display_name) . ' 👋</h2>
-                        <p>You are already logged in</p>
-
-                        <div class="login-actions">
-                            <a href="' . esc_url(home_url('/profile-page/' . rawurlencode($current_user->user_login))) . '" class="btn-primary">
-                                Go to Profile
-                            </a>
-
-                            <a href="' . esc_url(wp_logout_url(home_url('/login-page'))) . '" class="btn-danger">
-                                Logout
-                            </a>
-                        </div>
-
-                    </div>
-
-                </div>
-            ';
+            return View::render('auth/login-state', [
+                'user'        => $current_user,
+                'profile_url' => Urls::profile($current_user->user_login),
+                'logout_url'  => wp_logout_url(Urls::login()),
+            ]);
         }
 
-        ob_start(); ?>
+        $captcha = new Recaptcha();
 
-        <div class="profile-login-wrapper">
-            <div class="profile-login-card">
-
-                <form id="profile-login-form">
-
-                    <h2>Welcome Back 👋</h2>
-
-                    <input type="text" name="user_name" placeholder="Username or Email" required>
-                    <input type="password" name="password" placeholder="Password" required>
-
-                    <div class="password-toggle-wrapper full-width">
-                        <label class="switch">
-                            <input type="checkbox" id="toggle-passwords">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label">Show Password</span>
-                    </div>
-
-                    <?php
-                    $captcha = new \Nexora\Auth\Recaptcha();
-                    echo $captcha->render();
-                    ?>
-
-                    <button type="submit">Login</button>
-
-                    <div class="profile-login-extra">
-                        Don’t have an account? 
-                        <a href="<?php echo esc_url(home_url('/registration-page')); ?>">Register</a>
-                    </div>
-
-                    <div class="profile-login-password">
-                        <button type="button" id="forgot-password-btn" class="forgot-password-btn" data-type="forgot-password">
-                            Forgot Password?
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <?php
-        return ob_get_clean();
+        return View::render('auth/login-form', [
+            'captcha_html' => $captcha->render(),
+            'register_url' => Urls::registration(),
+        ]);
     }
 
     public function handle_login() {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if (\Nexora\Http\Rate_Limiter::hit('login')) {
+        if (Rate_Limiter::hit('login')) {
             wp_send_json_error('Too many login attempts. Please try again later.');
         }
 
-        $captcha = new \Nexora\Auth\Recaptcha();
+        $captcha = new Recaptcha();
 
         $result = $captcha->verify(sanitize_text_field(wp_unslash($_POST['g-recaptcha-response'] ?? '')));
 
@@ -405,14 +253,8 @@ class Login {
             wp_send_json_error('Invalid username or password');
         }
 
-        if (user_can($user, 'manage_options')) {
-            $redirect = home_url('/profile-page');
-        } else {
-            $redirect = home_url('/profile-page/' . rawurlencode($user->user_login));
-        }
-
         wp_send_json_success([
-            'redirect' => $redirect
+            'redirect' => Urls::profile_for($user)
         ]);
     }
 }
