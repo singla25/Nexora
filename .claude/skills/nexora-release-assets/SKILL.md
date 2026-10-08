@@ -5,7 +5,7 @@ description: Checklist to run after changing Nexora plugin or theme CSS/JS/marku
 
 # Finish-a-change checklist
 
-There is no build, linter or test suite. Do this instead:
+There is no build step or linter. Run `tests/run.sh` (see `tdd-workflow`) and do this:
 
 1. **Syntax check** every PHP file you touched: `php -l <file>`.
 2. **Cache busting**: if any plugin CSS/JS changed, bump `NEXORA_VERSION` in `wp-content/plugins/nexora/nexora.php`. All plugin assets, chat included, use it.  For theme asset changes, bump the version the theme uses when enqueuing (see `inc/theme-setup.php`).

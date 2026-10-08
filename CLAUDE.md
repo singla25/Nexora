@@ -11,7 +11,14 @@ A WordPress site (full WP core is committed) with project-specific code in two p
 
 Everything else (WP core, Elementor, Elementor Pro, ACF, other plugins, stock themes, Hostinger mu-plugins) is third-party; don't edit it. See [README.md](README.md) for the shortcode table, setup steps and feature list.
 
-There is no build step, linter, or test suite — it's plain PHP/CSS/JS. Run and verify changes in the browser (site is served under `/nexora/`; `.htaccess` `RewriteBase` assumes that). `wp-config.php`, uploads, and DB dumps are git-ignored.
+There is no build step or linter — it's plain PHP/CSS/JS, with a small WP-CLI test harness in `tests/`. Run and verify changes in the browser (site is served under `/nexora/`; `.htaccess` `RewriteBase` assumes that). `wp-config.php`, uploads, and DB dumps are git-ignored.
+
+## Commands
+
+- Tests (WP-CLI based, run against the local dev DB with self-cleaning fixtures): `tests/run.sh` for all, or `tests/run.sh tests/php/test-foo.php` for one. Helpers in `tests/bootstrap.php`. **Work test-first: follow the `tdd-workflow` skill (red, green, refactor) before building or fixing anything.**
+- Syntax-check changed PHP: `php -l path/to/file.php`, or for the whole plugin/theme: `find wp-content/plugins/nexora wp-content/themes/nexora-theme -name '*.php' -print0 | xargs -0 -n1 php -l | grep -v '^No syntax errors'`
+- Flush rewrites after touching rules: *Settings → Permalinks → Save* (or `wp rewrite flush` if WP-CLI is installed).
+- Project skills in `.claude/skills/` (`nexora-add-module`, `nexora-add-ajax-endpoint`, `nexora-db-table`, `nexora-elementor-page`, `nexora-release-assets`) cover the common change types; use them, and run `nexora-release-assets` before finishing any plugin/theme change. Use `raise-pr` to branch, commit, push and open/merge a PR (it confirms before each outward-facing step). `nexora-data-model`, `nexora-settings-option`, `nexora-auth-flow` and `nexora-frontend-style` cover the CPT/meta conventions, settings, login/OTP/registration and CSS/JS conventions. `verify-like-a-user` (imported) is the method for checking UI in the browser; its outputs go to git-ignored `skill-outputs/`.
 
 ## Architecture
 

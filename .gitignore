@@ -20,3 +20,4 @@ wp-content/upgrade/
 *.sql
 *.sql.gz
 *.wpress
+skill-outputs/
