@@ -25,7 +25,8 @@ Member handlers live in the class of their feature and extend `Nexora\Http\Membe
 7. Put rules in a Service and queries in a Repository, not in the handler. HTML replies come from `View::render()` templates.
 8. Reply only with `wp_send_json_success()` / `wp_send_json_error()`. Business errors stay HTTP 200 + `success:false` (the front end has no error callbacks).
 9. Front-end: call `nexora_my_action` from `assets/js/profile-page.js` (or `assets/js/chat.js`) using the localized `ajaxUrl` and `nonce`. A new localized value goes in the `wp_localize_script` call of the class that enqueues that script.
-10. Bump `NEXORA_VERSION` (see `nexora-release-assets`).
+10. Add the action name to the right list in `tests/php/test-endpoint-matrix.php` (member / chat / guest): that test fails for any endpoint missing from it and runs the no-nonce, bad-nonce, logged-out and malformed-payload cases for you. Add endpoint-specific cases (wrong owner, valid call) to the matching `test-*-ajax.php`.
+11. Bump `NEXORA_VERSION` (see `nexora-release-assets`).
 
 ## Notifications
 To notify another user, go through `Notifications\Repository::insert()` (as `Connections\Service` does), never insert rows directly.
