@@ -778,6 +778,7 @@ class NEXORA_PROFILE_PAGE {
                         $notifications = $notification->get_notifications($current_user_id);
 
                         // 🔥 Helper function (UI transformation)
+                        if (!function_exists('nexora_format_message')) {
                         function nexora_format_message($noti) {
 
                             $actor = esc_html($noti->actor_user_name); 
@@ -802,6 +803,7 @@ class NEXORA_PROFILE_PAGE {
                                 default:
                                     return esc_html($noti->message); // fallback
                             }
+                        }
                         }
                         ?>
 

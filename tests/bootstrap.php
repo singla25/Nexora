@@ -70,6 +70,7 @@ function nx_call_ajax( $action, array $post = array(), $guest = false ) {
 	$raw = ob_get_clean();
 	remove_filter( 'wp_die_ajax_handler', $handler, 99 );
 	remove_filter( 'wp_die_handler', $handler, 99 );
+	remove_filter( 'wp_doing_ajax', '__return_true' );
 	$json = json_decode( $raw, true );
 	return is_array( $json ) ? $json : array( 'died' => $died, 'raw' => $raw );
 }
@@ -189,4 +190,40 @@ function nx_test_finish() {
 	if ( $t['fail'] ) {
 		WP_CLI::halt( 1 );
 	}
+}
+
+
+/* ------------------------------------------------------------------
+ * Golden-output snapshots: pin the exact HTML a refactor must keep producing.
+ * Run with NX_UPDATE_GOLDEN=1 to (re)write tests/golden/<name>.html.
+ * Whitespace between tags and nonces are normalised; nothing else is.
+ * ---------------------------------------------------------------- */
+function nx_golden_normalize( $html ) {
+	$html = (string) $html;
+	$html = preg_replace( '/(name="[\w-]*nonce[\w-]*"[^>]*value=")[a-f0-9]{10}/', '$1{NONCE}', $html );
+	$html = preg_replace( '/(id="[\w-]*nonce[\w-]*"[^>]*value=")[a-f0-9]{10}/', '$1{NONCE}', $html );
+	$html = preg_replace( '/\s+/', ' ', $html );
+	$html = preg_replace( '/>\s+</', '><', $html );
+	return trim( $html );
+}
+
+function nx_assert_golden( $name, $html ) {
+	$file = dirname( __DIR__ ) . '/tests/golden/' . $name . '.html';
+	$norm = nx_golden_normalize( $html );
+	if ( getenv( 'NX_UPDATE_GOLDEN' ) || ! file_exists( $file ) ) {
+		if ( ! is_dir( dirname( $file ) ) ) { mkdir( dirname( $file ), 0775, true ); }
+		file_put_contents( $file, $norm . "\n" );
+		echo "  wrote golden: $name (" . strlen( $norm ) . " bytes)\n";
+		nx_assert( strlen( $norm ) > 0, "golden $name is not empty" );
+		return;
+	}
+	$expected = rtrim( file_get_contents( $file ), "\n" );
+	$ok = ( $expected === $norm );
+	if ( ! $ok ) {
+		$i = 0; $n = min( strlen( $expected ), strlen( $norm ) );
+		while ( $i < $n && $expected[ $i ] === $norm[ $i ] ) { $i++; }
+		$detail = ' first difference at byte ' . $i . ': expected "' . substr( $expected, max( 0, $i - 40 ), 120 ) . '" got "' . substr( $norm, max( 0, $i - 40 ), 120 ) . '"';
+		file_put_contents( sys_get_temp_dir() . '/nx-golden-' . $name . '.actual.html', $norm );
+	}
+	nx_assert( $ok, "golden output: $name" . ( $ok ? '' : $detail ) );
 }
