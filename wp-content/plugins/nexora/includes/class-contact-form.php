@@ -102,11 +102,7 @@ class Nexora_Contact_Form {
             $back('sent');
         }
 
-        $ip     = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-        $rl_key = 'nx_contact_' . md5($ip);
-        $hits   = (int) get_transient($rl_key);
-
-        if ($hits >= 3) {
+        if (Nexora_Rate_Limiter::blocked('contact')) {
             $back('limit');
         }
 
@@ -132,7 +128,7 @@ class Nexora_Contact_Form {
         // name / email were sanitised (no line breaks), so they cannot inject headers
         $headers = ['Reply-To: ' . $name . ' <' . $email . '>'];
 
-        set_transient($rl_key, $hits + 1, 10 * MINUTE_IN_SECONDS);
+        Nexora_Rate_Limiter::hit('contact');
 
         $sent = wp_mail($to, $subject, $body, $headers);
 

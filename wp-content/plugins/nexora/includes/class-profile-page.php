@@ -1016,13 +1016,7 @@ class NEXORA_PROFILE_PAGE {
 
     function allow_user_uploads() {
 
-        $role = get_role('subscriber'); // or your custom role
-
-        // Only write to the DB when the capability is actually missing
-        if ($role && !$role->has_cap('upload_files')) {
-            $role->add_cap('upload_files');
-        }
-
+        // Upload rights are granted per request by Nexora_Upload_Policy (no stored role capability)
         // Members may only upload images and PDFs
         add_filter('upload_mimes', [$this, 'restrict_member_mimes']);
     }

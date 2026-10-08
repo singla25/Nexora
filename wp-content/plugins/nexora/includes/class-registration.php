@@ -6,8 +6,7 @@ class NEXORA_Registration {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_shortcode('profile_registration', [$this, 'registration_form']);
 
-        add_action('wp_ajax_profile_register', [$this, 'registration_form_handle']);
-        add_action('wp_ajax_nopriv_profile_register', [$this, 'registration_form_handle']);
+        Nexora_Ajax::register('profile_register', [$this, 'registration_form_handle'], true);
     }
 
     public function enqueue_assets() {
@@ -138,11 +137,7 @@ class NEXORA_Registration {
         check_ajax_referer('profile_nonce', 'nonce');
 
         // Basic throttling: max 5 sign-ups per IP per hour
-        $ip      = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-        $rl_key  = 'nx_reg_' . md5($ip);
-        $rl_hits = (int) get_transient($rl_key);
-
-        if ($rl_hits >= 5) {
+        if (Nexora_Rate_Limiter::blocked('register')) {
             wp_send_json_error('Too many registrations. Please try again later.');
         }
 
@@ -202,7 +197,7 @@ class NEXORA_Registration {
             wp_send_json_error('User already exists');
         }
 
-        set_transient($rl_key, $rl_hits + 1, HOUR_IN_SECONDS);
+        Nexora_Rate_Limiter::hit('register');
 
         // Create WP User
         $wp_user_id = wp_create_user($user_name, $password, $email);

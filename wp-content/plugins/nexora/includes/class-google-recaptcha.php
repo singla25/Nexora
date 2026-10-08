@@ -13,12 +13,37 @@ class Nexora_ReCaptcha {
     }
 
     /**
-     * Captcha is skipped only when WordPress itself reports a local environment
-     * (WP_ENVIRONMENT_TYPE = local). The Host header is client controlled and
-     * must never be used to decide this.
+     * The captcha is skipped only on a genuinely local site:
+     *   - the 'nexora_skip_captcha' filter says so (explicit opt-in for CI / staging), or
+     *   - WordPress reports environment type "local" AND the site's own hostname
+     *     (from the stored home URL, never the request's Host header) resolves to a
+     *     private / loopback address.
+     * A live site that ships with WP_ENVIRONMENT_TYPE=local still gets the captcha.
      */
     public function is_local() {
-        return function_exists('wp_get_environment_type') && wp_get_environment_type() === 'local';
+
+        if (apply_filters('nexora_skip_captcha', false)) {
+            return true;
+        }
+
+        if (!function_exists('wp_get_environment_type') || wp_get_environment_type() !== 'local') {
+            return false;
+        }
+
+        $host = apply_filters('nexora_captcha_site_host', (string) wp_parse_url(home_url(), PHP_URL_HOST));
+
+        if ($host === '') {
+            return false;
+        }
+
+        $ip = apply_filters('nexora_captcha_host_ip', filter_var($host, FILTER_VALIDATE_IP) ? $host : gethostbyname($host), $host);
+
+        // gethostbyname() returns the input unchanged when it cannot resolve: not an IP, so treated as public
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
     }
 
     // 🔹 Check if captcha is enabled

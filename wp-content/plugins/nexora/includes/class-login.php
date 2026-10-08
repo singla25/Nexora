@@ -6,17 +6,13 @@ class NEXORA_Login {
         add_action('wp_enqueue_scripts', [$this, 'login_enqueue_assets']);
         add_shortcode('profile_login', [$this, 'login_form']);
 
-        add_action('wp_ajax_profile_login', [$this, 'handle_login']);
-        add_action('wp_ajax_nopriv_profile_login', [$this, 'handle_login']);
+        Nexora_Ajax::register('profile_login', [$this, 'handle_login'], true);
 
-        add_action('wp_ajax_send_otp', [$this, 'send_otp']);
-        add_action('wp_ajax_nopriv_send_otp', [$this, 'send_otp']);
+        Nexora_Ajax::register('send_otp', [$this, 'send_otp'], true);
 
-        add_action('wp_ajax_verify_otp', [$this, 'verify_otp']);
-        add_action('wp_ajax_nopriv_verify_otp', [$this, 'verify_otp']);
+        Nexora_Ajax::register('verify_otp', [$this, 'verify_otp'], true);
 
-        add_action('wp_ajax_reset_password', [$this, 'reset_password']);
-        add_action('wp_ajax_nopriv_reset_password', [$this, 'reset_password']);
+        Nexora_Ajax::register('reset_password', [$this, 'reset_password'], true);
     }
 
     public function login_enqueue_assets() {
@@ -51,23 +47,35 @@ class NEXORA_Login {
     // ---------------------------
     //      HELPERS
     // ---------------------------
-    private function client_ip() {
-        return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-    }
-
     /**
-     * Simple transient based rate limiter. Returns true when the limit is exceeded.
+     * The browser never learns a user id. send_otp hands back an opaque reference that
+     * maps to the account server-side (only for a real username+email pair); for any
+     * other input it hands back a random value of the same shape that maps to nothing.
      */
-    private function rate_limited($bucket, $limit, $window) {
-        $key   = 'nx_rl_' . md5($bucket . '|' . $this->client_ip());
-        $count = (int) get_transient($key);
+    const REF_PREFIX = 'nexora_otp_ref_';
+    const REF_TTL    = 25 * MINUTE_IN_SECONDS;
 
-        if ($count >= $limit) {
-            return true;
+    private function new_ref($user_id = 0) {
+
+        $ref = bin2hex(random_bytes(16));
+
+        if ($user_id) {
+            set_transient(self::REF_PREFIX . $ref, (int) $user_id, self::REF_TTL);
         }
 
-        set_transient($key, $count + 1, $window);
-        return false;
+        return $ref;
+    }
+
+    /** Account id behind a reference, or 0. */
+    private function resolve_ref($ref) {
+
+        $ref = is_string($ref) ? $ref : '';
+
+        if (!preg_match('/^[a-f0-9]{32}$/', $ref)) {
+            return 0;
+        }
+
+        return (int) get_transient(self::REF_PREFIX . $ref);
     }
 
     private function clear_otp($user_id) {
@@ -85,32 +93,32 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if ($this->rate_limited('send_otp', 5, 15 * MINUTE_IN_SECONDS)) {
+        if (Nexora_Rate_Limiter::hit('otp_send')) {
             wp_send_json_error('Too many requests. Please try again later.');
         }
 
         $username = sanitize_user(wp_unslash($_POST['username'] ?? ''));
         $email    = sanitize_email(wp_unslash($_POST['email'] ?? ''));
 
-        $generic = [
-            'user_id' => 0,
-            'message' => 'If the details are correct, an OTP has been sent to your email.'
-        ];
+        $reply = function ($user_id = 0) {
+            return [
+                'user_id' => $this->new_ref($user_id),
+                'message' => 'If the details are correct, an OTP has been sent to your email.'
+            ];
+        };
 
         $user = $username ? get_user_by('login', $username) : false;
 
         // Same response for unknown user / wrong email (no account enumeration)
         if (!$user || !$email || strcasecmp($user->user_email, $email) !== 0) {
-            wp_send_json_success($generic);
+            wp_send_json_success($reply());
         }
 
         // Do not issue a new OTP while a valid one exists (prevents mail flooding)
         $expiry = (int) get_user_meta($user->ID, 'otp_expiry', true);
 
         if ($expiry && time() < $expiry) {
-            $generic['user_id'] = $user->ID;
-            $generic['message'] = 'An OTP was already sent. Please check your email or wait for it to expire.';
-            wp_send_json_success($generic);
+            wp_send_json_success($reply($user->ID));
         }
 
         $otp = (string) random_int(100000, 999999);
@@ -127,8 +135,7 @@ class NEXORA_Login {
 
         wp_mail($user->user_email, $subject, $message);
 
-        $generic['user_id'] = $user->ID;
-        wp_send_json_success($generic);
+        wp_send_json_success($reply($user->ID));
     }
 
     // ---------------------------
@@ -138,12 +145,16 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if ($this->rate_limited('verify_otp', 20, 15 * MINUTE_IN_SECONDS)) {
+        if (Nexora_Rate_Limiter::hit('otp_verify')) {
             wp_send_json_error('Too many attempts. Please try again later.');
         }
 
-        $user_id = absint($_POST['user_id'] ?? 0);
+        $user_id = $this->resolve_ref(sanitize_text_field(wp_unslash($_POST['user_id'] ?? '')));
         $otp     = sanitize_text_field(wp_unslash($_POST['otp'] ?? ''));
+
+        if (!$user_id) {
+            wp_send_json_error('Invalid or expired OTP');
+        }
 
         $saved_hash = get_user_meta($user_id, 'reset_otp', true);
         $expiry     = (int) get_user_meta($user_id, 'otp_expiry', true);
@@ -191,7 +202,12 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        $user_id  = absint($_POST['user_id'] ?? 0);
+        if (Nexora_Rate_Limiter::hit('reset_password')) {
+            wp_send_json_error('Too many requests. Please try again later.');
+        }
+
+        $ref      = sanitize_text_field(wp_unslash($_POST['user_id'] ?? ''));
+        $user_id  = $this->resolve_ref($ref);
         $token    = sanitize_text_field(wp_unslash($_POST['token'] ?? ''));
         $password = wp_unslash($_POST['password'] ?? '');
 
@@ -219,8 +235,9 @@ class NEXORA_Login {
 
         wp_set_password($password, $user_id);
 
-        // Token / OTP are single use
+        // Token / OTP are single use, and so is the reference the browser held
         $this->clear_otp($user_id);
+        delete_transient(self::REF_PREFIX . $ref);
 
         $to      = $user->user_email;
         $subject = 'Password Reset Successful - Nexora';
@@ -342,7 +359,7 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if ($this->rate_limited('login', 10, 15 * MINUTE_IN_SECONDS)) {
+        if (Nexora_Rate_Limiter::hit('login')) {
             wp_send_json_error('Too many login attempts. Please try again later.');
         }
 

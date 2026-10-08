@@ -39,13 +39,19 @@ nx_assert( nx_rejected( $r ) && false !== stripos( (string) $r['data'], 'too man
 nx_test_reset_limits();
 
 /* ---------- send_otp ---------- */
-$r = $guest( 'send_otp', array( 'username' => 'ghost_user_x', 'email' => 'ghost@example.test' ) );
-nx_assert( ! empty( $r['success'] ) && 0 === $r['data']['user_id'] && 0 === count( $mail ), 'unknown user: generic success, user_id 0, no mail' );
+$is_ref = function ( $v ) { return is_string( $v ) && 1 === preg_match( '/^[a-f0-9]{32}$/', $v ); };
+$r_unknown = $guest( 'send_otp', array( 'username' => 'ghost_user_x', 'email' => 'ghost@example.test' ) );
+nx_assert( ! empty( $r_unknown['success'] ) && $is_ref( $r_unknown['data']['user_id'] ) && 0 === count( $mail ), '[PHASE1d] unknown user: generic success with an opaque reference, no mail' );
+nx_assert( false === get_transient( 'nexora_otp_ref_' . $r_unknown['data']['user_id'] ), '[PHASE1d] the fake reference maps to nobody' );
 $r = $guest( 'send_otp', array( 'username' => $u['login'], 'email' => 'other@example.test' ) );
-nx_assert( ! empty( $r['success'] ) && 0 === $r['data']['user_id'] && 0 === count( $mail ), 'wrong email: same shape as unknown user' );
+nx_assert( ! empty( $r['success'] ) && $is_ref( $r['data']['user_id'] ) && 0 === count( $mail ), 'wrong email: same shape as unknown user, no mail' );
 $r = $guest( 'send_otp', array( 'username' => $u['login'], 'email' => strtoupper( $email ) ) );
 nx_assert( ! empty( $r['success'] ), 'matching username+email (case-insensitive) succeeds' );
-nx_assert_same( $u['user_id'], $r['data']['user_id'], '[PHASE1] reply exposes real user_id only for a valid pair (oracle)' );
+$ref = $r['data']['user_id'];
+nx_assert( $is_ref( $ref ) && (string) $u['user_id'] !== $ref, '[PHASE1d] reply carries an opaque reference, never the real user id' );
+nx_assert_same( $u['user_id'], (int) get_transient( 'nexora_otp_ref_' . $ref ), 'the reference resolves server-side to the account' );
+nx_assert_same( array_keys( $r_unknown['data'] ), array_keys( $r['data'] ), '[PHASE1d] real and fake replies have identical fields' );
+nx_assert_same( $r_unknown['data']['message'], $r['data']['message'], '[PHASE1d] real and fake replies have identical messages' );
 nx_assert_same( 1, count( $mail ), 'one OTP mail sent' );
 preg_match( '/OTP is: (\d{6})/', $mail[0]['message'] ?? '', $m );
 $otp = $m[1] ?? '';
@@ -55,7 +61,8 @@ nx_assert( $otp !== $stored && wp_check_password( $otp, $stored ), 'OTP stored h
 $exp = (int) get_user_meta( $u['user_id'], 'otp_expiry', true );
 nx_assert( $exp > time() + 590 && $exp <= time() + 600, 'OTP expires in 10 minutes' );
 $r = $guest( 'send_otp', array( 'username' => $u['login'], 'email' => $email ) );
-nx_assert( 1 === count( $mail ) && false !== stripos( $r['data']['message'], 'already sent' ), 'no second OTP while one is valid (anti mail-flood)' );
+nx_assert( 1 === count( $mail ) && $r_unknown['data']['message'] === $r['data']['message'] && $is_ref( $r['data']['user_id'] ), '[PHASE1d] no second OTP while one is valid, and the reply looks the same (anti mail-flood, no oracle)' );
+$ref = $r['data']['user_id'];
 nx_test_reset_limits();
 for ( $i = 0; $i < 5; $i++ ) { $guest( 'send_otp', array( 'username' => 'ghost', 'email' => 'g@example.test' ) ); }
 $r = $guest( 'send_otp', array( 'username' => 'ghost', 'email' => 'g@example.test' ) );
@@ -63,48 +70,51 @@ nx_assert( nx_rejected( $r ), 'send_otp rate limit: 5 / window' );
 nx_test_reset_limits();
 
 /* ---------- verify_otp ---------- */
-$r = $guest( 'verify_otp', array( 'user_id' => $u['user_id'] + 99999, 'otp' => '123456' ) );
-nx_assert( nx_rejected( $r ) && 'No OTP found' === $r['data'], '[PHASE1] unknown id answers "No OTP found"' );
-$r = $guest( 'verify_otp', array( 'user_id' => $u['user_id'], 'otp' => '000000' ) );
-nx_assert( nx_rejected( $r ) && 'Invalid OTP' === $r['data'] && 1 === (int) get_user_meta( $u['user_id'], 'otp_attempts', true ), '[PHASE1] id with pending OTP answers "Invalid OTP" and counts the attempt' );
-for ( $i = 0; $i < 4; $i++ ) { $guest( 'verify_otp', array( 'user_id' => $u['user_id'], 'otp' => '000000' ) ); }
-$r = $guest( 'verify_otp', array( 'user_id' => $u['user_id'], 'otp' => $otp ) );
+$r = $guest( 'verify_otp', array( 'user_id' => (string) ( $u['user_id'] ), 'otp' => '123456' ) );
+nx_assert( nx_rejected( $r ) && 'Invalid or expired OTP' === $r['data'], '[PHASE1d] a raw numeric user id is not accepted any more' );
+$r = $guest( 'verify_otp', array( 'user_id' => $r_unknown['data']['user_id'], 'otp' => '123456' ) );
+nx_assert( nx_rejected( $r ) && 'Invalid or expired OTP' === $r['data'], '[PHASE1d] fake reference answers the same generic error' );
+$r = $guest( 'verify_otp', array( 'user_id' => $ref, 'otp' => '000000' ) );
+nx_assert( nx_rejected( $r ) && 'Invalid OTP' === $r['data'] && 1 === (int) get_user_meta( $u['user_id'], 'otp_attempts', true ), 'real reference + wrong OTP -> "Invalid OTP" and the attempt is counted' );
+for ( $i = 0; $i < 4; $i++ ) { $guest( 'verify_otp', array( 'user_id' => $ref, 'otp' => '000000' ) ); }
+$r = $guest( 'verify_otp', array( 'user_id' => $ref, 'otp' => $otp ) );
 nx_assert( nx_rejected( $r ) && '' === (string) get_user_meta( $u['user_id'], 'reset_otp', true ), 'after 5 wrong attempts even the right OTP is refused and the OTP is wiped' );
 
-// fresh OTP, expiry path
+// fresh OTP, expiry path (the reference stays valid, the OTP itself expires)
 update_user_meta( $u['user_id'], 'reset_otp', wp_hash_password( '111111' ) );
 update_user_meta( $u['user_id'], 'otp_expiry', time() - 5 );
 update_user_meta( $u['user_id'], 'otp_attempts', 0 );
-$r = $guest( 'verify_otp', array( 'user_id' => $u['user_id'], 'otp' => '111111' ) );
+$r = $guest( 'verify_otp', array( 'user_id' => $ref, 'otp' => '111111' ) );
 nx_assert( nx_rejected( $r ) && 'OTP expired' === $r['data'] && '' === (string) get_user_meta( $u['user_id'], 'reset_otp', true ), 'expired OTP rejected and cleared' );
 
 // success path -> token
 update_user_meta( $u['user_id'], 'reset_otp', wp_hash_password( '222222' ) );
 update_user_meta( $u['user_id'], 'otp_expiry', time() + 600 );
 update_user_meta( $u['user_id'], 'otp_attempts', 0 );
-$r = $guest( 'verify_otp', array( 'user_id' => $u['user_id'], 'otp' => '222222' ) );
+$r = $guest( 'verify_otp', array( 'user_id' => $ref, 'otp' => '222222' ) );
 nx_assert( ! empty( $r['success'] ) && 32 === strlen( $r['data']['token'] ), 'correct OTP returns a 32-char reset token' );
 $token = $r['data']['token'] ?? '';
 nx_assert( '' === (string) get_user_meta( $u['user_id'], 'reset_otp', true ) && wp_check_password( $token, get_user_meta( $u['user_id'], 'reset_token', true ) ), 'OTP consumed; token stored hashed' );
 
 /* ---------- reset_password ---------- */
-$r = $guest( 'reset_password', array( 'user_id' => $u['user_id'], 'token' => 'wrong-token', 'password' => 'Brand#New123' ) );
+$r = $guest( 'reset_password', array( 'user_id' => $ref, 'token' => 'wrong-token', 'password' => 'Brand#New123' ) );
 nx_assert( nx_rejected( $r ), 'wrong token rejected' );
-$r = $guest( 'reset_password', array( 'user_id' => $u['user_id'], 'token' => '', 'password' => 'Brand#New123' ) );
+$r = $guest( 'reset_password', array( 'user_id' => $ref, 'token' => '', 'password' => 'Brand#New123' ) );
 nx_assert( nx_rejected( $r ), 'empty token rejected' );
-$r = $guest( 'reset_password', array( 'user_id' => $u['user_id'], 'token' => $token, 'password' => 'short' ) );
+$r = $guest( 'reset_password', array( 'user_id' => $ref, 'token' => $token, 'password' => 'short' ) );
 nx_assert( nx_rejected( $r ) && wp_check_password( $pw, get_userdata( $u['user_id'] )->user_pass ), 'short password rejected, old password still valid' );
 $mail_before = count( $mail );
-$r = $guest( 'reset_password', array( 'user_id' => $u['user_id'], 'token' => $token, 'password' => 'Brand#New123' ) );
+$r = $guest( 'reset_password', array( 'user_id' => $ref, 'token' => $token, 'password' => 'Brand#New123' ) );
 nx_assert( ! empty( $r['success'] ) && home_url( '/profile-page/' . rawurlencode( $u['login'] ) ) === $r['data']['redirect'], 'valid token resets password and returns profile redirect' );
 nx_assert( wp_check_password( 'Brand#New123', get_userdata( $u['user_id'] )->user_pass ), 'new password active' );
 nx_assert( count( $mail ) === $mail_before + 1, 'confirmation mail sent' );
-$r = $guest( 'reset_password', array( 'user_id' => $u['user_id'], 'token' => $token, 'password' => 'Another#Pass1' ) );
+$r = $guest( 'reset_password', array( 'user_id' => $ref, 'token' => $token, 'password' => 'Another#Pass1' ) );
 nx_assert( nx_rejected( $r ), 'token is single use' );
+nx_assert( false === get_transient( 'nexora_otp_ref_' . $ref ), '[PHASE1d] the reference is discarded after a successful reset' );
 // token expiry
 update_user_meta( $u['user_id'], 'reset_token', wp_hash_password( 'T' ) );
 update_user_meta( $u['user_id'], 'reset_token_expiry', time() - 1 );
-nx_assert( nx_rejected( $guest( 'reset_password', array( 'user_id' => $u['user_id'], 'token' => 'T', 'password' => 'Another#Pass1' ) ) ), 'expired token rejected' );
+nx_assert( nx_rejected( $guest( 'reset_password', array( 'user_id' => $ref, 'token' => 'T', 'password' => 'Another#Pass1' ) ) ), 'expired token rejected' );
 nx_test_reset_limits();
 
 /* ---------- registration ---------- */

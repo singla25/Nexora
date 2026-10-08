@@ -23,13 +23,7 @@ class NEXORA_CHAT_AJAX {
     =============================== */
     private function authorize() {
 
-        check_ajax_referer('nexora_chat_nonce', 'nonce');
-
-        if (!is_user_logged_in()) {
-            wp_send_json_error('Unauthorized');
-        }
-
-        return get_current_user_id();
+        return Nexora_Ajax::member('nexora_chat_nonce', false, 'Unauthorized')['user_id'];
     }
 
     /**
@@ -189,6 +183,10 @@ class NEXORA_CHAT_AJAX {
         }
 
         $chat_db = $this->require_participant($thread_id, $user_id);
+
+        if (Nexora_Rate_Limiter::hit('chat_message', 'u' . $user_id)) {
+            wp_send_json_error(Nexora_Rate_Limiter::message());
+        }
 
         $thread = $chat_db->get_thread_status($thread_id);
 

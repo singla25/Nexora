@@ -7,27 +7,27 @@ class NEXORA_PROFILE_AJAX {
     public function __construct() {
 
         // USER INFO
-        add_action('wp_ajax_update_personal_info', [$this, 'update_personal_info']);
-        add_action('wp_ajax_update_address_info', [$this, 'update_address_info']);
-        add_action('wp_ajax_update_work_info', [$this, 'update_work_info']);
-        add_action('wp_ajax_update_documents_info', [$this, 'update_documents_info']);
-        add_action('wp_ajax_update_profile_password', [$this, 'update_profile_password']);
+        Nexora_Ajax::register('update_personal_info', [$this, 'update_personal_info']);
+        Nexora_Ajax::register('update_address_info', [$this, 'update_address_info']);
+        Nexora_Ajax::register('update_work_info', [$this, 'update_work_info']);
+        Nexora_Ajax::register('update_documents_info', [$this, 'update_documents_info']);
+        Nexora_Ajax::register('update_profile_password', [$this, 'update_profile_password']);
 
         // CONNECTION TAB
-        add_action('wp_ajax_get_add_new_users', [$this, 'get_add_new_users']);
-        add_action('wp_ajax_send_connection_request', [$this, 'send_connection_request']);
-        add_action('wp_ajax_get_requests', [$this, 'get_requests']);
-        add_action('wp_ajax_update_connection_status', [$this, 'update_connection_status']);
-        add_action('wp_ajax_get_history', [$this, 'get_history']);
-        add_action('wp_ajax_view_all_connection', [$this, 'view_all_connection']);
-        add_action('wp_ajax_view_mutual_connection', [$this, 'view_mutual_connection']);
+        Nexora_Ajax::register('get_add_new_users', [$this, 'get_add_new_users']);
+        Nexora_Ajax::register('send_connection_request', [$this, 'send_connection_request']);
+        Nexora_Ajax::register('get_requests', [$this, 'get_requests']);
+        Nexora_Ajax::register('update_connection_status', [$this, 'update_connection_status']);
+        Nexora_Ajax::register('get_history', [$this, 'get_history']);
+        Nexora_Ajax::register('view_all_connection', [$this, 'view_all_connection']);
+        Nexora_Ajax::register('view_mutual_connection', [$this, 'view_mutual_connection']);
 
         // NOTIFICATION
-        add_action('wp_ajax_mark_notification_read', [$this, 'mark_notification_read']);
+        Nexora_Ajax::register('mark_notification_read', [$this, 'mark_notification_read']);
 
         // USER CONTENT
-        add_action('wp_ajax_save_user_content', [$this, 'save_user_content']);
-        add_action('wp_ajax_get_user_content_history', [$this, 'get_user_content_history']);
+        Nexora_Ajax::register('save_user_content', [$this, 'save_user_content']);
+        Nexora_Ajax::register('get_user_content_history', [$this, 'get_user_content_history']);
     }
 
 
@@ -35,33 +35,7 @@ class NEXORA_PROFILE_AJAX {
        UPDATE USER INFORMATION
     =============================== */
     private function validate_request($require_owner = true) {
-
-        // 1. Nonce
-        check_ajax_referer('profile_nonce', 'nonce');
-
-        // 2. Login check
-        if (!is_user_logged_in()) {
-            wp_send_json_error('Unauthorized access');
-        }
-
-        $user_id = get_current_user_id();
-
-        // 3. Profile check
-        $profile_id = (int) get_user_meta($user_id, '_profile_id', true);
-
-        if (!$profile_id || get_post_type($profile_id) !== 'user_profile') {
-            wp_send_json_error('Profile not found');
-        }
-
-        // 4. Capability check (basic)
-        if (!current_user_can('read')) {
-            wp_send_json_error('Permission denied');
-        }
-
-        return [
-            'user_id' => $user_id,
-            'profile_id' => $profile_id
-        ];
+        return Nexora_Ajax::member('profile_nonce', true, 'Unauthorized access');
     }
 
     private function post_value($key) {
@@ -216,13 +190,11 @@ class NEXORA_PROFILE_AJAX {
     // CHANGE PASSWORD
     public function update_profile_password() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
+        $user_id = Nexora_Ajax::member('profile_nonce', false, 'Not logged in')['user_id'];
 
-        if (!is_user_logged_in()) {
-            wp_send_json_error('Not logged in');
+        if (Nexora_Rate_Limiter::hit('password_change', 'u' . $user_id)) {
+            wp_send_json_error(Nexora_Rate_Limiter::message());
         }
-
-        $user_id = get_current_user_id();
 
         $current_password = wp_unslash($_POST['current_password'] ?? '');
         $new_password     = wp_unslash($_POST['new_password'] ?? '');
@@ -321,6 +293,10 @@ class NEXORA_PROFILE_AJAX {
 
         if (!$receiver_profile_id || get_post_type($receiver_profile_id) !== 'user_profile') {
             wp_send_json_error('User not found');
+        }
+
+        if (Nexora_Rate_Limiter::hit('connection_request', 'u' . $sender_user_id)) {
+            wp_send_json_error(Nexora_Rate_Limiter::message());
         }
 
         if ($receiver_profile_id === $sender_profile_id) {
@@ -811,14 +787,9 @@ class NEXORA_PROFILE_AJAX {
     =============================== */
     public function mark_notification_read() {
 
-        check_ajax_referer('profile_nonce', 'nonce');
-
-        if (!is_user_logged_in()) {
-            wp_send_json_error('Not logged in');
-        }
+        $user_id = Nexora_Ajax::member('profile_nonce', false, 'Not logged in')['user_id'];
 
         $id = absint($_POST['id'] ?? 0);
-        $user_id = get_current_user_id();
 
         $notification = new NEXORA_Notification();
 
@@ -851,6 +822,10 @@ class NEXORA_PROFILE_AJAX {
 
         if ($title === '') {
             wp_send_json_error('Title is required');
+        }
+
+        if (Nexora_Rate_Limiter::hit('content_save', 'u' . $user_id)) {
+            wp_send_json_error(Nexora_Rate_Limiter::message());
         }
 
         if ($image_id && !$this->user_owns_attachment($image_id, $user_id)) {

@@ -324,11 +324,11 @@ jQuery(document).ready(function ($) {
         let action = '';
 
         // MAP TYPE → AJAX ACTION
-        if (type === 'personal-info') action = 'update_personal_info';
-        if (type === 'address-info')  action = 'update_address_info';
-        if (type === 'work-info')     action = 'update_work_info';
-        if (type === 'docs-info')     action = 'update_documents_info';
-        if (type === 'security-info') action = 'update_profile_password';
+        if (type === 'personal-info') action = 'nexora_update_personal_info';
+        if (type === 'address-info')  action = 'nexora_update_address_info';
+        if (type === 'work-info')     action = 'nexora_update_work_info';
+        if (type === 'docs-info')     action = 'nexora_update_documents_info';
+        if (type === 'security-info') action = 'nexora_update_profile_password';
 
         let formData = new FormData(form);
 
@@ -376,7 +376,7 @@ jQuery(document).ready(function ($) {
     $(document).on('click', '.conn-tab[data-type="add"]', function () {
 
         $.post(profilePageData.ajaxUrl, {
-            action: 'get_add_new_users',
+            action: 'nexora_get_add_new_users',
             nonce: profilePageData.nonce
         }, function (res) {
 
@@ -433,7 +433,7 @@ jQuery(document).ready(function ($) {
         let btn = $(this);
 
         $.post(profilePageData.ajaxUrl, {
-            action: 'send_connection_request',
+            action: 'nexora_send_connection_request',
             receiver_profile_id: id,
             nonce: profilePageData.nonce
         }, function (res) {
@@ -448,7 +448,7 @@ jQuery(document).ready(function ($) {
     $(document).on('click', '.conn-tab[data-type="requests"]', function () {
 
         $.post(profilePageData.ajaxUrl, {
-            action: 'get_requests',
+            action: 'nexora_get_requests',
             nonce: profilePageData.nonce
         }, function (res) {
 
@@ -511,7 +511,7 @@ jQuery(document).ready(function ($) {
         let status = isAccept ? 'accepted' : 'rejected';
 
         $.post(profilePageData.ajaxUrl, {
-            action: 'update_connection_status',
+            action: 'nexora_update_connection_status',
             connection_id: id,
             status: status,
             nonce: profilePageData.nonce
@@ -547,7 +547,7 @@ jQuery(document).ready(function ($) {
             if (result.isConfirmed) {
 
                 $.post(profilePageData.ajaxUrl, {
-                    action: 'update_connection_status',
+                    action: 'nexora_update_connection_status',
                     connection_id: id,
                     status: 'removed', // 🔥 IMPORTANT
                     nonce: profilePageData.nonce
@@ -574,7 +574,7 @@ jQuery(document).ready(function ($) {
     $(document).on('click', '.conn-tab[data-type="history"]', function () {
 
         $.post(profilePageData.ajaxUrl, {
-            action: 'get_history',
+            action: 'nexora_get_history',
             nonce: profilePageData.nonce
         }, function (res) {
 
@@ -595,7 +595,7 @@ jQuery(document).ready(function ($) {
         let profileId = $(this).data('profile');
 
         $.post(profilePageData.ajaxUrl, {
-            action: 'view_all_connection',
+            action: 'nexora_view_all_connection',
             profile_id: profileId,
             nonce: profilePageData.nonce
         }, function (res) {
@@ -619,7 +619,7 @@ jQuery(document).ready(function ($) {
         let profileId = $(this).data('profile');
 
         $.post(profilePageData.ajaxUrl, {
-            action: 'view_mutual_connection',
+            action: 'nexora_view_mutual_connection',
             profile_id: profileId,
             nonce: profilePageData.nonce
         }, function (res) {
@@ -702,7 +702,7 @@ jQuery(document).ready(function ($) {
             // ✅ ONLY CALL BACKEND
             if (isReceived) {
                 $.post(profilePageData.ajaxUrl, {
-                    action: 'mark_notification_read',
+                    action: 'nexora_mark_notification_read',
                     id: id,
                     nonce: profilePageData.nonce
                 });
@@ -856,7 +856,7 @@ jQuery(document).ready(function ($) {
 
         let formData = new FormData(this);
 
-        formData.append('action', 'save_user_content');
+        formData.append('action', 'nexora_save_user_content');
         formData.append('nonce', profilePageData.nonce);
 
         $.ajax({
@@ -891,7 +891,7 @@ jQuery(document).ready(function ($) {
     $(document).on('click', '.content-tab[data-type="history"]', function () {
 
         $.post(profilePageData.ajaxUrl, {
-            action: 'get_user_content_history',
+            action: 'nexora_get_user_content_history',
             nonce: profilePageData.nonce
         }, function (res) {
 

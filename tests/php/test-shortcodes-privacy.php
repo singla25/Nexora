@@ -129,7 +129,7 @@ nx_assert( false !== strpos( $out, 'nx_contact=limit' ) && false === strpos( $ou
 nx_test_reset_limits();
 
 /* ---------- registration rate limit (5 successful sign-ups / hour / IP) ---------- */
-set_transient( 'nx_reg_' . md5( (string) ( $_SERVER['REMOTE_ADDR'] ?? '' ) ), 5, HOUR_IN_SECONDS );
+for ( $i = 0; $i < 5; $i++ ) { Nexora_Rate_Limiter::hit( 'register' ); }
 $r = nx_call_ajax( 'profile_register', array( 'email' => 'rl@example.test', 'user_name' => 'nxtest_rl_user', 'password' => 'Passw0rd!x', 'confirm_password' => 'Passw0rd!x' ) + nx_profile_nonce(), true );
 nx_assert( nx_rejected( $r ) && ! username_exists( 'nxtest_rl_user' ), 'registration rate limit blocks the 6th sign-up' );
 

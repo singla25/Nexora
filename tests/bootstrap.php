@@ -109,7 +109,9 @@ function nx_test_thread( array $a, array $b, $connection_id, $status = 'active',
 /** Clear every rate-limit transient the plugin sets (nx_rl_*, nx_reg_*, nx_contact_*). */
 function nx_test_reset_limits() {
 	global $wpdb;
-	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_nx\\_%' OR option_name LIKE '\\_transient\\_timeout\\_nx\\_%'" );
+	foreach ( array( '\\_transient\\_nx\\_%', '\\_transient\\_timeout\\_nx\\_%', 'nexora\\_rl\\_%' ) as $like ) {
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+	}
 	wp_cache_flush();
 }
 
@@ -151,8 +153,17 @@ function nx_assert_guard_matrix( $action, array $valid_post, array $member, $non
 	wp_set_current_user( $member['user_id'] );
 }
 
+/** Drop OTP reference transients (kept separate: resetting rate limits must not break a flow in progress). */
+function nx_test_reset_otp_refs() {
+	global $wpdb;
+	foreach ( array( '\\_transient\\_nexora\\_otp%', '\\_transient\\_timeout\\_nexora\\_otp%' ) as $like ) {
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+	}
+}
+
 function nx_test_cleanup() {
 	global $wpdb;
+	nx_test_reset_otp_refs();
 	require_once ABSPATH . 'wp-admin/includes/user.php';
 	foreach ( $GLOBALS['nx_test']['threads'] ?? array() as $tid ) {
 		foreach ( array( 'nexora_message_meta' => 'message_id IN (SELECT id FROM %1$snexora_messages WHERE thread_id=%2$d)', 'nexora_messages' => 'thread_id=%2$d', 'nexora_thread_participants' => 'thread_id=%2$d', 'nexora_threads' => 'id=%2$d' ) as $t => $where ) {

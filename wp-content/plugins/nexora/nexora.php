@@ -17,7 +17,10 @@ require_once NEXORA_PATH . 'includes/class-registration.php';
 require_once NEXORA_PATH . 'includes/class-profile-page.php';
 require_once NEXORA_PATH . 'includes/class-profile-ajax.php';
 require_once NEXORA_PATH . 'includes/class-profile-helper.php';
+require_once NEXORA_PATH . 'includes/class-ajax.php';
+require_once NEXORA_PATH . 'includes/class-rate-limiter.php';
 require_once NEXORA_PATH . 'includes/class-private-documents.php';
+require_once NEXORA_PATH . 'includes/class-upload-policy.php';
 require_once NEXORA_PATH . 'includes/class-login.php';
 require_once NEXORA_PATH . 'includes/class-home-page.php';
 require_once NEXORA_PATH . 'includes/class-notification.php';
@@ -39,6 +42,7 @@ class NEXORA_System {
         new NEXORA_PROFILE_PAGE();
         new NEXORA_PROFILE_AJAX();  
         new Nexora_Private_Documents();
+        new Nexora_Upload_Policy();
         new Nexora_Home_Page();
         new Nexora_Better_Message_CHAT_Page();
         new NEXORA_CHAT_CORE();

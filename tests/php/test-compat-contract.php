@@ -36,7 +36,9 @@ foreach ( array_keys( $GLOBALS['wp_filter'] ) as $hook ) {
 $known_core = array( 'heartbeat', 'nopriv_heartbeat', 'generate-password', 'search-install-plugins' );
 $unexpected = array();
 foreach ( $guest_actions as $g ) {
-	if ( ! in_array( $g, array( 'profile_login', 'send_otp', 'verify_otp', 'reset_password', 'profile_register' ), true ) ) {
+	// [PHASE1e] the nexora_-prefixed twins of the five guest actions are the new canonical names
+	if ( ! in_array( $g, array( 'profile_login', 'send_otp', 'verify_otp', 'reset_password', 'profile_register',
+		'nexora_profile_login', 'nexora_send_otp', 'nexora_verify_otp', 'nexora_reset_password', 'nexora_profile_register' ), true ) ) {
 		$unexpected[] = $g;
 	}
 }
