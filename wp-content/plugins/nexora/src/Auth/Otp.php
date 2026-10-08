@@ -2,7 +2,9 @@
 
 namespace Nexora\Auth;
 
-if (!defined('ABSPATH')) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Password-reset proof of ownership: a short emailed OTP, swapped for a single-use reset token.
@@ -13,137 +15,155 @@ if (!defined('ABSPATH')) exit;
  */
 class Otp {
 
-    const REF_PREFIX    = 'nexora_otp_ref_';
-    const REF_TTL       = 25 * MINUTE_IN_SECONDS;
-    const OTP_TTL       = 10 * MINUTE_IN_SECONDS;
-    const TOKEN_TTL     = 10 * MINUTE_IN_SECONDS;
-    const MAX_ATTEMPTS  = 5;
+	const REF_PREFIX   = 'nexora_otp_ref_';
+	const REF_TTL      = 25 * MINUTE_IN_SECONDS;
+	const OTP_TTL      = 10 * MINUTE_IN_SECONDS;
+	const TOKEN_TTL    = 10 * MINUTE_IN_SECONDS;
+	const MAX_ATTEMPTS = 5;
 
-    /* ===============================
-       REFERENCES
-    =============================== */
+	/*
+	===============================
+		REFERENCES
+	=============================== */
 
-    /**
-     * New opaque reference. With a user id it resolves to that account; without one it is a
-     * random value of the same shape that resolves to nothing (so replies look identical).
-     */
-    public static function issue_ref($user_id = 0) {
+	/**
+	 * New opaque reference. With a user id it resolves to that account; without one it is a
+	 * random value of the same shape that resolves to nothing (so replies look identical).
+	 */
+	public static function issue_ref( $user_id = 0 ) {
 
-        $ref = bin2hex(random_bytes(16));
+		$ref = bin2hex( random_bytes( 16 ) );
 
-        if ($user_id) {
-            set_transient(self::REF_PREFIX . $ref, (int) $user_id, self::REF_TTL);
-        }
+		if ( $user_id ) {
+			set_transient( self::REF_PREFIX . $ref, (int) $user_id, self::REF_TTL );
+		}
 
-        return $ref;
-    }
+		return $ref;
+	}
 
-    /** Account id behind a reference, or 0. */
-    public static function resolve_ref($ref) {
+	/** Account id behind a reference, or 0. */
+	public static function resolve_ref( $ref ) {
 
-        $ref = is_string($ref) ? $ref : '';
+		$ref = is_string( $ref ) ? $ref : '';
 
-        if (!preg_match('/^[a-f0-9]{32}$/', $ref)) {
-            return 0;
-        }
+		if ( ! preg_match( '/^[a-f0-9]{32}$/', $ref ) ) {
+			return 0;
+		}
 
-        return (int) get_transient(self::REF_PREFIX . $ref);
-    }
+		return (int) get_transient( self::REF_PREFIX . $ref );
+	}
 
-    public static function forget_ref($ref) {
-        delete_transient(self::REF_PREFIX . $ref);
-    }
+	public static function forget_ref( $ref ) {
+		delete_transient( self::REF_PREFIX . $ref );
+	}
 
-    /* ===============================
-       OTP
-    =============================== */
+	/*
+	===============================
+		OTP
+	=============================== */
 
-    /** True while an issued OTP has not expired yet. */
-    public static function has_active_otp($user_id) {
+	/** True while an issued OTP has not expired yet. */
+	public static function has_active_otp( $user_id ) {
 
-        $expiry = (int) get_user_meta($user_id, 'otp_expiry', true);
+		$expiry = (int) get_user_meta( $user_id, 'otp_expiry', true );
 
-        return $expiry && time() < $expiry;
-    }
+		return $expiry && time() < $expiry;
+	}
 
-    /**
-     * Create an OTP for the user and return it in clear (to be emailed). Only a hash is stored.
-     */
-    public static function issue($user_id) {
+	/**
+	 * Create an OTP for the user and return it in clear (to be emailed). Only a hash is stored.
+	 */
+	public static function issue( $user_id ) {
 
-        $otp = (string) random_int(100000, 999999);
+		$otp = (string) random_int( 100000, 999999 );
 
-        update_user_meta($user_id, 'reset_otp', wp_hash_password($otp));
-        update_user_meta($user_id, 'otp_expiry', time() + self::OTP_TTL);
-        update_user_meta($user_id, 'otp_attempts', 0);
-        delete_user_meta($user_id, 'reset_token');
-        delete_user_meta($user_id, 'reset_token_expiry');
+		update_user_meta( $user_id, 'reset_otp', wp_hash_password( $otp ) );
+		update_user_meta( $user_id, 'otp_expiry', time() + self::OTP_TTL );
+		update_user_meta( $user_id, 'otp_attempts', 0 );
+		delete_user_meta( $user_id, 'reset_token' );
+		delete_user_meta( $user_id, 'reset_token_expiry' );
 
-        return $otp;
-    }
+		return $otp;
+	}
 
-    /**
-     * Check an OTP. On success it is consumed and a one-time reset token is returned.
-     *
-     * @return array{ok:bool,message?:string,token?:string}
-     */
-    public static function verify($user_id, $otp) {
+	/**
+	 * Check an OTP. On success it is consumed and a one-time reset token is returned.
+	 *
+	 * @return array{ok:bool,message?:string,token?:string}
+	 */
+	public static function verify( $user_id, $otp ) {
 
-        $saved_hash = get_user_meta($user_id, 'reset_otp', true);
-        $expiry     = (int) get_user_meta($user_id, 'otp_expiry', true);
-        $attempts   = (int) get_user_meta($user_id, 'otp_attempts', true);
+		$saved_hash = get_user_meta( $user_id, 'reset_otp', true );
+		$expiry     = (int) get_user_meta( $user_id, 'otp_expiry', true );
+		$attempts   = (int) get_user_meta( $user_id, 'otp_attempts', true );
 
-        if (!$user_id || !$saved_hash) {
-            return ['ok' => false, 'message' => 'No OTP found'];
-        }
+		if ( ! $user_id || ! $saved_hash ) {
+			return array(
+				'ok'      => false,
+				'message' => 'No OTP found',
+			);
+		}
 
-        if (time() > $expiry) {
-            self::clear($user_id);
-            return ['ok' => false, 'message' => 'OTP expired'];
-        }
+		if ( time() > $expiry ) {
+			self::clear( $user_id );
+			return array(
+				'ok'      => false,
+				'message' => 'OTP expired',
+			);
+		}
 
-        if ($attempts >= self::MAX_ATTEMPTS) {
-            self::clear($user_id);
-            return ['ok' => false, 'message' => 'Too many wrong attempts. Please request a new OTP.'];
-        }
+		if ( $attempts >= self::MAX_ATTEMPTS ) {
+			self::clear( $user_id );
+			return array(
+				'ok'      => false,
+				'message' => 'Too many wrong attempts. Please request a new OTP.',
+			);
+		}
 
-        if (!wp_check_password($otp, $saved_hash)) {
-            update_user_meta($user_id, 'otp_attempts', $attempts + 1);
-            return ['ok' => false, 'message' => 'Invalid OTP'];
-        }
+		if ( ! wp_check_password( $otp, $saved_hash ) ) {
+			update_user_meta( $user_id, 'otp_attempts', $attempts + 1 );
+			return array(
+				'ok'      => false,
+				'message' => 'Invalid OTP',
+			);
+		}
 
-        // OTP is single use; swap it for a short lived reset token
-        $token = wp_generate_password(32, false);
+		// OTP is single use; swap it for a short lived reset token
+		$token = wp_generate_password( 32, false );
 
-        delete_user_meta($user_id, 'reset_otp');
-        delete_user_meta($user_id, 'otp_expiry');
-        delete_user_meta($user_id, 'otp_attempts');
+		delete_user_meta( $user_id, 'reset_otp' );
+		delete_user_meta( $user_id, 'otp_expiry' );
+		delete_user_meta( $user_id, 'otp_attempts' );
 
-        update_user_meta($user_id, 'reset_token', wp_hash_password($token));
-        update_user_meta($user_id, 'reset_token_expiry', time() + self::TOKEN_TTL);
+		update_user_meta( $user_id, 'reset_token', wp_hash_password( $token ) );
+		update_user_meta( $user_id, 'reset_token_expiry', time() + self::TOKEN_TTL );
 
-        return ['ok' => true, 'token' => $token];
-    }
+		return array(
+			'ok'    => true,
+			'token' => $token,
+		);
+	}
 
-    /* ===============================
-       RESET TOKEN
-    =============================== */
+	/*
+	===============================
+		RESET TOKEN
+	=============================== */
 
-    /** True when $token is the live reset token of the user (does not consume it). */
-    public static function token_valid($user_id, $token) {
+	/** True when $token is the live reset token of the user (does not consume it). */
+	public static function token_valid( $user_id, $token ) {
 
-        $saved_token = get_user_meta($user_id, 'reset_token', true);
-        $expiry      = (int) get_user_meta($user_id, 'reset_token_expiry', true);
+		$saved_token = get_user_meta( $user_id, 'reset_token', true );
+		$expiry      = (int) get_user_meta( $user_id, 'reset_token_expiry', true );
 
-        return $saved_token && time() <= $expiry && wp_check_password($token, $saved_token);
-    }
+		return $saved_token && time() <= $expiry && wp_check_password( $token, $saved_token );
+	}
 
-    /** Remove every trace of an OTP / reset token. */
-    public static function clear($user_id) {
-        delete_user_meta($user_id, 'reset_otp');
-        delete_user_meta($user_id, 'otp_expiry');
-        delete_user_meta($user_id, 'otp_attempts');
-        delete_user_meta($user_id, 'reset_token');
-        delete_user_meta($user_id, 'reset_token_expiry');
-    }
+	/** Remove every trace of an OTP / reset token. */
+	public static function clear( $user_id ) {
+		delete_user_meta( $user_id, 'reset_otp' );
+		delete_user_meta( $user_id, 'otp_expiry' );
+		delete_user_meta( $user_id, 'otp_attempts' );
+		delete_user_meta( $user_id, 'reset_token' );
+		delete_user_meta( $user_id, 'reset_token_expiry' );
+	}
 }

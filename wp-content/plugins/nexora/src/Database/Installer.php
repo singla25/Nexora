@@ -2,7 +2,9 @@
 
 namespace Nexora\Database;
 
-if (!defined('ABSPATH')) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Creates the plugin's custom tables. Runs on plugin activation
@@ -10,14 +12,14 @@ if (!defined('ABSPATH')) exit;
  */
 class Installer {
 
-    public static function activate() {
+	public static function activate() {
 
-        // Notification table
-        $notification = new \Nexora\Notifications\Repository();
-        $notification->create_table();
+		// Notification table
+		$notification = new \Nexora\Notifications\Repository();
+		$notification->create_table();
 
-        // Chat tables
-        $chat_db = new \Nexora\Chat\Repository();
-        $chat_db->create_table();
-    }
+		// Chat tables
+		$chat_db = new \Nexora\Chat\Repository();
+		$chat_db->create_table();
+	}
 }

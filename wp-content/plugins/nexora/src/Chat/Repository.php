@@ -2,34 +2,36 @@
 
 namespace Nexora\Chat;
 
-if (!defined('ABSPATH')) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 class Repository {
 
-    private $threads_table;
-    private $participants_table;
-    private $messages_table;
-    private $message_meta_table;
+	private $threads_table;
+	private $participants_table;
+	private $messages_table;
+	private $message_meta_table;
 
-    public function __construct() {
-        global $wpdb;
+	public function __construct() {
+		global $wpdb;
 
-        $this->threads_table = $wpdb->prefix . 'nexora_threads';
-        $this->participants_table = $wpdb->prefix . 'nexora_thread_participants';
-        $this->messages_table = $wpdb->prefix . 'nexora_messages';
-        $this->message_meta_table = $wpdb->prefix . 'nexora_message_meta';
-    }
+		$this->threads_table      = $wpdb->prefix . 'nexora_threads';
+		$this->participants_table = $wpdb->prefix . 'nexora_thread_participants';
+		$this->messages_table     = $wpdb->prefix . 'nexora_messages';
+		$this->message_meta_table = $wpdb->prefix . 'nexora_message_meta';
+	}
 
-    /**
-     * Create Chat Table
-     */
-    public function create_table() {
-        global $wpdb;
+	/**
+	 * Create Chat Table
+	 */
+	public function create_table() {
+		global $wpdb;
 
-        $charset = $wpdb->get_charset_collate();
+		$charset = $wpdb->get_charset_collate();
 
-        // THREADS
-        $threads = "CREATE TABLE {$this->threads_table} (
+		// THREADS
+		$threads = "CREATE TABLE {$this->threads_table} (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             connection_id BIGINT UNSIGNED NULL,
             status VARCHAR(20) DEFAULT 'active',
@@ -42,8 +44,8 @@ class Repository {
             INDEX idx_connection_id (connection_id)
         ) $charset;";
 
-        // PARTICIPANTS
-        $participants = "CREATE TABLE {$this->participants_table} (
+		// PARTICIPANTS
+		$participants = "CREATE TABLE {$this->participants_table} (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             thread_id BIGINT UNSIGNED NOT NULL,
             user_id BIGINT UNSIGNED NOT NULL,
@@ -61,8 +63,8 @@ class Repository {
             INDEX idx_thread_id (thread_id)
         ) $charset;";
 
-        // MESSAGES
-        $messages = "CREATE TABLE {$this->messages_table} (
+		// MESSAGES
+		$messages = "CREATE TABLE {$this->messages_table} (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             thread_id BIGINT UNSIGNED NOT NULL,
             sender_id BIGINT UNSIGNED NOT NULL,
@@ -73,8 +75,8 @@ class Repository {
             INDEX idx_created_at (created_at)
         ) $charset;";
 
-        // MESSAGE META
-        $meta = "CREATE TABLE {$this->message_meta_table} (
+		// MESSAGE META
+		$meta = "CREATE TABLE {$this->message_meta_table} (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             message_id BIGINT UNSIGNED NOT NULL,
             meta_key VARCHAR(255),
@@ -83,94 +85,118 @@ class Repository {
             INDEX idx_message_id (message_id)
         ) $charset;";
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-        dbDelta($threads);
-        dbDelta($participants);
-        dbDelta($messages);
-        dbDelta($meta);
-    }
+		dbDelta( $threads );
+		dbDelta( $participants );
+		dbDelta( $messages );
+		dbDelta( $meta );
+	}
 
-    /**
-     * Insert New Thread and It's Participants
-     */
-    public function create_thread($users, $connection_id, $thread_status, $type = 'private', $subject = '') {
+	/**
+	 * Insert New Thread and It's Participants
+	 */
+	public function create_thread( $users, $connection_id, $thread_status, $type = 'private', $subject = '' ) {
 
-        global $wpdb;
+		global $wpdb;
 
-        $wpdb->insert($this->threads_table, [
-            'connection_id' => (int) $connection_id,
-            'status' => $thread_status,
-            'type' => $type,
-            'subject' => $subject,
-            'created_at' => current_time('mysql'),
-            'updated_at' => current_time('mysql')
-        ]);
+		$wpdb->insert(
+			$this->threads_table,
+			array(
+				'connection_id' => (int) $connection_id,
+				'status'        => $thread_status,
+				'type'          => $type,
+				'subject'       => $subject,
+				'created_at'    => current_time( 'mysql' ),
+				'updated_at'    => current_time( 'mysql' ),
+			)
+		);
 
-        $thread_id = (int) $wpdb->insert_id;
+		$thread_id = (int) $wpdb->insert_id;
 
-        if (!$thread_id) {
-            return 0;
-        }
+		if ( ! $thread_id ) {
+			return 0;
+		}
 
-        foreach ($users as $user_id) {
-            $wpdb->insert($this->participants_table, [
-                'thread_id' => $thread_id,
-                'user_id'   => (int) $user_id
-            ]);
-        }
+		foreach ( $users as $user_id ) {
+			$wpdb->insert(
+				$this->participants_table,
+				array(
+					'thread_id' => $thread_id,
+					'user_id'   => (int) $user_id,
+				)
+			);
+		}
 
-        return $thread_id;
-    }
+		return $thread_id;
+	}
 
-    /**
-     * GET LATEST THREAD BETWEEN USERS
-     */
-    public function get_thread_by_connection($connection_id) {
-        global $wpdb;
+	/**
+	 * GET LATEST THREAD BETWEEN USERS
+	 */
+	public function get_thread_by_connection( $connection_id ) {
+		global $wpdb;
 
-        return $wpdb->get_row($wpdb->prepare("
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				"
             SELECT id, status
             FROM {$this->threads_table}
             WHERE connection_id = %d
             ORDER BY updated_at DESC
             LIMIT 1
-        ", $connection_id));
-    }
+        ",
+				$connection_id
+			)
+		);
+	}
 
-    /**
-     * GET THREAD STATUS
-     */
-    public function get_thread_status($thread_id) {
-        global $wpdb;
+	/**
+	 * GET THREAD STATUS
+	 */
+	public function get_thread_status( $thread_id ) {
+		global $wpdb;
 
-        return $wpdb->get_row($wpdb->prepare("
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				"
             SELECT id, status 
             FROM {$this->threads_table}
             WHERE id = %d
-        ", $thread_id));
-    }
+        ",
+				$thread_id
+			)
+		);
+	}
 
-    /**
-     * GET USER PARTICIPANTS
-     */
-    public function is_user_in_thread($thread_id, $user_id) {
-        global $wpdb;
+	/**
+	 * GET USER PARTICIPANTS
+	 */
+	public function is_user_in_thread( $thread_id, $user_id ) {
+		global $wpdb;
 
-        return (bool) $wpdb->get_var($wpdb->prepare("
+		return (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				"
             SELECT COUNT(*) 
             FROM {$this->participants_table}
             WHERE thread_id = %d AND user_id = %d
-        ", $thread_id, $user_id));
-    }
+        ",
+				$thread_id,
+				$user_id
+			)
+		);
+	}
 
-    /**
-     * GET USER THREADS (CHAT LIST)
-     */
-    public function get_user_threads($user_id) {
-        global $wpdb;
+	/**
+	 * GET USER THREADS (CHAT LIST)
+	 */
+	public function get_user_threads( $user_id ) {
+		global $wpdb;
 
-        $results = $wpdb->get_results($wpdb->prepare("
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"
             SELECT 
                 t.*,
                 p.unread_count,
@@ -191,91 +217,119 @@ class Repository {
             ORDER BY 
                 CASE WHEN t.status = 'active' THEN 0 ELSE 1 END,
                 t.updated_at DESC
-        ", $user_id, $user_id));
+        ",
+				$user_id,
+				$user_id
+			)
+		);
 
-        // 🔥 ADD USER NAME (IMPORTANT)
-        foreach ($results as $row) {
+		// 🔥 ADD USER NAME (IMPORTANT)
+		foreach ( $results as $row ) {
 
-            $user = get_userdata($row->other_user_id);
+			$user = get_userdata( $row->other_user_id );
 
-            $row->name = $user ? $user->display_name : 'User';
-        }
+			$row->name = $user ? $user->display_name : 'User';
+		}
 
-        return $results;
-    }
+		return $results;
+	}
 
-    /**
-     * Send Messgae
-     */
-    public function send_message($thread_id, $sender_id, $message) {
-        global $wpdb;
+	/**
+	 * Send Messgae
+	 */
+	public function send_message( $thread_id, $sender_id, $message ) {
+		global $wpdb;
 
-        // Insert message
-        $wpdb->insert($this->messages_table, [
-            'thread_id' => $thread_id,
-            'sender_id' => $sender_id,
-            'message' => $message
-        ]);
+		// Insert message
+		$wpdb->insert(
+			$this->messages_table,
+			array(
+				'thread_id' => $thread_id,
+				'sender_id' => $sender_id,
+				'message'   => $message,
+			)
+		);
 
-        $message_id = $wpdb->insert_id;
+		$message_id = $wpdb->insert_id;
 
-        // Update thread
-        $wpdb->update($this->threads_table, [
-            'last_message_id' => $message_id,
-            'updated_at' => current_time('mysql')
-        ], [
-            'id' => $thread_id
-        ]);
+		// Update thread
+		$wpdb->update(
+			$this->threads_table,
+			array(
+				'last_message_id' => $message_id,
+				'updated_at'      => current_time( 'mysql' ),
+			),
+			array(
+				'id' => $thread_id,
+			)
+		);
 
-        // Update unread count (others only)
-        $wpdb->query($wpdb->prepare("
+		// Update unread count (others only)
+		$wpdb->query(
+			$wpdb->prepare(
+				"
             UPDATE {$this->participants_table}
             SET unread_count = unread_count + 1
             WHERE thread_id = %d AND user_id != %d
-        ", $thread_id, $sender_id));
+        ",
+				$thread_id,
+				$sender_id
+			)
+		);
 
-        return $message_id;
-    }
+		return $message_id;
+	}
 
-    /**
-     * Get Latest Messages (INITIAL LOAD)
-     */
-    public function get_latest_messages($thread_id, $limit = 20) {
-        global $wpdb;
+	/**
+	 * Get Latest Messages (INITIAL LOAD)
+	 */
+	public function get_latest_messages( $thread_id, $limit = 20 ) {
+		global $wpdb;
 
-        $messages = $wpdb->get_results($wpdb->prepare("
+		$messages = $wpdb->get_results(
+			$wpdb->prepare(
+				"
             SELECT *
             FROM {$this->messages_table}
             WHERE thread_id = %d
             ORDER BY id DESC
             LIMIT %d
-        ", $thread_id, $limit));
+        ",
+				$thread_id,
+				$limit
+			)
+		);
 
-        return array_reverse($messages); // ✅ important
-    }
+		return array_reverse( $messages ); // ✅ important
+	}
 
-    /**
-     * MARK AS READ
-     */
-    public function mark_as_read_chat($thread_id, $user_id) {
-        global $wpdb;
+	/**
+	 * MARK AS READ
+	 */
+	public function mark_as_read_chat( $thread_id, $user_id ) {
+		global $wpdb;
 
-        $wpdb->update($this->participants_table, [
-            'unread_count' => 0,
-            'last_read' => current_time('mysql')
-        ], [
-            'thread_id' => $thread_id,
-            'user_id' => $user_id
-        ]);
-    }
+		$wpdb->update(
+			$this->participants_table,
+			array(
+				'unread_count' => 0,
+				'last_read'    => current_time( 'mysql' ),
+			),
+			array(
+				'thread_id' => $thread_id,
+				'user_id'   => $user_id,
+			)
+		);
+	}
 
-    /**
-     * GET ALL USER THREADS (Thread List For Admin)
-     */
-    public function get_all_threads() {
-        global $wpdb;
+	/**
+	 * GET ALL USER THREADS (Thread List For Admin)
+	 */
+	public function get_all_threads() {
+		global $wpdb;
 
-        return $wpdb->get_results("
+		return $wpdb->get_results(
+			"
             SELECT t.*, 
                 GROUP_CONCAT(tp.user_id) as participants
             FROM {$this->threads_table} t
@@ -283,16 +337,18 @@ class Repository {
                 ON t.id = tp.thread_id
             GROUP BY t.id
             ORDER BY t.updated_at DESC
-        ");
-    }
+        "
+		);
+	}
 
-    /**
-     * GET ALL THREADS WITH LAST MESSAGE (ADMIN)
-     */
-    public function get_all_threads_with_last_message() {
-        global $wpdb;
+	/**
+	 * GET ALL THREADS WITH LAST MESSAGE (ADMIN)
+	 */
+	public function get_all_threads_with_last_message() {
+		global $wpdb;
 
-        return $wpdb->get_results("
+		return $wpdb->get_results(
+			"
             SELECT 
                 t.*,
                 GROUP_CONCAT(tp.user_id) as participants,
@@ -307,13 +363,16 @@ class Repository {
 
             GROUP BY t.id
             ORDER BY t.updated_at DESC
-        ");
-    }
+        "
+		);
+	}
 
-    public function get_threads_by_connection($connection_id) {
-        global $wpdb;
+	public function get_threads_by_connection( $connection_id ) {
+		global $wpdb;
 
-        return $wpdb->get_results($wpdb->prepare("
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"
             SELECT t.*, 
                 GROUP_CONCAT(tp.user_id) as participants
             FROM {$this->threads_table} t
@@ -322,45 +381,53 @@ class Repository {
             WHERE t.connection_id = %d
             GROUP BY t.id
             ORDER BY t.updated_at DESC
-        ", $connection_id));
-    }
+        ",
+				$connection_id
+			)
+		);
+	}
 
-    /**
-     * GET THREAD SUBJECT
-     */
-    public function get_thread_subject($thread_id) {
-        global $wpdb;
+	/**
+	 * GET THREAD SUBJECT
+	 */
+	public function get_thread_subject( $thread_id ) {
+		global $wpdb;
 
-        return $wpdb->get_var($wpdb->prepare("
+		return $wpdb->get_var(
+			$wpdb->prepare(
+				"
             SELECT subject 
             FROM {$this->threads_table}
             WHERE id = %d
-        ", $thread_id));
-    }
+        ",
+				$thread_id
+			)
+		);
+	}
 
-    /**
-     * UPDATE THREAD SUBJECT
-     */
-    public function update_thread_subject($thread_id, $subject) {
-        global $wpdb;
+	/**
+	 * UPDATE THREAD SUBJECT
+	 */
+	public function update_thread_subject( $thread_id, $subject ) {
+		global $wpdb;
 
-        return $wpdb->update(
-            $this->threads_table,
-            ['subject' => $subject],
-            ['id' => $thread_id]
-        );
-    }
+		return $wpdb->update(
+			$this->threads_table,
+			array( 'subject' => $subject ),
+			array( 'id' => $thread_id )
+		);
+	}
 
-    /**
-     * UPDATE THREAD STATUS
-     */
-    public function inactive_threads_by_connection($connection_id) {
-        global $wpdb;
+	/**
+	 * UPDATE THREAD STATUS
+	 */
+	public function inactive_threads_by_connection( $connection_id ) {
+		global $wpdb;
 
-        return $wpdb->update(
-            $this->threads_table,
-            ['status' => 'inactive'],
-            ['connection_id' => $connection_id]
-        );
-    }
+		return $wpdb->update(
+			$this->threads_table,
+			array( 'status' => 'inactive' ),
+			array( 'connection_id' => $connection_id )
+		);
+	}
 }

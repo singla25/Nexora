@@ -1,39 +1,42 @@
 <?php /** @var array[] $contents  rows: title, date, edit_url */ ?>
 
-        <table class="widefat striped">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
+		<table class="widefat striped">
+			<thead>
+				<tr>
+					<th>Title</th>
+					<th>Date</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
 
-            <?php if ($contents): foreach ($contents as $content): ?>
+			<?php
+			if ( $contents ) :
+				foreach ( $contents as $content ) :
+					?>
 
-                <tr>
-                    <td><?php echo esc_html($content['title']); ?></td>
+				<tr>
+					<td><?php echo esc_html( $content['title'] ); ?></td>
 
-                    <td><?php echo esc_html($content['date']); ?></td>
+					<td><?php echo esc_html( $content['date'] ); ?></td>
 
-                    <td>
-                        <a href="<?php echo esc_url($content['edit_url']); ?>" 
-                        class="button button-primary">
-                        View
-                        </a>
-                    </td>
-                </tr>
+					<td>
+						<a href="<?php echo esc_url( $content['edit_url'] ); ?>" 
+						class="button button-primary">
+						View
+						</a>
+					</td>
+				</tr>
 
-            <?php endforeach; else: ?>
+							<?php endforeach; else : ?>
 
-                <tr>
-                    <td colspan="3" style="text-align:center;">No content found</td>
-                </tr>
+				<tr>
+					<td colspan="3" style="text-align:center;">No content found</td>
+				</tr>
 
-            <?php endif; ?>
+			<?php endif; ?>
 
-            </tbody>
-        </table>
+			</tbody>
+		</table>
 
-        
+		
