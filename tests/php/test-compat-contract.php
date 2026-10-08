@@ -80,7 +80,7 @@ foreach ( $expected as $table => $cols ) {
 }
 
 // ---- Options registered by the settings screen
-( new NEXORA_CPT() )->register_settings();
+( new \Nexora\Admin\Settings() )->register_settings();
 global $wp_registered_settings;
 foreach ( array( 'default_profile_image', 'default_cover_image', 'default_document_image', 'default_home_cover_image', 'default_feed_experience_image',
 	'default_real_time_chat_image', 'default_smart_connections_image', 'default_admin_mail', 'nexora_home_eyebrow', 'nexora_home_title',

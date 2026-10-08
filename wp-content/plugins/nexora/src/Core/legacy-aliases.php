@@ -23,7 +23,6 @@ return [
     'NEXORA_Login'                    => 'Nexora\Auth\Login',
     'NEXORA_Registration'             => 'Nexora\Auth\Registration',
     'Nexora_ReCaptcha'                => 'Nexora\Auth\Recaptcha',
-    'NEXORA_CPT'                      => 'Nexora\Admin\Cpt',
     'Nexora_Home_Page'                => 'Nexora\Shortcodes\Home',
     'Nexora_Shortcodes'               => 'Nexora\Shortcodes\Stats',
     'Nexora_Contact_Form'             => 'Nexora\Shortcodes\Contact_Form',

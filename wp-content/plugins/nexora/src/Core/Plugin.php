@@ -15,7 +15,11 @@ class Plugin {
         // Same order the modules have always registered their hooks in
         new \Nexora\Auth\Registration();
         new \Nexora\Auth\Login();
-        new \Nexora\Admin\Cpt();
+        $settings = new \Nexora\Admin\Settings();
+        new \Nexora\Admin\Menu($settings, new \Nexora\Admin\Pages());
+        new \Nexora\PostTypes\Registrar();
+        new \Nexora\Admin\Meta_Boxes();
+        new \Nexora\Admin\List_Columns();
         new \Nexora\Profile\Page();
         new \Nexora\Profile\Ajax();
         new \Nexora\Connections\Ajax();

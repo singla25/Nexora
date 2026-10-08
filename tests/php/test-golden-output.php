@@ -27,8 +27,29 @@ $clean = function () use ( $wpdb ) {
 		$wpdb->query( "DELETE FROM {$wpdb->prefix}$t WHERE $w" );
 	}
 	delete_transient( Nexora_Home_Page::STATS_TRANSIENT );
+	// Fixed ids push the auto-increment counters into the millions; give them back (InnoDB uses max(id)+1).
+	foreach ( array( $wpdb->users, $wpdb->posts, "{$wpdb->prefix}nexora_threads", "{$wpdb->prefix}nexora_messages", "{$wpdb->prefix}nexora_notifications", "{$wpdb->prefix}nexora_thread_participants" ) as $table ) {
+		$wpdb->query( "ALTER TABLE $table AUTO_INCREMENT = 1" );
+	}
 };
 $clean();
+
+/* ---------- isolation: during this test the plugin only "sees" the fixture rows ---------- */
+// get_posts() suppresses the posts_* filters but still runs pre_get_posts: hide every pre-existing row of the three types
+$real_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE ID < 9000000 AND post_type IN ('user_profile','user_connections','user_content')" ) );
+add_action( 'pre_get_posts', function ( $query ) use ( $real_ids ) {
+	if ( array_intersect( (array) $query->get( 'post_type' ), array( 'user_profile', 'user_connections', 'user_content' ) ) ) {
+		$query->set( 'post__not_in', array_merge( (array) $query->get( 'post__not_in' ), $real_ids ) );
+	}
+} );
+add_filter( 'query', function ( $sql ) use ( $wpdb ) {
+	// the two admin overviews list every row of a plugin table
+	$sql = str_replace( "FROM {$wpdb->prefix}nexora_notifications ORDER BY created_at DESC", "FROM {$wpdb->prefix}nexora_notifications WHERE id >= 9400000 ORDER BY created_at DESC", $sql );
+	if ( false !== strpos( $sql, "FROM {$wpdb->prefix}nexora_threads t" ) && false !== strpos( $sql, 'm.message as last_message' ) && false !== strpos( $sql, 'GROUP BY t.id' ) ) {
+		$sql = str_replace( 'GROUP BY t.id', 'WHERE t.id >= 9200000 GROUP BY t.id', $sql );
+	}
+	return $sql;
+} );
 
 /* ---------- the world ---------- */
 $mkuser = function ( $id, $login, $name, $role = 'subscriber' ) use ( $wpdb ) {
@@ -42,13 +63,15 @@ $mkuser( NXG_U + 1, 'nxgold_alice', 'Alice Gold' );
 $mkuser( NXG_U + 2, 'nxgold_bob', 'Bob Silver' );
 $mkuser( NXG_U + 3, 'nxgold_eve', 'Eve Bronze' );
 $mkuser( NXG_U + 4, 'nxgold_admin', 'Ada Admin', 'administrator' );
+$mkuser( NXG_U + 5, 'nxgold_carol', 'Carol Copper' );   // not connected to anyone: shows up in "add new"
 $A = NXG_U + 1; $B = NXG_U + 2; $E = NXG_U + 3; $AD = NXG_U + 4;
 
 $mkpost = function ( $id, $type, $title, $date, $extra = array() ) {
 	return wp_insert_post( array( 'import_id' => $id, 'post_type' => $type, 'post_status' => 'publish', 'post_title' => $title, 'post_date' => $date, 'post_date_gmt' => $date, 'post_name' => 'nxg-' . $id ) + $extra );
 };
 $PA = NXG_P + 1; $PB = NXG_P + 2; $PE = NXG_P + 3;
-foreach ( array( array( $PA, 'nxgold_alice', $A ), array( $PB, 'nxgold_bob', $B ), array( $PE, 'nxgold_eve', $E ) ) as list( $pid, $login, $uid ) ) {
+$CA = NXG_U + 5; $PC = NXG_P + 4;
+foreach ( array( array( $PA, 'nxgold_alice', $A ), array( $PB, 'nxgold_bob', $B ), array( $PE, 'nxgold_eve', $E ), array( $PC, 'nxgold_carol', $CA ) ) as list( $pid, $login, $uid ) ) {
 	$mkpost( $pid, 'user_profile', $login, '2026-01-10 09:00:00' );
 	update_post_meta( $pid, '_wp_user_id', $uid );
 	update_post_meta( $pid, 'user_name', $login );
@@ -61,6 +84,7 @@ foreach ( array( 'first_name' => 'Alice', 'last_name' => '<b>Gold</b>', 'email' 
 	'company_email' => 'hr@acme.test', 'company_phone' => '+91 11 2222', 'company_address' => '1 Corp Rd' ) as $k => $v ) { update_post_meta( $PA, $k, $v ); }
 update_post_meta( $PB, 'first_name', 'Bob' ); update_post_meta( $PB, 'last_name', 'Silver' );
 update_post_meta( $PE, 'first_name', 'Eve' ); update_post_meta( $PE, 'last_name', 'Bronze' );
+update_post_meta( $PC, 'first_name', 'Carol' ); update_post_meta( $PC, 'last_name', 'Copper' );
 
 // attachments: a public profile image (no file needed) and a private ID document (real file, moved by the plugin)
 $up = wp_upload_dir();
@@ -106,6 +130,8 @@ $wpdb->insert( "{$wpdb->prefix}nexora_messages", array( 'id' => $M2, 'thread_id'
 $wpdb->insert( "{$wpdb->prefix}nexora_notifications", array( 'id' => 9400001, 'actor_user_id' => $E, 'actor_user_name' => 'nxgold_eve', 'receiver_user_id' => $A, 'receiver_user_name' => 'nxgold_alice', 'type' => 'request', 'connection_id' => $C2, 'message' => 'nxgold_eve sent a connection request to nxgold_alice', 'is_read' => 0, 'created_at' => '2026-02-02 11:00:00' ) );
 $wpdb->insert( "{$wpdb->prefix}nexora_notifications", array( 'id' => 9400002, 'actor_user_id' => $B, 'actor_user_name' => 'nxgold_bob', 'receiver_user_id' => $A, 'receiver_user_name' => 'nxgold_alice', 'type' => 'accepted', 'connection_id' => $C1, 'message' => 'nxgold_bob accepted <alice> connection request', 'is_read' => 1, 'created_at' => '2026-02-01 10:01:00' ) );
 
+set_transient( Nexora_Home_Page::STATS_TRANSIENT, array( 'members' => 1234, 'connections' => 56, 'posts' => 7890, 'chats' => 12 ), HOUR_IN_SECONDS );
+
 /* ---------- helpers ---------- */
 $capture = function ( callable $fn ) { ob_start(); $r = $fn(); $out = ob_get_clean(); return is_string( $r ) ? $out . $r : $out; };
 $post = function ( $id ) { return get_post( $id ); };
@@ -119,25 +145,30 @@ $page = function ( $uid, $username ) {
 /* ================= ADMIN SCREENS ================= */
 wp_set_current_user( $AD );
 set_current_screen( 'dashboard' );
-$cpt = new NEXORA_CPT();
-nx_assert_golden( 'admin-settings-page',      $capture( [ $cpt, 'settings_page' ] ) );
-nx_assert_golden( 'admin-notifications-page', $capture( function () use ( $cpt ) { $cpt->notifications_page(); } ) );
-nx_assert_golden( 'admin-chat-page',          $capture( function () use ( $cpt ) { $cpt->nexora_user_chat(); } ) );
+$settings = new \Nexora\Admin\Settings();
+$pages    = new \Nexora\Admin\Pages();
+$boxes    = new \Nexora\Admin\Meta_Boxes();
+$cols     = new \Nexora\Admin\List_Columns();
+$menu     = new \Nexora\Admin\Menu( $settings, $pages );
+nx_assert_golden( 'admin-settings-page',      $capture( [ $settings, 'settings_page' ] ) );
+nx_assert_golden( 'admin-notifications-page', $capture( function () use ( $pages ) { $pages->notifications_page(); } ) );
+nx_assert_golden( 'admin-chat-page',          $capture( function () use ( $pages ) { $pages->nexora_user_chat(); } ) );
 foreach ( array( 'user_personal_details', 'user_address_details', 'user_work_details', 'user_document_details', 'user_connection_details', 'user_content_details', 'user_chat_details' ) as $mb ) {
-	nx_assert_golden( "admin-metabox-$mb", $capture( function () use ( $cpt, $mb, $post, $PA ) { $cpt->$mb( $post( $PA ) ); } ) );
+	nx_assert_golden( "admin-metabox-$mb", $capture( function () use ( $boxes, $mb, $post, $PA ) { $boxes->$mb( $post( $PA ) ); } ) );
 }
-nx_assert_golden( 'admin-metabox-connection',      $capture( function () use ( $cpt, $post, $C1 ) { $cpt->user_connection_meta_box( $post( $C1 ) ); } ) );
-nx_assert_golden( 'admin-metabox-connection-chat', $capture( function () use ( $cpt, $post, $C1 ) { $cpt->user_connection_chat_box( $post( $C1 ) ); } ) );
-nx_assert_golden( 'admin-metabox-content',         $capture( function () use ( $cpt, $post, $CT ) { $cpt->render_user_content_meta_box( $post( $CT ) ); } ) );
+nx_assert_golden( 'admin-metabox-connection',      $capture( function () use ( $boxes, $post, $C1 ) { $boxes->user_connection_meta_box( $post( $C1 ) ); } ) );
+nx_assert_golden( 'admin-metabox-connection-chat', $capture( function () use ( $boxes, $post, $C1 ) { $boxes->user_connection_chat_box( $post( $C1 ) ); } ) );
+nx_assert_golden( 'admin-metabox-content',         $capture( function () use ( $boxes, $post, $CT ) { $boxes->render_user_content_meta_box( $post( $CT ) ); } ) );
+$cols_obj = $cols;
 $cols = array( 'cb' => 'x', 'title' => 'Title', 'date' => 'Date' );
-$colout = json_encode( array( $cpt->add_name_column( $cols ), $cpt->add_status_column( $cols ), $cpt->add_user_name_column( $cols ) ) );
+$colout = json_encode( array( $cols_obj->add_name_column( $cols ), $cols_obj->add_status_column( $cols ), $cols_obj->add_user_name_column( $cols ) ) );
 foreach ( array( array( 'manage_name_column', 'user_full_name', $PA ), array( 'manage_status_column', 'connection_status', $C1 ), array( 'manage_status_column', 'connection_status', $C2 ), array( 'manage_status_column', 'connection_status', $C3 ), array( 'manage_user_name_column', 'user_name', $CT ) ) as list( $m, $col, $pid ) ) {
-	$colout .= $capture( function () use ( $cpt, $m, $col, $pid ) { $cpt->$m( $col, $pid ); } ) . '|';
+	$colout .= $capture( function () use ( $cols_obj, $m, $col, $pid ) { $cols_obj->$m( $col, $pid ); } ) . '|';
 }
 nx_assert_golden( 'admin-list-columns', $colout );
 $menu_before = $GLOBALS['menu'] ?? array();
 $GLOBALS['menu'] = array(); $GLOBALS['submenu'] = array();
-$cpt->register_main_menu();
+$menu->register_main_menu();
 nx_assert_golden( 'admin-menu', json_encode( array( array_values( $GLOBALS['menu'] ), $GLOBALS['submenu'] ) ) );
 
 /* ================= PROFILE PAGE ================= */
@@ -190,20 +221,20 @@ nx_assert_golden( 'chat-popup-admin', $capture( function () use ( $chat ) { $cha
 wp_set_current_user( $AD );
 set_current_screen( 'edit-user_profile' );
 $_POST = array( '_wpnonce' => wp_create_nonce( 'update-post_' . $PB ), 'first_name' => '<i>Bobby</i>', 'bio' => "line1\nline2", 'profile_image' => '123abc', 'aadhaar_card' => (string) $ATT1, 'email' => 'bob@new.test' );
-$cpt->save_meta_boxes( $PB );
+$boxes->save_meta_boxes( $PB );
 nx_assert_same( 'Bobby', get_post_meta( $PB, 'first_name', true ), 'admin save: text sanitized' );
 nx_assert_same( 123, (int) get_post_meta( $PB, 'profile_image', true ), 'admin save: attachment id absint' );
 nx_assert_same( 'bob@new.test', get_post_meta( $PB, 'email', true ), 'admin save: email stored' );
 $_POST['_wpnonce'] = 'bad'; $_POST['first_name'] = 'Hacked';
-$cpt->save_meta_boxes( $PB );
+$boxes->save_meta_boxes( $PB );
 nx_assert_same( 'Bobby', get_post_meta( $PB, 'first_name', true ), 'admin save: bad nonce ignored' );
 wp_set_current_user( $B );
 $_POST = array( '_wpnonce' => wp_create_nonce( 'update-post_' . $PB ), 'first_name' => 'Member' );
-$cpt->save_meta_boxes( $PB );
+$boxes->save_meta_boxes( $PB );
 nx_assert_same( 'Bobby', get_post_meta( $PB, 'first_name', true ), 'admin save: non-admin ignored' );
 wp_set_current_user( $AD );
 $_POST = array( '_wpnonce' => wp_create_nonce( 'update-post_' . $C2 ), 'status' => 'accepted', 'sender_user_name' => 'x<y>' );
-$cpt->save_meta_boxes( $C2 );
+$boxes->save_meta_boxes( $C2 );
 nx_assert_same( 'accepted', get_post_meta( $C2, 'status', true ), 'admin save: connection status' );
 $_POST = array();
 
