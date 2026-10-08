@@ -34,11 +34,11 @@ nx_assert_same( home_url( '/profile-page/' . rawurlencode( $member['login'] ) ),
 nx_assert_same( home_url( '/profile-page' ), apply_filters( 'login_redirect', '/x', '', get_userdata( $admin ) ), 'login_redirect: admin -> /profile-page' );
 nx_assert_same( '/x', apply_filters( 'login_redirect', '/x', '', new WP_Error( 'e' ) ), 'login_redirect: failed login left untouched' );
 wp_set_current_user( $member['user_id'] );
-do_action( 'after_setup_theme' );
+( new \Nexora\Core\Access_Control() )->hide_admin_bar();
 nx_assert_same( false, $GLOBALS['show_admin_bar'] ?? null, 'members: show_admin_bar(false) applied' );
 wp_set_current_user( $admin );
 unset( $GLOBALS['show_admin_bar'] );
-do_action( 'after_setup_theme' );
+( new \Nexora\Core\Access_Control() )->hide_admin_bar();
 nx_assert( ! isset( $GLOBALS['show_admin_bar'] ) || false !== $GLOBALS['show_admin_bar'], 'administrators keep the admin bar' );
 
 nx_test_finish();
