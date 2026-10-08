@@ -1,6 +1,10 @@
 <?php
 
-class Nexora_ReCaptcha {
+namespace Nexora\Auth;
+
+if (!defined('ABSPATH')) exit;
+
+class Recaptcha {
 
     private $site_key;
     private $secret_key;

@@ -1,5 +1,7 @@
 <?php
 
+namespace Nexora\Shortcodes;
+
 if (!defined('ABSPATH')) exit;
 
 /**
@@ -9,7 +11,7 @@ if (!defined('ABSPATH')) exit;
  * "Admin Notification Email" from Nexora settings). Protections: nonce,
  * honeypot field, per-IP rate limit, header-injection safe Reply-To.
  */
-class Nexora_Contact_Form {
+class Contact_Form {
 
     const ACTION = 'nexora_contact';
 
@@ -102,7 +104,7 @@ class Nexora_Contact_Form {
             $back('sent');
         }
 
-        if (Nexora_Rate_Limiter::blocked('contact')) {
+        if (\Nexora\Http\Rate_Limiter::blocked('contact')) {
             $back('limit');
         }
 
@@ -128,7 +130,7 @@ class Nexora_Contact_Form {
         // name / email were sanitised (no line breaks), so they cannot inject headers
         $headers = ['Reply-To: ' . $name . ' <' . $email . '>'];
 
-        Nexora_Rate_Limiter::hit('contact');
+        \Nexora\Http\Rate_Limiter::hit('contact');
 
         $sent = wp_mail($to, $subject, $body, $headers);
 

@@ -1,6 +1,10 @@
 <?php
 
-class NEXORA_CPT {
+namespace Nexora\Admin;
+
+if (!defined('ABSPATH')) exit;
+
+class Cpt {
 
     public function __construct() {
 
@@ -164,7 +168,7 @@ class NEXORA_CPT {
 
     public function notifications_page() {
 
-        $notification = new NEXORA_Notification();
+        $notification = new \Nexora\Notifications\Repository();
         $notifications = $notification->get_all();
 
         ?>
@@ -220,7 +224,7 @@ class NEXORA_CPT {
     =============================== */
     public function nexora_user_chat() {
 
-        $chat_db = new NEXORA_CHAT_DB();
+        $chat_db = new \Nexora\Chat\Repository();
         $threads = $chat_db->get_all_threads_with_last_message();
         ?>
 
@@ -830,7 +834,7 @@ class NEXORA_CPT {
     /* USER CHAT DETAIL */
     public function user_chat_details($post) {
 
-        $chat_db = new NEXORA_CHAT_DB();
+        $chat_db = new \Nexora\Chat\Repository();
 
         $user_id = get_post_meta($post->ID, '_wp_user_id', true);
 
@@ -1003,7 +1007,7 @@ class NEXORA_CPT {
      /* USER CONNECTIONS CHAT DETAIL */
     public function user_connection_chat_box($post) {
 
-        $chat_db = new NEXORA_CHAT_DB();
+        $chat_db = new \Nexora\Chat\Repository();
         $threads = $chat_db->get_threads_by_connection($post->ID);
 
         echo '<h3>💬 Connection Chat Threads</h3>';

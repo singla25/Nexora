@@ -1,8 +1,10 @@
 <?php
 
+namespace Nexora\Chat;
+
 if (!defined('ABSPATH')) exit;
 
-class NEXORA_CHAT_AJAX {
+class Ajax {
 
     public function __construct() {
 
@@ -23,7 +25,7 @@ class NEXORA_CHAT_AJAX {
     =============================== */
     private function authorize() {
 
-        return Nexora_Ajax::member('nexora_chat_nonce', false, 'Unauthorized')['user_id'];
+        return \Nexora\Http\Ajax::member('nexora_chat_nonce', false, 'Unauthorized')['user_id'];
     }
 
     /**
@@ -35,7 +37,7 @@ class NEXORA_CHAT_AJAX {
             wp_send_json_error('Invalid thread');
         }
 
-        $chat_db = new NEXORA_CHAT_DB();
+        $chat_db = new \Nexora\Chat\Repository();
 
         if (!$chat_db->is_user_in_thread($thread_id, $user_id)) {
             wp_send_json_error('Access denied');
@@ -109,7 +111,7 @@ class NEXORA_CHAT_AJAX {
             wp_send_json_error('Access denied');
         }
 
-        $chat_db = new NEXORA_CHAT_DB();
+        $chat_db = new \Nexora\Chat\Repository();
         $thread  = $chat_db->get_thread_by_connection($connection_id);
 
         wp_send_json_success([
@@ -159,7 +161,7 @@ class NEXORA_CHAT_AJAX {
 
         $user_id = $this->authorize();
 
-        $chat_db = new NEXORA_CHAT_DB();
+        $chat_db = new \Nexora\Chat\Repository();
 
         wp_send_json_success($chat_db->get_user_threads($user_id));
     }
@@ -184,8 +186,8 @@ class NEXORA_CHAT_AJAX {
 
         $chat_db = $this->require_participant($thread_id, $user_id);
 
-        if (Nexora_Rate_Limiter::hit('chat_message', 'u' . $user_id)) {
-            wp_send_json_error(Nexora_Rate_Limiter::message());
+        if (\Nexora\Http\Rate_Limiter::hit('chat_message', 'u' . $user_id)) {
+            wp_send_json_error(\Nexora\Http\Rate_Limiter::message());
         }
 
         $thread = $chat_db->get_thread_status($thread_id);
@@ -237,7 +239,7 @@ class NEXORA_CHAT_AJAX {
             wp_send_json_error('You can only chat with your connections');
         }
 
-        $chat_db   = new NEXORA_CHAT_DB();
+        $chat_db   = new \Nexora\Chat\Repository();
         $thread_id = $chat_db->create_thread([$user1, $user2], $connection_id, 'active', 'private', $subject);
 
         if (!$thread_id) {

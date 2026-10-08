@@ -1,8 +1,10 @@
 <?php
 
+namespace Nexora\Profile;
+
 if (!defined('ABSPATH')) exit;
 
-class NEXORA_PROFILE_PAGE {
+class Page {
 
     public function __construct() {
 
@@ -22,14 +24,14 @@ class NEXORA_PROFILE_PAGE {
     public function enqueue_assets() {
 
         // Profile scripts, the media library and the owner's private data are only for the profile page
-        if (!NEXORA_System::is_page_for('profile-page', 'profile_dashboard')) {
+        if (!\Nexora\Core\Assets::is_page_for('profile-page', 'profile_dashboard')) {
             return;
         }
 
-        NEXORA_System::enqueue_tokens();
+        \Nexora\Core\Assets::enqueue_tokens();
         wp_enqueue_style('profile-page-style', NEXORA_URL . 'assets/css/profile-page.css', ['nexora-tokens'], NEXORA_VERSION);
 
-        NEXORA_System::enqueue_sweetalert();
+        \Nexora\Core\Assets::enqueue_sweetalert();
 
         wp_enqueue_script('profile-page-js', NEXORA_URL . 'assets/js/profile-page.js', ['jquery','sweetalert2'], NEXORA_VERSION, true);
 
@@ -160,6 +162,35 @@ class NEXORA_PROFILE_PAGE {
         return 'viewer'; // logged in but not owner
     }
     
+    /**
+     * Text shown for a notification row (UI transformation of the stored type).
+     */
+    private function format_notification_message($noti) {
+
+        $actor = esc_html($noti->actor_user_name);
+
+        switch ($noti->type) {
+
+            case 'request':
+                return "{$actor} sent you a connection request";
+
+            case 'accepted':
+                return "{$actor} accepted your connection request";
+
+            case 'rejected':
+                return "{$actor} rejected your connection request";
+
+            case 'removed':
+                return "{$actor} removed the connection with you";
+
+            case 'content':
+                return "{$actor} uploaded new content";
+
+            default:
+                return esc_html($noti->message); // fallback
+        }
+    }
+
     public function render_profile() {
 
         // Only run on profile page
@@ -307,7 +338,7 @@ class NEXORA_PROFILE_PAGE {
         $profile_image = $profile_image_id ? wp_get_attachment_url($profile_image_id) : $default_profile;
         $cover_image = $cover_image_id ? wp_get_attachment_url($cover_image_id) : $default_cover;
 
-        $notification = new NEXORA_Notification();
+        $notification = new \Nexora\Notifications\Repository();
         $unread_count = $notification->get_unread_count($current_user_id);
 
         ob_start();
@@ -659,7 +690,7 @@ class NEXORA_PROFILE_PAGE {
                                         'profile_id' => $other_id,
                                         'username' => get_post_meta($other_id, 'user_name', true),
                                         'name' => get_post_meta($other_id, 'first_name', true) . ' ' . get_post_meta($other_id, 'last_name', true),
-                                        'image' => NEXORA_PROFILE_HELPER::get_profile_image($other_id),
+                                        'image' => \Nexora\Profile\Repository::get_profile_image($other_id),
                                         'profile_link' => site_url('/profile-page/' . get_post_meta($other_id, 'user_name', true))
                                     ];
                                 }
@@ -723,8 +754,8 @@ class NEXORA_PROFILE_PAGE {
                                         $current_user_id = get_current_user_id();
                                         $current_profile_id = get_user_meta($current_user_id, '_profile_id', true);
 
-                                        $current_connections = NEXORA_PROFILE_HELPER::get_user_connection_ids($current_profile_id);
-                                        $other_connections   = NEXORA_PROFILE_HELPER::get_user_connection_ids($profile_id);
+                                        $current_connections = \Nexora\Profile\Repository::get_user_connection_ids($current_profile_id);
+                                        $other_connections   = \Nexora\Profile\Repository::get_user_connection_ids($profile_id);
 
                                         $mutual_ids = array_intersect($current_connections, $other_connections);
 
@@ -774,37 +805,9 @@ class NEXORA_PROFILE_PAGE {
                         <?php if ($is_owner): ?>
 
                         <?php
-                        $notification = new NEXORA_Notification();
+                        $notification = new \Nexora\Notifications\Repository();
                         $notifications = $notification->get_notifications($current_user_id);
 
-                        // 🔥 Helper function (UI transformation)
-                        if (!function_exists('nexora_format_message')) {
-                        function nexora_format_message($noti) {
-
-                            $actor = esc_html($noti->actor_user_name); 
-
-                            switch ($noti->type) {
-
-                                case 'request':
-                                    return "{$actor} sent you a connection request";
-
-                                case 'accepted':
-                                    return "{$actor} accepted your connection request";
-
-                                case 'rejected':
-                                    return "{$actor} rejected your connection request";
-
-                                case 'removed':
-                                    return "{$actor} removed the connection with you";
-
-                                case 'content':
-                                    return "{$actor} uploaded new content";
-
-                                default:
-                                    return esc_html($noti->message); // fallback
-                            }
-                        }
-                        }
                         ?>
 
                         <div class="notification-wrapper">
@@ -818,7 +821,7 @@ class NEXORA_PROFILE_PAGE {
                                 <?php if ($notifications): foreach ($notifications as $noti): ?>
 
                                     <?php
-                                        $formatted_message = nexora_format_message($noti, $current_user_id);
+                                        $formatted_message = $this->format_notification_message($noti);
                                         $is_unread = !$noti->is_read;
                                     ?>
 
@@ -831,7 +834,7 @@ class NEXORA_PROFILE_PAGE {
 
                                         <div class="noti-avatar">
                                             <img src="<?php echo esc_url(
-                                                NEXORA_PROFILE_HELPER::get_profile_image($actor_profile_id)
+                                                \Nexora\Profile\Repository::get_profile_image($actor_profile_id)
                                             ); ?>">
                                         </div>
 
@@ -1018,7 +1021,7 @@ class NEXORA_PROFILE_PAGE {
 
     function allow_user_uploads() {
 
-        // Upload rights are granted per request by Nexora_Upload_Policy (no stored role capability)
+        // Upload rights are granted per request by \Nexora\Profile\Upload_Policy (no stored role capability)
         // Members may only upload images and PDFs
         add_filter('upload_mimes', [$this, 'restrict_member_mimes']);
     }

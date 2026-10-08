@@ -1,5 +1,7 @@
 <?php
 
+namespace Nexora\Http;
+
 if (!defined('ABSPATH')) exit;
 
 /**
@@ -13,7 +15,7 @@ if (!defined('ABSPATH')) exit;
  * 'nexora_rate_limits' filter. Per-visitor buckets key on the client IP; per-member
  * buckets pass the user id as the subject.
  */
-class Nexora_Rate_Limiter {
+class Rate_Limiter {
 
     /** Tests only: pretend it is this unix time. */
     public static $time_override = null;

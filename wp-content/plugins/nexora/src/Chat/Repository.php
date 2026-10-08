@@ -1,8 +1,10 @@
 <?php
 
+namespace Nexora\Chat;
+
 if (!defined('ABSPATH')) exit;
 
-class NEXORA_CHAT_DB {
+class Repository {
 
     private $threads_table;
     private $participants_table;

@@ -1,5 +1,7 @@
 <?php
 
+namespace Nexora\Profile;
+
 if (!defined('ABSPATH')) exit;
 
 /**
@@ -10,7 +12,7 @@ if (!defined('ABSPATH')) exit;
  * requests run, so REST /wp/v2/media and wp-admin uploads stay closed to them.
  * Members are also limited in file size and in total number of files.
  */
-class Nexora_Upload_Policy {
+class Upload_Policy {
 
     const CLEANED_OPTION = 'nexora_upload_cap_cleaned';
 
@@ -66,8 +68,8 @@ class Nexora_Upload_Policy {
             return false;
         }
 
-        return isset($GLOBALS['wp_query']) && $GLOBALS['wp_query'] instanceof WP_Query
-            && NEXORA_System::is_page_for('profile-page', 'profile_dashboard');
+        return isset($GLOBALS['wp_query']) && $GLOBALS['wp_query'] instanceof \WP_Query
+            && \Nexora\Core\Assets::is_page_for('profile-page', 'profile_dashboard');
     }
 
     public function grant_upload_in_context($allcaps, $caps, $args, $user) {
@@ -76,7 +78,7 @@ class Nexora_Upload_Policy {
             return $allcaps;
         }
 
-        if (!$user instanceof WP_User || !$user->exists() || !get_user_meta($user->ID, '_profile_id', true)) {
+        if (!$user instanceof \WP_User || !$user->exists() || !get_user_meta($user->ID, '_profile_id', true)) {
             return $allcaps;
         }
 

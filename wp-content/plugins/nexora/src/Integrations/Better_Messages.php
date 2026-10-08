@@ -1,8 +1,10 @@
 <?php
 
+namespace Nexora\Integrations;
+
 if (!defined('ABSPATH')) exit;
 
-class Nexora_Better_Message_CHAT_Page {
+class Better_Messages {
 
     public function __construct() {
 

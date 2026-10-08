@@ -1,33 +1,35 @@
 <?php
 
+namespace Nexora\Profile;
+
 if (!defined('ABSPATH')) exit;
 
-class NEXORA_PROFILE_AJAX {
+class Ajax {
 
     public function __construct() {
 
         // USER INFO
-        Nexora_Ajax::register('update_personal_info', [$this, 'update_personal_info']);
-        Nexora_Ajax::register('update_address_info', [$this, 'update_address_info']);
-        Nexora_Ajax::register('update_work_info', [$this, 'update_work_info']);
-        Nexora_Ajax::register('update_documents_info', [$this, 'update_documents_info']);
-        Nexora_Ajax::register('update_profile_password', [$this, 'update_profile_password']);
+        \Nexora\Http\Ajax::register('update_personal_info', [$this, 'update_personal_info']);
+        \Nexora\Http\Ajax::register('update_address_info', [$this, 'update_address_info']);
+        \Nexora\Http\Ajax::register('update_work_info', [$this, 'update_work_info']);
+        \Nexora\Http\Ajax::register('update_documents_info', [$this, 'update_documents_info']);
+        \Nexora\Http\Ajax::register('update_profile_password', [$this, 'update_profile_password']);
 
         // CONNECTION TAB
-        Nexora_Ajax::register('get_add_new_users', [$this, 'get_add_new_users']);
-        Nexora_Ajax::register('send_connection_request', [$this, 'send_connection_request']);
-        Nexora_Ajax::register('get_requests', [$this, 'get_requests']);
-        Nexora_Ajax::register('update_connection_status', [$this, 'update_connection_status']);
-        Nexora_Ajax::register('get_history', [$this, 'get_history']);
-        Nexora_Ajax::register('view_all_connection', [$this, 'view_all_connection']);
-        Nexora_Ajax::register('view_mutual_connection', [$this, 'view_mutual_connection']);
+        \Nexora\Http\Ajax::register('get_add_new_users', [$this, 'get_add_new_users']);
+        \Nexora\Http\Ajax::register('send_connection_request', [$this, 'send_connection_request']);
+        \Nexora\Http\Ajax::register('get_requests', [$this, 'get_requests']);
+        \Nexora\Http\Ajax::register('update_connection_status', [$this, 'update_connection_status']);
+        \Nexora\Http\Ajax::register('get_history', [$this, 'get_history']);
+        \Nexora\Http\Ajax::register('view_all_connection', [$this, 'view_all_connection']);
+        \Nexora\Http\Ajax::register('view_mutual_connection', [$this, 'view_mutual_connection']);
 
         // NOTIFICATION
-        Nexora_Ajax::register('mark_notification_read', [$this, 'mark_notification_read']);
+        \Nexora\Http\Ajax::register('mark_notification_read', [$this, 'mark_notification_read']);
 
         // USER CONTENT
-        Nexora_Ajax::register('save_user_content', [$this, 'save_user_content']);
-        Nexora_Ajax::register('get_user_content_history', [$this, 'get_user_content_history']);
+        \Nexora\Http\Ajax::register('save_user_content', [$this, 'save_user_content']);
+        \Nexora\Http\Ajax::register('get_user_content_history', [$this, 'get_user_content_history']);
     }
 
 
@@ -35,7 +37,7 @@ class NEXORA_PROFILE_AJAX {
        UPDATE USER INFORMATION
     =============================== */
     private function validate_request($require_owner = true) {
-        return Nexora_Ajax::member('profile_nonce', true, 'Unauthorized access');
+        return \Nexora\Http\Ajax::member('profile_nonce', true, 'Unauthorized access');
     }
 
     private function post_value($key) {
@@ -82,8 +84,8 @@ class NEXORA_PROFILE_AJAX {
             }
 
             if ($field === 'birthdate' && $value !== '') {
-                $dt = DateTime::createFromFormat('Y-m-d', $value);
-                if (!$dt || $dt->format('Y-m-d') !== $value || $dt > new DateTime('today')) {
+                $dt = \DateTime::createFromFormat('Y-m-d', $value);
+                if (!$dt || $dt->format('Y-m-d') !== $value || $dt > new \DateTime('today')) {
                     wp_send_json_error('Invalid date of birth');
                 }
             }
@@ -169,15 +171,15 @@ class NEXORA_PROFILE_AJAX {
             }
 
             // ID documents are private files; profile / cover images are shown to other members
-            $is_private_file = Nexora_Private_Documents::is_private($attachment_id);
+            $is_private_file = \Nexora\Profile\Private_Documents::is_private($attachment_id);
 
-            if (in_array($field, Nexora_Private_Documents::PUBLIC_KEYS, true) && $is_private_file) {
+            if (in_array($field, \Nexora\Profile\Private_Documents::PUBLIC_KEYS, true) && $is_private_file) {
                 wp_send_json_error('This file is a private document and cannot be used as a public image');
             }
 
-            if (in_array($field, Nexora_Private_Documents::DOC_KEYS, true)
+            if (in_array($field, \Nexora\Profile\Private_Documents::DOC_KEYS, true)
                 && !$is_private_file
-                && Nexora_Private_Documents::in_public_use($attachment_id)) {
+                && \Nexora\Profile\Private_Documents::in_public_use($attachment_id)) {
                 wp_send_json_error('This file is already used as a public image. Please upload a separate file for your document');
             }
 
@@ -190,10 +192,10 @@ class NEXORA_PROFILE_AJAX {
     // CHANGE PASSWORD
     public function update_profile_password() {
 
-        $user_id = Nexora_Ajax::member('profile_nonce', false, 'Not logged in')['user_id'];
+        $user_id = \Nexora\Http\Ajax::member('profile_nonce', false, 'Not logged in')['user_id'];
 
-        if (Nexora_Rate_Limiter::hit('password_change', 'u' . $user_id)) {
-            wp_send_json_error(Nexora_Rate_Limiter::message());
+        if (\Nexora\Http\Rate_Limiter::hit('password_change', 'u' . $user_id)) {
+            wp_send_json_error(\Nexora\Http\Rate_Limiter::message());
         }
 
         $current_password = wp_unslash($_POST['current_password'] ?? '');
@@ -274,7 +276,7 @@ class NEXORA_PROFILE_AJAX {
                 'profile_id' => $user->ID,
                 'username'   => get_post_meta($user->ID, 'user_name', true),
                 'name'       => $this->profile_full_name($user->ID),
-                'image'      => NEXORA_PROFILE_HELPER::get_profile_image($user->ID)
+                'image'      => \Nexora\Profile\Repository::get_profile_image($user->ID)
             ];
         }
 
@@ -295,8 +297,8 @@ class NEXORA_PROFILE_AJAX {
             wp_send_json_error('User not found');
         }
 
-        if (Nexora_Rate_Limiter::hit('connection_request', 'u' . $sender_user_id)) {
-            wp_send_json_error(Nexora_Rate_Limiter::message());
+        if (\Nexora\Http\Rate_Limiter::hit('connection_request', 'u' . $sender_user_id)) {
+            wp_send_json_error(\Nexora\Http\Rate_Limiter::message());
         }
 
         if ($receiver_profile_id === $sender_profile_id) {
@@ -357,7 +359,7 @@ class NEXORA_PROFILE_AJAX {
 
         update_post_meta($post_id, 'status', 'pending');
 
-        $notification = new NEXORA_Notification();
+        $notification = new \Nexora\Notifications\Repository();
         $notification->insert([
             'actor_user_id'      => $sender_user_id,
             'actor_user_name'    => $sender_user_name,
@@ -403,7 +405,7 @@ class NEXORA_PROFILE_AJAX {
                 'profile_id' => $sender,
                 'username' => get_post_meta($sender, 'user_name', true),
                 'name' => $this->profile_full_name($sender),
-                'image' => NEXORA_PROFILE_HELPER::get_profile_image($sender)
+                'image' => \Nexora\Profile\Repository::get_profile_image($sender)
             ];
         }
 
@@ -452,7 +454,7 @@ class NEXORA_PROFILE_AJAX {
 
         if ($status === 'removed') {
 
-            $chat_db = new NEXORA_CHAT_DB();
+            $chat_db = new \Nexora\Chat\Repository();
             $chat_db->inactive_threads_by_connection($connection_id);
         }
 
@@ -497,7 +499,7 @@ class NEXORA_PROFILE_AJAX {
             'message' => $message,
         ];
         
-        $notification = new NEXORA_Notification();
+        $notification = new \Nexora\Notifications\Repository();
         $notifications = $notification->insert($data);
 
         wp_send_json_success();
@@ -555,7 +557,7 @@ class NEXORA_PROFILE_AJAX {
                     
                     $username = get_post_meta($sender_id,'user_name',true);
                     $name     = $this->profile_full_name($sender_id);
-                    $image    = NEXORA_PROFILE_HELPER::get_profile_image($sender_id);
+                    $image    = \Nexora\Profile\Repository::get_profile_image($sender_id);
 
                     $date = get_the_date('d M Y', $conn->ID);
                     $time = get_the_time('h:i A', $conn->ID);
@@ -606,7 +608,7 @@ class NEXORA_PROFILE_AJAX {
                    
                     $username = get_post_meta($receiver_id,'user_name',true);
                     $name     = $this->profile_full_name($receiver_id);
-                    $image    = NEXORA_PROFILE_HELPER::get_profile_image($receiver_id);
+                    $image    = \Nexora\Profile\Repository::get_profile_image($receiver_id);
 
                     $date = get_the_date('d M Y', $conn->ID);
                     $time = get_the_time('h:i A', $conn->ID);
@@ -664,7 +666,7 @@ class NEXORA_PROFILE_AJAX {
 
         $data = [];
 
-        foreach (NEXORA_PROFILE_HELPER::get_user_connection_ids($profile_id) as $other_id) {
+        foreach (\Nexora\Profile\Repository::get_user_connection_ids($profile_id) as $other_id) {
 
             $username = get_post_meta($other_id, 'user_name', true);
 
@@ -672,7 +674,7 @@ class NEXORA_PROFILE_AJAX {
                 'profile_id'   => $other_id,
                 'username'     => $username,
                 'name'         => $this->profile_full_name($other_id),
-                'image'        => NEXORA_PROFILE_HELPER::get_profile_image($other_id),
+                'image'        => \Nexora\Profile\Repository::get_profile_image($other_id),
                 'profile_link' => site_url('/profile-page/' . rawurlencode($username))
             ];
         }
@@ -725,8 +727,8 @@ class NEXORA_PROFILE_AJAX {
         }
 
         // 1. Get connections of both
-        $current_connections = NEXORA_PROFILE_HELPER::get_user_connection_ids($current_profile_id);
-        $other_connections   = NEXORA_PROFILE_HELPER::get_user_connection_ids($other_profile_id);
+        $current_connections = \Nexora\Profile\Repository::get_user_connection_ids($current_profile_id);
+        $other_connections   = \Nexora\Profile\Repository::get_user_connection_ids($other_profile_id);
 
         // 2. Find mutual
         $mutual_ids = array_intersect($current_connections, $other_connections);
@@ -739,7 +741,7 @@ class NEXORA_PROFILE_AJAX {
                 'profile_id' => $id,
                 'username' => get_post_meta($id, 'user_name', true),
                 'name' => $this->profile_full_name($id),
-                'image' => NEXORA_PROFILE_HELPER::get_profile_image($id),
+                'image' => \Nexora\Profile\Repository::get_profile_image($id),
                 'profile_link' => site_url('/profile-page/' . rawurlencode(get_post_meta($id, 'user_name', true)))
             ];
         }
@@ -787,11 +789,11 @@ class NEXORA_PROFILE_AJAX {
     =============================== */
     public function mark_notification_read() {
 
-        $user_id = Nexora_Ajax::member('profile_nonce', false, 'Not logged in')['user_id'];
+        $user_id = \Nexora\Http\Ajax::member('profile_nonce', false, 'Not logged in')['user_id'];
 
         $id = absint($_POST['id'] ?? 0);
 
-        $notification = new NEXORA_Notification();
+        $notification = new \Nexora\Notifications\Repository();
 
         $row = $notification->get_row($id);
 
@@ -824,15 +826,15 @@ class NEXORA_PROFILE_AJAX {
             wp_send_json_error('Title is required');
         }
 
-        if (Nexora_Rate_Limiter::hit('content_save', 'u' . $user_id)) {
-            wp_send_json_error(Nexora_Rate_Limiter::message());
+        if (\Nexora\Http\Rate_Limiter::hit('content_save', 'u' . $user_id)) {
+            wp_send_json_error(\Nexora\Http\Rate_Limiter::message());
         }
 
         if ($image_id && !$this->user_owns_attachment($image_id, $user_id)) {
             wp_send_json_error('Invalid image selected');
         }
 
-        if ($image_id && Nexora_Private_Documents::is_private($image_id)) {
+        if ($image_id && \Nexora\Profile\Private_Documents::is_private($image_id)) {
             wp_send_json_error('Invalid image selected');
         }
 

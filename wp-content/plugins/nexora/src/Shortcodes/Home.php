@@ -1,5 +1,7 @@
 <?php
 
+namespace Nexora\Shortcodes;
+
 if (!defined('ABSPATH')) exit;
 
 /**
@@ -11,7 +13,7 @@ if (!defined('ABSPATH')) exit;
  *  - buttons follow the visitor's login state
  *  - images come from the media chosen in Settings (section skipped if none)
  */
-class Nexora_Home_Page {
+class Home {
 
     const STATS_TRANSIENT = 'nexora_home_stats';
 
@@ -50,7 +52,7 @@ class Nexora_Home_Page {
         $profiles = wp_count_posts('user_profile');
         $content  = wp_count_posts('user_content');
 
-        $connections = new WP_Query([
+        $connections = new \WP_Query([
             'post_type'      => 'user_connections',
             'post_status'    => 'any',
             'posts_per_page' => 1,

@@ -1,31 +1,35 @@
 <?php
 
-class NEXORA_Login {
+namespace Nexora\Auth;
+
+if (!defined('ABSPATH')) exit;
+
+class Login {
 
     public function __construct() {
         add_action('wp_enqueue_scripts', [$this, 'login_enqueue_assets']);
         add_shortcode('profile_login', [$this, 'login_form']);
 
-        Nexora_Ajax::register('profile_login', [$this, 'handle_login'], true);
+        \Nexora\Http\Ajax::register('profile_login', [$this, 'handle_login'], true);
 
-        Nexora_Ajax::register('send_otp', [$this, 'send_otp'], true);
+        \Nexora\Http\Ajax::register('send_otp', [$this, 'send_otp'], true);
 
-        Nexora_Ajax::register('verify_otp', [$this, 'verify_otp'], true);
+        \Nexora\Http\Ajax::register('verify_otp', [$this, 'verify_otp'], true);
 
-        Nexora_Ajax::register('reset_password', [$this, 'reset_password'], true);
+        \Nexora\Http\Ajax::register('reset_password', [$this, 'reset_password'], true);
     }
 
     public function login_enqueue_assets() {
 
         // Only the login page needs these scripts (and the guest nonce)
-        if (!NEXORA_System::is_page_for('login-page', 'profile_login')) {
+        if (!\Nexora\Core\Assets::is_page_for('login-page', 'profile_login')) {
             return;
         }
 
-        NEXORA_System::enqueue_tokens();
+        \Nexora\Core\Assets::enqueue_tokens();
         wp_enqueue_style('profile-login-style', NEXORA_URL . 'assets/css/profile-login.css', ['nexora-tokens'], NEXORA_VERSION);
 
-        NEXORA_System::enqueue_sweetalert();
+        \Nexora\Core\Assets::enqueue_sweetalert();
 
         wp_enqueue_script(
             'profile-login',
@@ -40,7 +44,7 @@ class NEXORA_Login {
             'nonce'   => wp_create_nonce('profile_nonce')
         ]);
 
-        $captcha = new Nexora_ReCaptcha();
+        $captcha = new \Nexora\Auth\Recaptcha();
         $captcha->enqueue_script();
     }
 
@@ -93,7 +97,7 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if (Nexora_Rate_Limiter::hit('otp_send')) {
+        if (\Nexora\Http\Rate_Limiter::hit('otp_send')) {
             wp_send_json_error('Too many requests. Please try again later.');
         }
 
@@ -145,7 +149,7 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if (Nexora_Rate_Limiter::hit('otp_verify')) {
+        if (\Nexora\Http\Rate_Limiter::hit('otp_verify')) {
             wp_send_json_error('Too many attempts. Please try again later.');
         }
 
@@ -202,7 +206,7 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if (Nexora_Rate_Limiter::hit('reset_password')) {
+        if (\Nexora\Http\Rate_Limiter::hit('reset_password')) {
             wp_send_json_error('Too many requests. Please try again later.');
         }
 
@@ -331,7 +335,7 @@ class NEXORA_Login {
                     </div>
 
                     <?php
-                    $captcha = new Nexora_ReCaptcha();
+                    $captcha = new \Nexora\Auth\Recaptcha();
                     echo $captcha->render();
                     ?>
 
@@ -359,11 +363,11 @@ class NEXORA_Login {
 
         check_ajax_referer('profile_nonce', 'nonce');
 
-        if (Nexora_Rate_Limiter::hit('login')) {
+        if (\Nexora\Http\Rate_Limiter::hit('login')) {
             wp_send_json_error('Too many login attempts. Please try again later.');
         }
 
-        $captcha = new Nexora_ReCaptcha();
+        $captcha = new \Nexora\Auth\Recaptcha();
 
         $result = $captcha->verify(sanitize_text_field(wp_unslash($_POST['g-recaptcha-response'] ?? '')));
 

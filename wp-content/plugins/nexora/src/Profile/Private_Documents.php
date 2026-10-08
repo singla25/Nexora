@@ -1,5 +1,7 @@
 <?php
 
+namespace Nexora\Profile;
+
 if (!defined('ABSPATH')) exit;
 
 /**
@@ -12,7 +14,7 @@ if (!defined('ABSPATH')) exit;
  * Attachment IDs and profile meta keys are unchanged, so the profile UI, the
  * admin screens and existing data keep working.
  */
-class Nexora_Private_Documents {
+class Private_Documents {
 
     const DIR      = 'nexora-private';
     const FLAG     = '_nexora_private';
@@ -38,8 +40,8 @@ class Nexora_Private_Documents {
 
         add_action('wp_ajax_' . self::ACTION, [$this, 'serve']);
 
-        if (defined('WP_CLI') && WP_CLI) {
-            WP_CLI::add_command('nexora migrate-documents', [$this, 'cli_migrate']);
+        if (defined('WP_CLI') && \WP_CLI) {
+            \WP_CLI::add_command('nexora migrate-documents', [$this, 'cli_migrate']);
         }
     }
 
@@ -411,16 +413,16 @@ class Nexora_Private_Documents {
         $dry = !empty($assoc_args['dry-run']);
         $res = self::migrate_all($dry);
 
-        WP_CLI::log(sprintf('moved=%d failed=%d skipped=%d would_move=%d', $res['moved'], $res['failed'], $res['skipped'], $res['would_move']));
+        \WP_CLI::log(sprintf('moved=%d failed=%d skipped=%d would_move=%d', $res['moved'], $res['failed'], $res['skipped'], $res['would_move']));
 
         foreach ($res['errors'] as $e) {
-            WP_CLI::warning($e);
+            \WP_CLI::warning($e);
         }
 
         if ($res['failed']) {
-            WP_CLI::halt(1);
+            \WP_CLI::halt(1);
         }
 
-        WP_CLI::success($dry ? 'Dry run finished, nothing changed.' : 'Done.');
+        \WP_CLI::success($dry ? 'Dry run finished, nothing changed.' : 'Done.');
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+namespace Nexora\Shortcodes;
+
 if (!defined('ABSPATH')) exit;
 
 /**
@@ -9,7 +11,7 @@ if (!defined('ABSPATH')) exit;
  *  [nexora_stat type="members|connections|posts|chats"]
  *  [nexora_auth_buttons]
  */
-class Nexora_Shortcodes {
+class Stats {
 
     public function __construct() {
         add_shortcode('nexora_stat', [$this, 'stat']);
@@ -21,13 +23,13 @@ class Nexora_Shortcodes {
         $atts = shortcode_atts(['type' => 'members'], $atts, 'nexora_stat');
         $type = sanitize_key($atts['type']);
 
-        $stats = Nexora_Home_Page::get_stats();
+        $stats = \Nexora\Shortcodes\Home::get_stats();
 
         if (!isset($stats[$type])) {
             return '';
         }
 
-        return esc_html(Nexora_Home_Page::short_number($stats[$type]));
+        return esc_html(\Nexora\Shortcodes\Home::short_number($stats[$type]));
     }
 
     public function auth_buttons() {

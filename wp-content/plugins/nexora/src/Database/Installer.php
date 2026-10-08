@@ -13,11 +13,11 @@ class Installer {
     public static function activate() {
 
         // Notification table
-        $notification = new \NEXORA_Notification();
+        $notification = new \Nexora\Notifications\Repository();
         $notification->create_table();
 
         // Chat tables
-        $chat_db = new \NEXORA_CHAT_DB();
+        $chat_db = new \Nexora\Chat\Repository();
         $chat_db->create_table();
     }
 }

@@ -1,18 +1,16 @@
 <?php
 
+namespace Nexora\Chat;
+
 if (!defined('ABSPATH')) exit;
 
-// Load internal chat modules
-require_once NEXORA_PATH . 'chat/class-chat-db.php';
-require_once NEXORA_PATH . 'chat/class-chat-ajax.php';
-
-class NEXORA_CHAT_CORE {
+class Module {
 
     public function __construct() {
 
         // INIT CHAT MODULES
-        new NEXORA_CHAT_DB();
-        new NEXORA_CHAT_AJAX();
+        new \Nexora\Chat\Repository();
+        new \Nexora\Chat\Ajax();
 
         // Assets
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
@@ -28,7 +26,7 @@ class NEXORA_CHAT_CORE {
         // Chat is for logged-in members only
         if (!is_user_logged_in()) return;
 
-        NEXORA_System::enqueue_tokens();
+        \Nexora\Core\Assets::enqueue_tokens();
 
         wp_enqueue_style(
             'nexora-chat-css',

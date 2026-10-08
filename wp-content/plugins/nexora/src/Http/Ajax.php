@@ -1,5 +1,7 @@
 <?php
 
+namespace Nexora\Http;
+
 if (!defined('ABSPATH')) exit;
 
 /**
@@ -7,7 +9,7 @@ if (!defined('ABSPATH')) exit;
  * (with the old generic name kept as a deprecated alias) and the standard
  * nonce + login + profile guard.
  */
-class Nexora_Ajax {
+class Ajax {
 
     const PREFIX = 'nexora_';
 

@@ -1,8 +1,10 @@
 <?php
 
+namespace Nexora\Profile;
+
 if (!defined('ABSPATH')) exit;
 
-class NEXORA_PROFILE_HELPER {
+class Repository {
 
     public static function get_user_connection_ids($profile_id) {
 

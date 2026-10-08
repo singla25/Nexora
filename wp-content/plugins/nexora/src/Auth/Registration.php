@@ -1,25 +1,29 @@
 <?php
 
-class NEXORA_Registration {
+namespace Nexora\Auth;
+
+if (!defined('ABSPATH')) exit;
+
+class Registration {
 
     public function __construct() {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_shortcode('profile_registration', [$this, 'registration_form']);
 
-        Nexora_Ajax::register('profile_register', [$this, 'registration_form_handle'], true);
+        \Nexora\Http\Ajax::register('profile_register', [$this, 'registration_form_handle'], true);
     }
 
     public function enqueue_assets() {
 
         // Only the registration page needs these scripts (and the guest nonce)
-        if (!NEXORA_System::is_page_for('registration-page', 'profile_registration')) {
+        if (!\Nexora\Core\Assets::is_page_for('registration-page', 'profile_registration')) {
             return;
         }
 
-        NEXORA_System::enqueue_tokens();
+        \Nexora\Core\Assets::enqueue_tokens();
         wp_enqueue_style('profile-style', NEXORA_URL . 'assets/css/profile-registration.css', ['nexora-tokens'], NEXORA_VERSION);
 
-        NEXORA_System::enqueue_sweetalert();
+        \Nexora\Core\Assets::enqueue_sweetalert();
 
         wp_enqueue_script(
             'profile-registration',
@@ -35,7 +39,7 @@ class NEXORA_Registration {
         ]);
 
         // The form renders a captcha, so its script must load here too
-        $captcha = new Nexora_ReCaptcha();
+        $captcha = new \Nexora\Auth\Recaptcha();
         $captcha->enqueue_script();
     }
 
@@ -115,7 +119,7 @@ class NEXORA_Registration {
                 </div>
 
                 <?php
-                $captcha = new Nexora_ReCaptcha();
+                $captcha = new \Nexora\Auth\Recaptcha();
                 echo $captcha->render();
                 ?>
 
@@ -137,11 +141,11 @@ class NEXORA_Registration {
         check_ajax_referer('profile_nonce', 'nonce');
 
         // Basic throttling: max 5 sign-ups per IP per hour
-        if (Nexora_Rate_Limiter::blocked('register')) {
+        if (\Nexora\Http\Rate_Limiter::blocked('register')) {
             wp_send_json_error('Too many registrations. Please try again later.');
         }
 
-        $captcha = new Nexora_ReCaptcha();
+        $captcha = new \Nexora\Auth\Recaptcha();
 
         $result = $captcha->verify(sanitize_text_field(wp_unslash($_POST['g-recaptcha-response'] ?? '')));
 
@@ -186,9 +190,9 @@ class NEXORA_Registration {
         }
 
         if ($birthdate !== '') {
-            $dt = DateTime::createFromFormat('Y-m-d', $birthdate);
+            $dt = \DateTime::createFromFormat('Y-m-d', $birthdate);
 
-            if (!$dt || $dt->format('Y-m-d') !== $birthdate || $dt > new DateTime('today')) {
+            if (!$dt || $dt->format('Y-m-d') !== $birthdate || $dt > new \DateTime('today')) {
                 wp_send_json_error('Invalid date of birth');
             }
         }
@@ -197,7 +201,7 @@ class NEXORA_Registration {
             wp_send_json_error('User already exists');
         }
 
-        Nexora_Rate_Limiter::hit('register');
+        \Nexora\Http\Rate_Limiter::hit('register');
 
         // Create WP User
         $wp_user_id = wp_create_user($user_name, $password, $email);

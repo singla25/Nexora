@@ -1,6 +1,10 @@
 <?php
 
-class NEXORA_Notification {
+namespace Nexora\Notifications;
+
+if (!defined('ABSPATH')) exit;
+
+class Repository {
 
     private $table;
 
