@@ -30,14 +30,14 @@ class Module {
 
         wp_enqueue_style(
             'nexora-chat-css',
-            NEXORA_URL . 'chat/assets/css/chat.css',
+            NEXORA_URL . 'assets/css/chat.css',
             ['nexora-tokens'],
             NEXORA_VERSION
         );
 
         wp_enqueue_script(
             'nexora-chat-js',
-            NEXORA_URL . 'chat/assets/js/chat.js',
+            NEXORA_URL . 'assets/js/chat.js',
             ['jquery'],
             NEXORA_VERSION,
             true
@@ -53,6 +53,6 @@ class Module {
     // LOAD CHAT TEMPLATE
     public function load_chat_template() {
         if (!is_user_logged_in()) return;
-        include NEXORA_PATH . 'chat/templates/chat-layout.php';
+        \Nexora\Core\View::output('chat/layout');
     }
 }

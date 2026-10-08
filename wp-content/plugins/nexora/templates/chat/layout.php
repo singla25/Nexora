@@ -11,10 +11,10 @@ $is_admin = current_user_can('manage_options');
     <div class="chat-container">
 
         <?php if (!$is_admin): ?>
-            <?php include NEXORA_PATH . 'chat/templates/chat-sidebar.php'; ?>
+            <?php \Nexora\Core\View::output('chat/sidebar'); ?>
         <?php endif; ?>
 
-        <?php include NEXORA_PATH . 'chat/templates/chat-box.php'; ?>
+        <?php \Nexora\Core\View::output('chat/box'); ?>
 
     </div>
 
