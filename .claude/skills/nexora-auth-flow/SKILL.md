@@ -1,16 +1,16 @@
 ---
 name: nexora-auth-flow
-description: How Nexora registration, login, email OTP password reset, reCAPTCHA and the post-login redirects work, and the rules for changing them safely. Use when editing class-login.php, class-registration.php, class-google-recaptcha.php or login redirects.
+description: How Nexora registration, login, email OTP password reset, reCAPTCHA and the post-login redirects work, and the rules for changing them safely. Use when editing src/Auth/*, the login redirects, or the reCAPTCHA behaviour.
 ---
 
 # Auth flow
 
 | Piece | File | Notes |
 | --- | --- | --- |
-| Registration | `includes/class-registration.php` | `registration_form_handle()` creates the WP user, a `user_profile` post, links both (`_wp_user_id` / `_profile_id`), emails the admin (`default_admin_mail`). |
-| Login + OTP reset | `includes/class-login.php` | `send_otp` / `verify_otp` / `reset_password` AJAX; `handle_login()` for the form. |
-| reCAPTCHA | `includes/class-google-recaptcha.php` | Keys and `recaptcha_enabled` are options. Gate every new logged-out action with it. |
-| Redirects / lockout | `nexora.php` | `login_redirect`, wp-admin bounce, `/login-page`. |
+| Registration | `src/Auth/Registration.php` | `registration_form_handle()` (read_input -> validate -> create_member) creates the WP user, a `user_profile` post, links both (`_wp_user_id` / `_profile_id`), emails the admin (`default_admin_mail`). |
+| Login + OTP reset | `src/Auth/Login.php` + `src/Auth/Otp.php` | `send_otp` / `verify_otp` / `reset_password` AJAX; `handle_login()` for the form. |
+| reCAPTCHA | `src/Auth/Recaptcha.php` | Keys and `recaptcha_enabled` are options. Gate every new logged-out action with it. |
+| Redirects / lockout | `src/Core/Access_Control.php` | `login_redirect`, wp-admin bounce, `/login-page`. |
 
 ## Rules
 - These are the only handlers with `wp_ajax_nopriv_*`. Any new logged-out endpoint needs a nonce, reCAPTCHA (when enabled) and the transient limiter `rate_limited($bucket, $limit, $window)`.

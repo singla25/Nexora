@@ -19,20 +19,24 @@ Everything else is WordPress core.
 
 ```
 nexora/
-├── nexora.php                       # Bootstrap, access control, redirects, table creation
-├── includes/
-│   ├── class-cpt.php                # Custom post types + "Nexora System" admin menu & settings
-│   ├── class-registration.php       # [profile_registration]
-│   ├── class-login.php              # [profile_login], OTP + password reset
-│   ├── class-profile-page.php       # [profile_dashboard], /profile-page/<username> routing
-│   ├── class-profile-ajax.php       # Profile editing, connections, notifications, content AJAX
-│   ├── class-profile-helper.php     # Shared profile helpers (e.g. default images)
-│   ├── class-home-page.php          # [nexora_home]
-│   ├── class-notification.php       # Notifications table and logic
-│   ├── class-google-recaptcha.php   # reCAPTCHA verification
-│   └── class-better-message-chat.php# Filters for the Better Messages plugin user search
-├── chat/                            # Built-in chat (AJAX, DB, templates, assets)
-└── assets/                          # Global, profile, login and registration CSS/JS
+├── nexora.php                       # Constants, PSR-4 autoloader, activation hook, Plugin::boot()
+├── src/                             # Namespace Nexora\ (one class per file)
+│   ├── Core/                        # Plugin, Assets, Access_Control, Urls, View, Autoloader
+│   ├── Http/                        # Ajax registrar + guard, Member_Ajax, Rate_Limiter
+│   ├── Auth/                        # Login ([profile_login]), Registration, Otp, Recaptcha
+│   ├── Profile/                     # Page ([profile_dashboard], /profile-page/<username>), Privacy, Ajax, Fields,
+│   │                                #   Repository, Private_Documents, Upload_Policy, Documents_Migration
+│   ├── Connections/                 # Ajax, Service, Repository
+│   ├── Notifications/               # Repository (table), Ajax
+│   ├── Content/                     # Ajax, Repository
+│   ├── Chat/                        # Module (popup + assets), Ajax, Repository (tables)
+│   ├── Admin/                       # Menu, Settings, Pages, Meta_Boxes, List_Columns ("Nexora System")
+│   ├── PostTypes/                   # Registrar (user_profile, user_connections, user_content)
+│   ├── Shortcodes/                  # Home, Stats, Contact_Form
+│   ├── Integrations/                # Better_Messages
+│   └── Database/                    # Installer (tables, on activation)
+├── templates/                       # HTML only (auth, profile, chat, admin, mail, shortcodes)
+└── assets/                          # css/, js/ (incl. chat), lib/ (SweetAlert2)
 ```
 
 ### Features

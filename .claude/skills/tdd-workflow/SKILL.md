@@ -36,7 +36,7 @@ Existing suites double as the **compatibility contract** for the restructure: `t
 | Change | Test with |
 | --- | --- |
 | AJAX handler (guards, validation, ownership, state change) | `nx_call_ajax()` as different users: owner, other member, logged out, bad nonce. Assert `success`, the stored meta/rows, and that foreign IDs are rejected. |
-| Data/model helpers (`NEXORA_PROFILE_HELPER`, connections, notifications, chat DB class) | Call the method with `nx_test_user()` fixtures; assert returned IDs/rows. Chat/notification tables must already exist (created on activation). |
+| Data/model helpers (`Connections\Repository`/`Service`, `Notifications\Repository`, `Chat\Repository`) | Call the method with `nx_test_user()` fixtures; assert returned IDs/rows. Chat/notification tables must already exist (created on activation). |
 | Settings, shortcodes | `do_shortcode()` output contains/omits expected text; `get_option` after `update_option` + sanitizer. |
 | Pure JS logic (formatting, validation) | Put it in a function with no DOM, test with `node` (`node tests/js/<file>.test.js`, `assert` module). |
 | Layout, CSS, DOM interaction | Not unit-testable here: write the acceptance check first as a short list ("at 400px the Send button is inside the viewport"), then verify it in the browser per `verify-like-a-user`. Say it was a manual check. |
