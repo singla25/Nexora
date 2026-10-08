@@ -34,7 +34,7 @@ nexora/
 │   ├── PostTypes/                   # Registrar (user_profile, user_connections, user_content)
 │   ├── Shortcodes/                  # Home, Stats, Contact_Form
 │   ├── Integrations/                # Better_Messages
-│   └── Database/                    # Installer (tables, on activation)
+│   └── Database/                    # Installer, Migrations, Uninstaller
 ├── templates/                       # HTML only (auth, profile, chat, admin, mail, shortcodes)
 └── assets/                          # css/, js/ (incl. chat), lib/ (SweetAlert2)
 ```
@@ -69,7 +69,7 @@ nexora/
 ### Custom post types and tables
 
 - Post types: `user_profile`, `user_connections`, `user_content`.
-- Tables (created on plugin activation, with the site's table prefix): `nexora_notifications`, `nexora_threads`, `nexora_thread_participants`, `nexora_messages`, `nexora_message_meta`.
+- Tables (created and kept current by `Database\Migrations`, with the site's table prefix): `nexora_notifications`, `nexora_threads`, `nexora_thread_participants`, `nexora_messages`, `nexora_message_meta`.
 
 ## Nexora theme and Elementor templates
 

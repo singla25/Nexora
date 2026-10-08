@@ -27,7 +27,9 @@ class Repository {
 	}
 
 	/**
-	 * Creates the notifications table.
+	 * Creates or updates the notifications table (dbDelta: safe to run repeatedly).
+	 *
+	 * @return string[] What dbDelta changed (empty when the table is already current).
 	 */
 	public function create_table() {
 
@@ -35,38 +37,29 @@ class Repository {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE IF NOT EXISTS {$this->table} (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-
-            actor_user_id BIGINT UNSIGNED NOT NULL,
-            actor_user_name VARCHAR(100) NOT NULL,
-
-            receiver_user_id BIGINT UNSIGNED NOT NULL,
-            receiver_user_name VARCHAR(100) NOT NULL,
-
-            type VARCHAR(50) NOT NULL,
-            connection_id BIGINT UNSIGNED DEFAULT NULL, -- user_connectioon post id
-
-            message TEXT,
-
-            is_read TINYINT(1) DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-            -- 🔥 INDEXES (VERY IMPORTANT)
-
-            INDEX idx_receiver (receiver_user_id),
-            INDEX idx_actor (actor_user_id),
-
-            INDEX idx_receiver_read (receiver_user_id, is_read),
-
-            INDEX idx_created (created_at),
-
-            INDEX idx_type (type)
-
-        ) $charset_collate;";
+		// dbDelta is picky: two spaces after PRIMARY KEY, KEY (not INDEX), no comments.
+		$sql = "CREATE TABLE {$this->table} (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  actor_user_id bigint(20) unsigned NOT NULL,
+  actor_user_name varchar(100) NOT NULL,
+  receiver_user_id bigint(20) unsigned NOT NULL,
+  receiver_user_name varchar(100) NOT NULL,
+  type varchar(50) NOT NULL,
+  connection_id bigint(20) unsigned DEFAULT NULL,
+  message text,
+  is_read tinyint(1) DEFAULT 0,
+  created_at datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY  (id),
+  KEY idx_receiver (receiver_user_id),
+  KEY idx_actor (actor_user_id),
+  KEY idx_receiver_read (receiver_user_id,is_read),
+  KEY idx_created (created_at),
+  KEY idx_type (type)
+) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql );
+
+		return dbDelta( $sql );
 	}
 
 	/**

@@ -40,6 +40,9 @@ class Plugin {
 		new \Nexora\Shortcodes\Stats();
 		new \Nexora\Shortcodes\Contact_Form();
 
+		new \Nexora\Database\Migrations();
+		new \Nexora\Connections\Cache();
+
 		new I18n();
 		new Assets();
 		new Access_Control();

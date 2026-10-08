@@ -131,6 +131,24 @@
 							</p>
 						</td>
 					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Delete data on uninstall', 'nexora' ); ?></th>
+						<td>
+							<label>
+								<input 
+									type="checkbox" 
+									name="nexora_delete_data_on_uninstall" 
+									value="1" 
+									<?php checked( $v['delete_data'], 1 ); ?>
+								>
+								<?php esc_html_e( 'Delete all Nexora data when the plugin is deleted', 'nexora' ); ?>
+							</label>
+
+							<p class="description">
+								<?php esc_html_e( 'Removes profiles, connections, content, chat, notifications, ID documents and settings. Member accounts and Media Library files are kept. Leave off to keep everything.', 'nexora' ); ?>
+							</p>
+						</td>
+					</tr>
 				</table>
 
 				<?php submit_button(); ?>

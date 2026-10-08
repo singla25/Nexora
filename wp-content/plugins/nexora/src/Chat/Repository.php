@@ -11,6 +11,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Repository {
 
+	const CACHE_GROUP = 'nexora_chat';
+
+	/**
+	 * Version stamp of the cached thread lists; changing it retires every cached list.
+	 *
+	 * @return string
+	 */
+	private static function cache_version() {
+
+		$version = wp_cache_get( 'version', self::CACHE_GROUP );
+
+		if ( false === $version ) {
+			$version = (string) microtime( true );
+			wp_cache_set( 'version', $version, self::CACHE_GROUP );
+		}
+
+		return $version;
+	}
+
+	/**
+	 * Retires the cached thread lists (any thread, message or read-state change).
+	 */
+	private static function flush_cache() {
+		wp_cache_set( 'version', (string) microtime( true ), self::CACHE_GROUP );
+	}
+
 	/**
 	 * Threads table name.
 	 *
@@ -52,74 +78,75 @@ class Repository {
 	}
 
 	/**
-	 * Create Chat Table
+	 * Creates or updates the chat tables (dbDelta: safe to run repeatedly).
+	 *
+	 * @return string[] What dbDelta changed (empty when the tables are already current).
 	 */
 	public function create_table() {
 		global $wpdb;
 
 		$charset = $wpdb->get_charset_collate();
 
-		// THREADS
+		// dbDelta is picky: two spaces after PRIMARY KEY, KEY (not INDEX), no comments.
 		$threads = "CREATE TABLE {$this->threads_table} (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            connection_id BIGINT UNSIGNED NULL,
-            status VARCHAR(20) DEFAULT 'active',
-            type VARCHAR(20) DEFAULT 'private',
-            subject VARCHAR(255) NULL,
-            last_message_id BIGINT UNSIGNED NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  connection_id bigint(20) unsigned DEFAULT NULL,
+  status varchar(20) DEFAULT 'active',
+  type varchar(20) DEFAULT 'private',
+  subject varchar(255) DEFAULT NULL,
+  last_message_id bigint(20) unsigned DEFAULT NULL,
+  created_at datetime DEFAULT CURRENT_TIMESTAMP,
+  updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY  (id),
+  KEY idx_connection_id (connection_id),
+  KEY idx_status (status),
+  KEY idx_updated_at (updated_at)
+) $charset;";
 
-            INDEX idx_connection_id (connection_id)
-        ) $charset;";
-
-		// PARTICIPANTS
 		$participants = "CREATE TABLE {$this->participants_table} (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            thread_id BIGINT UNSIGNED NOT NULL,
-            user_id BIGINT UNSIGNED NOT NULL,
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  thread_id bigint(20) unsigned NOT NULL,
+  user_id bigint(20) unsigned NOT NULL,
+  last_read datetime DEFAULT NULL,
+  unread_count int(11) DEFAULT 0,
+  is_muted tinyint(1) DEFAULT 0,
+  is_pinned tinyint(1) DEFAULT 0,
+  created_at datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY  (id),
+  UNIQUE KEY unique_thread_user (thread_id,user_id),
+  KEY idx_user_id (user_id),
+  KEY idx_thread_id (thread_id)
+) $charset;";
 
-            last_read DATETIME NULL,
-            unread_count INT DEFAULT 0,
-
-            is_muted TINYINT(1) DEFAULT 0,
-            is_pinned TINYINT(1) DEFAULT 0,
-
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-            UNIQUE KEY unique_thread_user (thread_id, user_id),
-            INDEX idx_user_id (user_id),
-            INDEX idx_thread_id (thread_id)
-        ) $charset;";
-
-		// MESSAGES
 		$messages = "CREATE TABLE {$this->messages_table} (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            thread_id BIGINT UNSIGNED NOT NULL,
-            sender_id BIGINT UNSIGNED NOT NULL,
-            message TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  thread_id bigint(20) unsigned NOT NULL,
+  sender_id bigint(20) unsigned NOT NULL,
+  message text NOT NULL,
+  created_at datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY  (id),
+  KEY idx_thread_id (thread_id),
+  KEY idx_thread_id_id (thread_id,id),
+  KEY idx_created_at (created_at)
+) $charset;";
 
-            INDEX idx_thread_id (thread_id),
-            INDEX idx_created_at (created_at)
-        ) $charset;";
-
-		// MESSAGE META
 		$meta = "CREATE TABLE {$this->message_meta_table} (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            message_id BIGINT UNSIGNED NOT NULL,
-            meta_key VARCHAR(255),
-            meta_value LONGTEXT,
-
-            INDEX idx_message_id (message_id)
-        ) $charset;";
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  message_id bigint(20) unsigned NOT NULL,
+  meta_key varchar(255) DEFAULT NULL,
+  meta_value longtext,
+  PRIMARY KEY  (id),
+  KEY idx_message_id (message_id)
+) $charset;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		dbDelta( $threads );
-		dbDelta( $participants );
-		dbDelta( $messages );
-		dbDelta( $meta );
+		return array_merge(
+			dbDelta( $threads ),
+			dbDelta( $participants ),
+			dbDelta( $messages ),
+			dbDelta( $meta )
+		);
 	}
 
 	/**
@@ -163,6 +190,8 @@ class Repository {
 				)
 			);
 		}
+
+		self::flush_cache();
 
 		return $thread_id;
 	}
@@ -243,6 +272,40 @@ class Repository {
 	public function get_user_threads( $user_id ) {
 		global $wpdb;
 
+		$cache_key = 'threads_' . (int) $user_id . '_' . self::cache_version();
+		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
+
+		if ( false !== $cached ) {
+			$results = array_map(
+				function ( $row ) {
+					return clone $row;
+				},
+				$cached
+			);
+		} else {
+			$results = $this->query_user_threads( $user_id );
+			wp_cache_set( $cache_key, $results, self::CACHE_GROUP, HOUR_IN_SECONDS );
+		}
+
+		foreach ( $results as $row ) {
+
+			$user = get_userdata( $row->other_user_id );
+
+			$row->name = $user ? $user->display_name : __( 'User', 'nexora' );
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Uncached thread list for a member.
+	 *
+	 * @param int $user_id User ID.
+	 * @return object[] Threads with unread count, other participant and last message.
+	 */
+	private function query_user_threads( $user_id ) {
+		global $wpdb;
+
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
 				"
@@ -271,14 +334,6 @@ class Repository {
 				$user_id
 			)
 		);
-
-		// 🔥 ADD USER NAME (IMPORTANT)
-		foreach ( $results as $row ) {
-
-			$user = get_userdata( $row->other_user_id );
-
-			$row->name = $user ? $user->display_name : __( 'User', 'nexora' );
-		}
 
 		return $results;
 	}
@@ -331,6 +386,8 @@ class Repository {
 			)
 		);
 
+		self::flush_cache();
+
 		return $message_id;
 	}
 
@@ -381,6 +438,8 @@ class Repository {
 				'user_id'   => $user_id,
 			)
 		);
+
+		self::flush_cache();
 	}
 
 	/**
@@ -489,11 +548,15 @@ class Repository {
 	public function update_thread_subject( $thread_id, $subject ) {
 		global $wpdb;
 
-		return $wpdb->update(
+		$changed = $wpdb->update(
 			$this->threads_table,
 			array( 'subject' => $subject ),
 			array( 'id' => $thread_id )
 		);
+
+		self::flush_cache();
+
+		return $changed;
 	}
 
 	/**
@@ -505,10 +568,14 @@ class Repository {
 	public function inactive_threads_by_connection( $connection_id ) {
 		global $wpdb;
 
-		return $wpdb->update(
+		$changed = $wpdb->update(
 			$this->threads_table,
 			array( 'status' => 'inactive' ),
 			array( 'connection_id' => $connection_id )
 		);
+
+		self::flush_cache();
+
+		return $changed;
 	}
 }

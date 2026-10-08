@@ -64,4 +64,4 @@ Deliberate exclusions (and why) are written in `phpcs.xml.dist`. Do not ship `ve
 
 - Front-end JS is not translated yet (its strings live in `assets/js`; they need `wp.i18n` or localized strings).
 - Front-end JS uses global functions/variables (`profilePageData`, `profileData`, `nexoraChat`, helpers in `chat.js`); namespacing them is a separate, UI-tested change.
-- Table schema is still created only on activation (versioned migrations are the next phase).
+- Table schema is versioned: bump `Migrations::DB_VERSION` after editing a `create_table()`; the site upgrades itself. Uninstall deletes data only when the "Delete data on uninstall" setting is on.

@@ -20,6 +20,23 @@ class Repository {
 	 */
 	public static function accepted_profile_ids( $profile_id ) {
 
+		return Cache::remember(
+			'ids',
+			$profile_id,
+			function () use ( $profile_id ) {
+				return self::build_accepted_profile_ids( $profile_id );
+			}
+		);
+	}
+
+	/**
+	 * Uncached version of accepted_profile_ids().
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return array
+	 */
+	private static function build_accepted_profile_ids( $profile_id ) {
+
 		$connections = get_posts(
 			array(
 				'post_type'      => 'user_connections',
@@ -64,6 +81,23 @@ class Repository {
 	 * @return array<int,array{connection_id:int,profile_id:string}>
 	 */
 	public static function accepted_pairs( $profile_id ) {
+
+		return Cache::remember(
+			'pairs',
+			$profile_id,
+			function () use ( $profile_id ) {
+				return self::build_accepted_pairs( $profile_id );
+			}
+		);
+	}
+
+	/**
+	 * Uncached version of accepted_pairs().
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return array
+	 */
+	private static function build_accepted_pairs( $profile_id ) {
 
 		$connections = get_posts(
 			array(
@@ -113,6 +147,23 @@ class Repository {
 	 * @return int[] Profile IDs.
 	 */
 	public static function unavailable_profile_ids( $profile_id ) {
+
+		return Cache::remember(
+			'blocked',
+			$profile_id,
+			function () use ( $profile_id ) {
+				return self::build_unavailable_profile_ids( $profile_id );
+			}
+		);
+	}
+
+	/**
+	 * Uncached version of unavailable_profile_ids().
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return array
+	 */
+	private static function build_unavailable_profile_ids( $profile_id ) {
 
 		$connections = get_posts(
 			array(

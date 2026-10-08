@@ -78,6 +78,17 @@ class Settings {
 		);
 		register_setting(
 			'profile_settings_group',
+			'nexora_delete_data_on_uninstall',
+			array(
+				'type'              => 'boolean',
+				'default'           => false,
+				'sanitize_callback' => function ( $value ) {
+					return $value ? 1 : 0;
+				},
+			)
+		);
+		register_setting(
+			'profile_settings_group',
 			'recaptcha_enabled',
 			array(
 				'type'              => 'boolean',
@@ -122,6 +133,7 @@ class Settings {
 					'site_key'     => get_option( 'recaptcha_site_key' ),
 					'has_secret'   => (bool) get_option( 'recaptcha_secret_key' ),
 					'enabled'      => get_option( 'recaptcha_enabled' ),
+					'delete_data'  => get_option( 'nexora_delete_data_on_uninstall' ),
 				),
 			)
 		);
