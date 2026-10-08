@@ -21,14 +21,22 @@ class NEXORA_PROFILE_PAGE {
     =============================== */
     public function enqueue_assets() {
 
+        // Profile scripts, the media library and the owner's private data are only for the profile page
+        if (!NEXORA_System::is_page_for('profile-page', 'profile_dashboard')) {
+            return;
+        }
+
         NEXORA_System::enqueue_tokens();
         wp_enqueue_style('profile-page-style', NEXORA_URL . 'assets/css/profile-page.css', ['nexora-tokens'], NEXORA_VERSION);
 
-        wp_enqueue_script('sweetalert2','https://cdn.jsdelivr.net/npm/sweetalert2@11',[],null,true);
+        NEXORA_System::enqueue_sweetalert();
 
-        wp_enqueue_script('profile-page-js', NEXORA_URL . 'assets/js/profile-page.js', ['jquery','sweetalert2'], null, true);
+        wp_enqueue_script('profile-page-js', NEXORA_URL . 'assets/js/profile-page.js', ['jquery','sweetalert2'], NEXORA_VERSION, true);
 
-        wp_enqueue_media(); // To upload Media by Using wp.media()
+        // wp.media() is only needed by logged-in members (uploads)
+        if (is_user_logged_in()) {
+            wp_enqueue_media();
+        }
 
         $current_user_id = get_current_user_id();
         $profile_id      = 0;

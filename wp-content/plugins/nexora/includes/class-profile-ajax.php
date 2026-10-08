@@ -194,6 +194,19 @@ class NEXORA_PROFILE_AJAX {
                 wp_send_json_error('Invalid file selected');
             }
 
+            // ID documents are private files; profile / cover images are shown to other members
+            $is_private_file = Nexora_Private_Documents::is_private($attachment_id);
+
+            if (in_array($field, Nexora_Private_Documents::PUBLIC_KEYS, true) && $is_private_file) {
+                wp_send_json_error('This file is a private document and cannot be used as a public image');
+            }
+
+            if (in_array($field, Nexora_Private_Documents::DOC_KEYS, true)
+                && !$is_private_file
+                && Nexora_Private_Documents::in_public_use($attachment_id)) {
+                wp_send_json_error('This file is already used as a public image. Please upload a separate file for your document');
+            }
+
             update_post_meta($id, $field, $attachment_id);
         }
 
@@ -841,6 +854,10 @@ class NEXORA_PROFILE_AJAX {
         }
 
         if ($image_id && !$this->user_owns_attachment($image_id, $user_id)) {
+            wp_send_json_error('Invalid image selected');
+        }
+
+        if ($image_id && Nexora_Private_Documents::is_private($image_id)) {
             wp_send_json_error('Invalid image selected');
         }
 

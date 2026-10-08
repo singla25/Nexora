@@ -21,22 +21,21 @@ class NEXORA_Login {
 
     public function login_enqueue_assets() {
 
+        // Only the login page needs these scripts (and the guest nonce)
+        if (!NEXORA_System::is_page_for('login-page', 'profile_login')) {
+            return;
+        }
+
         NEXORA_System::enqueue_tokens();
         wp_enqueue_style('profile-login-style', NEXORA_URL . 'assets/css/profile-login.css', ['nexora-tokens'], NEXORA_VERSION);
 
-        wp_enqueue_script(
-            'sweetalert2',
-            'https://cdn.jsdelivr.net/npm/sweetalert2@11',
-            [],
-            null,
-            true
-        );
+        NEXORA_System::enqueue_sweetalert();
 
         wp_enqueue_script(
             'profile-login',
             NEXORA_URL . 'assets/js/profile-login.js',
             ['jquery', 'sweetalert2'],
-            null,
+            NEXORA_VERSION,
             true
         );
 

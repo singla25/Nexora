@@ -10,13 +10,14 @@ if (!defined('ABSPATH')) exit;
 
 define('NEXORA_PATH', plugin_dir_path(__FILE__));
 define('NEXORA_URL', plugin_dir_url(__FILE__));
-define('NEXORA_VERSION', '1.0.1');
+define('NEXORA_VERSION', '1.0.2');
 
 require_once NEXORA_PATH . 'includes/class-cpt.php';
 require_once NEXORA_PATH . 'includes/class-registration.php';
 require_once NEXORA_PATH . 'includes/class-profile-page.php';
 require_once NEXORA_PATH . 'includes/class-profile-ajax.php';
 require_once NEXORA_PATH . 'includes/class-profile-helper.php';
+require_once NEXORA_PATH . 'includes/class-private-documents.php';
 require_once NEXORA_PATH . 'includes/class-login.php';
 require_once NEXORA_PATH . 'includes/class-home-page.php';
 require_once NEXORA_PATH . 'includes/class-notification.php';
@@ -37,6 +38,7 @@ class NEXORA_System {
         new NEXORA_CPT();
         new NEXORA_PROFILE_PAGE();
         new NEXORA_PROFILE_AJAX();  
+        new Nexora_Private_Documents();
         new Nexora_Home_Page();
         new Nexora_Better_Message_CHAT_Page();
         new NEXORA_CHAT_CORE();
@@ -93,6 +95,55 @@ class NEXORA_System {
         }
 
         wp_enqueue_style('nexora-tokens', NEXORA_URL . 'assets/css/tokens.css', $deps, NEXORA_VERSION);
+    }
+
+    /**
+     * SweetAlert2 is shipped with the plugin (pinned version) instead of a floating CDN tag.
+     * Safe to call repeatedly from several modules.
+     */
+    public static function enqueue_sweetalert() {
+
+        if (!wp_script_is('sweetalert2', 'registered')) {
+            wp_register_script(
+                'sweetalert2',
+                NEXORA_URL . 'assets/lib/sweetalert2/sweetalert2.all.min.js',
+                [],
+                '11.14.5',
+                true
+            );
+        }
+
+        wp_enqueue_script('sweetalert2');
+    }
+
+    /**
+     * True when the current front-end page is the given page slug, or contains the
+     * shortcode (in the post content or in Elementor data, where a Shortcode widget
+     * stores it).
+     */
+    public static function is_page_for($slug, $shortcode) {
+
+        if (is_admin() || !is_singular()) {
+            return false;
+        }
+
+        if (is_page($slug)) {
+            return true;
+        }
+
+        $post = get_post();
+
+        if (!$post) {
+            return false;
+        }
+
+        if (has_shortcode($post->post_content, $shortcode)) {
+            return true;
+        }
+
+        $elementor = get_post_meta($post->ID, '_elementor_data', true);
+
+        return is_string($elementor) && strpos($elementor, '[' . $shortcode) !== false;
     }
 
     // ===============================

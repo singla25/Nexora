@@ -154,7 +154,10 @@ nx_assert( nx_rejected( nx_call_ajax( 'mark_notification_read', array( 'id' => 0
 wp_set_current_user( $alice['user_id'] );
 nx_assert( nx_rejected( nx_call_ajax( 'save_user_content', array( 'title' => '   ' ) + nx_profile_nonce() ) ), 'content without title rejected' );
 nx_assert( nx_rejected( nx_call_ajax( 'save_user_content', array( 'title' => 'T', 'image' => $theirs ) + nx_profile_nonce() ) ), "content with someone else's image rejected" );
-$r = nx_call_ajax( 'save_user_content', array( 'title' => 'Hello <script>x</script> World', 'description' => 'Body <b>b</b>', 'image' => $mine ) + nx_profile_nonce() );
+// [PHASE1a] $mine was linked as an ID document above, so it is now private and cannot illustrate a public post.
+nx_assert( nx_rejected( nx_call_ajax( 'save_user_content', array( 'title' => 'T', 'image' => $mine ) + nx_profile_nonce() ) ), '[PHASE1a] a private ID document cannot be attached to a public post' );
+$post_img = nx_test_attachment( $alice['user_id'], 'post image' );
+$r = nx_call_ajax( 'save_user_content', array( 'title' => 'Hello <script>x</script> World', 'description' => 'Body <b>b</b>', 'image' => $post_img ) + nx_profile_nonce() );
 nx_assert( ! empty( $r['success'] ), 'content saved' );
 $post = get_posts( array( 'post_type' => 'user_content', 'meta_key' => 'user_profile_id', 'meta_value' => $alice['profile_id'], 'numberposts' => 1 ) )[0] ?? null;
 nx_assert( (bool) $post, 'content post created' );
@@ -162,7 +165,7 @@ if ( $post ) {
 	nx_test_track_post( $post->ID );
 	nx_assert_same( 'Hello World', $post->post_title, 'content title sanitized' );
 	nx_assert_same( (int) $alice['user_id'], (int) $post->post_author, 'content authored by the member' );
-	nx_assert_same( $mine, (int) get_post_thumbnail_id( $post->ID ), 'content image attached' );
+	nx_assert_same( $post_img, (int) get_post_thumbnail_id( $post->ID ), 'content image attached' );
 }
 $r = nx_call_ajax( 'get_user_content_history', nx_profile_nonce() );
 nx_assert( ! empty( $r['success'] ) && false !== strpos( $r['data'], 'Hello World' ), 'owner sees own content history' );

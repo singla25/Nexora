@@ -15,9 +15,13 @@ update_post_meta( $alice['profile_id'], 'aadhaar_card', $doc );
 $doc_url = wp_get_attachment_url( $doc );
 
 /** Run enqueue_assets()/render for $viewer looking at $username ('' = no username in URL). */
-$local = function ( $viewer_id, $username ) use ( $doc_url ) {
+$local = function ( $viewer_id, $username, $on_profile_page = true ) use ( $doc_url ) {
 	wp_set_current_user( $viewer_id );
-	$GLOBALS['wp_query'] = new WP_Query();
+	$GLOBALS['wp_scripts'] = null;
+	$GLOBALS['post'] = null;
+	$q = $on_profile_page ? new WP_Query( array( 'pagename' => 'profile-page' ) ) : new WP_Query( array( 'pagename' => 'sample-page' ) );
+	$GLOBALS['wp_query'] = $GLOBALS['wp_the_query'] = $q;
+	if ( $q->have_posts() ) { $q->the_post(); $GLOBALS['post'] = $q->post; }
 	set_query_var( 'username', $username );
 	wp_deregister_script( 'profile-page-js' );
 	( new NEXORA_PROFILE_PAGE() )->enqueue_assets();
@@ -37,7 +41,9 @@ nx_assert( false === strpos( wp_json_encode( $d ), $secret['email'] ) && false =
 $d = $local( $alice['user_id'], $alice['login'] );
 nx_assert( 'owner' === $d['roleType'] && $secret['email'] === $d['userData']['email'] && $doc_url === $d['userData']['aadhaar_card'], 'owner receives own private fields on own profile URL' );
 $d = $local( $alice['user_id'], '' );
-nx_assert( 'owner' === $d['roleType'] && $secret['email'] === $d['userData']['email'], '[PHASE1] owner data is also inlined when NO profile page is being viewed (H2)' );
+nx_assert( 'owner' === $d['roleType'] && $secret['email'] === $d['userData']['email'], 'owner on /profile-page (no username) receives own private fields' );
+$d = $local( $alice['user_id'], '', false );
+nx_assert( array() === $d, '[PHASE1b] owner data is NOT inlined on pages other than the profile page (H2 fixed)' );
 
 /* ---------- profile page HTML ---------- */
 $render = function ( $viewer_id, $username ) {

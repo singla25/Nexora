@@ -12,22 +12,21 @@ class NEXORA_Registration {
 
     public function enqueue_assets() {
 
+        // Only the registration page needs these scripts (and the guest nonce)
+        if (!NEXORA_System::is_page_for('registration-page', 'profile_registration')) {
+            return;
+        }
+
         NEXORA_System::enqueue_tokens();
         wp_enqueue_style('profile-style', NEXORA_URL . 'assets/css/profile-registration.css', ['nexora-tokens'], NEXORA_VERSION);
 
-        wp_enqueue_script(
-            'sweetalert2',
-            'https://cdn.jsdelivr.net/npm/sweetalert2@11',
-            [],
-            null,
-            true
-        );
+        NEXORA_System::enqueue_sweetalert();
 
         wp_enqueue_script(
             'profile-registration',
             NEXORA_URL . 'assets/js/profile-registration.js',
             ['jquery', 'sweetalert2'],
-            null,
+            NEXORA_VERSION,
             true
         );
 
@@ -35,6 +34,10 @@ class NEXORA_Registration {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce('profile_nonce')
         ]);
+
+        // The form renders a captcha, so its script must load here too
+        $captcha = new Nexora_ReCaptcha();
+        $captcha->enqueue_script();
     }
 
     public function registration_form() {
