@@ -54,7 +54,7 @@ class Ajax extends Member_Ajax {
 			if ( 'birthdate' === $field && '' !== $value ) {
 				$dt = \DateTime::createFromFormat( 'Y-m-d', $value );
 				if ( ! $dt || $dt->format( 'Y-m-d' ) !== $value || $dt > new \DateTime( 'today' ) ) {
-					wp_send_json_error( 'Invalid date of birth' );
+					wp_send_json_error( __( 'Invalid date of birth', 'nexora' ) );
 				}
 			}
 
@@ -65,7 +65,7 @@ class Ajax extends Member_Ajax {
 			update_post_meta( $id, $field, $value );
 		}
 
-		wp_send_json_success( 'Personal Info Updated' );
+		wp_send_json_success( __( 'Personal Info Updated', 'nexora' ) );
 	}
 
 	/**
@@ -84,7 +84,7 @@ class Ajax extends Member_Ajax {
 			}
 		}
 
-		wp_send_json_success( 'Address Info Updated' );
+		wp_send_json_success( __( 'Address Info Updated', 'nexora' ) );
 	}
 
 	/**
@@ -107,14 +107,14 @@ class Ajax extends Member_Ajax {
 			if ( 'company_email' === $field && '' !== $value ) {
 				$value = sanitize_email( $value );
 				if ( ! is_email( $value ) ) {
-					wp_send_json_error( 'Invalid company email' );
+					wp_send_json_error( __( 'Invalid company email', 'nexora' ) );
 				}
 			}
 
 			update_post_meta( $id, $field, $value );
 		}
 
-		wp_send_json_success( 'Work Info Updated' );
+		wp_send_json_success( __( 'Work Info Updated', 'nexora' ) );
 	}
 
 	/**
@@ -145,26 +145,26 @@ class Ajax extends Member_Ajax {
 
 			// Only attachments uploaded by this user can be linked
 			if ( ! $attachment_id || ! $this->owns_attachment( $attachment_id, $auth['user_id'] ) ) {
-				wp_send_json_error( 'Invalid file selected' );
+				wp_send_json_error( __( 'Invalid file selected', 'nexora' ) );
 			}
 
 			// ID documents are private files; profile / cover images are shown to other members
 			$is_private_file = Private_Documents::is_private( $attachment_id );
 
 			if ( in_array( $field, Private_Documents::PUBLIC_KEYS, true ) && $is_private_file ) {
-				wp_send_json_error( 'This file is a private document and cannot be used as a public image' );
+				wp_send_json_error( __( 'This file is a private document and cannot be used as a public image', 'nexora' ) );
 			}
 
 			if ( in_array( $field, Private_Documents::DOC_KEYS, true )
 				&& ! $is_private_file
 				&& Private_Documents::in_public_use( $attachment_id ) ) {
-				wp_send_json_error( 'This file is already used as a public image. Please upload a separate file for your document' );
+				wp_send_json_error( __( 'This file is already used as a public image. Please upload a separate file for your document', 'nexora' ) );
 			}
 
 			update_post_meta( $id, $field, $attachment_id );
 		}
 
-		wp_send_json_success( 'Documents updated' );
+		wp_send_json_success( __( 'Documents updated', 'nexora' ) );
 	}
 
 	/**
@@ -172,7 +172,7 @@ class Ajax extends Member_Ajax {
 	 */
 	public function update_profile_password() {
 
-		$user_id = Http::member( 'profile_nonce', false, 'Not logged in' )['user_id'];
+		$user_id = Http::member( 'profile_nonce', false, __( 'Not logged in', 'nexora' ) )['user_id'];
 
 		if ( Rate_Limiter::hit( 'password_change', 'u' . $user_id ) ) {
 			wp_send_json_error( Rate_Limiter::message() );
@@ -188,19 +188,19 @@ class Ajax extends Member_Ajax {
 		$user = get_user_by( 'id', $user_id );
 
 		if ( ! $user || ! wp_check_password( $current_password, $user->user_pass, $user_id ) ) {
-			wp_send_json_error( 'Current password is incorrect' );
+			wp_send_json_error( __( 'Current password is incorrect', 'nexora' ) );
 		}
 
 		if ( strlen( $new_password ) < 8 ) {
-			wp_send_json_error( 'Password must be at least 8 characters' );
+			wp_send_json_error( __( 'Password must be at least 8 characters', 'nexora' ) );
 		}
 
 		if ( $new_password !== $confirm_password ) {
-			wp_send_json_error( 'Passwords do not match' );
+			wp_send_json_error( __( 'Passwords do not match', 'nexora' ) );
 		}
 
 		if ( $current_password === $new_password ) {
-			wp_send_json_error( 'New password must be different' );
+			wp_send_json_error( __( 'New password must be different', 'nexora' ) );
 		}
 
 		wp_set_password( $new_password, $user_id );
@@ -209,6 +209,6 @@ class Ajax extends Member_Ajax {
 		wp_set_current_user( $user_id );
 		wp_set_auth_cookie( $user_id, true );
 
-		wp_send_json_success( 'Password updated successfully' );
+		wp_send_json_success( __( 'Password updated successfully', 'nexora' ) );
 	}
 }

@@ -18,7 +18,7 @@ abstract class Member_Ajax {
 	 * @return array user_id and profile_id.
 	 */
 	protected function member() {
-		return Ajax::member( 'profile_nonce', true, 'Unauthorized access' );
+		return Ajax::member( 'profile_nonce', true, __( 'Unauthorized access', 'nexora' ) );
 	}
 
 	/**

@@ -1,0 +1,1553 @@
+# Copyright (C) 2026 Sahil Singla
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Nexora 1.0.5\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-08T11:28:44+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: nexora\n"
+
+#. Plugin Name of the plugin
+#: nexora.php
+#: templates/mail/password-reset-success.php:7
+msgid "Nexora"
+msgstr ""
+
+#. Description of the plugin
+#: nexora.php
+msgid "Handles User Registration, Login, Profile Dashboard and User Connections"
+msgstr ""
+
+#. Author of the plugin
+#: nexora.php
+msgid "Sahil Singla"
+msgstr ""
+
+#: src/Admin/List_Columns.php:45
+#: src/Admin/List_Columns.php:137
+msgid "Name"
+msgstr ""
+
+#: src/Admin/List_Columns.php:86
+#: templates/admin/chat.php:11
+#: templates/admin/metabox-connection-chat.php:16
+#: templates/admin/metabox-connection.php:36
+#: templates/admin/metabox-connections.php:10
+#: templates/admin/metabox-connections.php:45
+#: templates/admin/metabox-user-chat.php:18
+#: templates/admin/notifications.php:13
+msgid "Status"
+msgstr ""
+
+#: src/Admin/Menu.php:63
+#: src/Admin/Menu.php:64
+msgid "Nexora System"
+msgstr ""
+
+#: src/Admin/Menu.php:74
+#: src/Admin/Menu.php:75
+#: src/Shortcodes/Home.php:164
+#: templates/profile/page.php:25
+msgid "Notifications"
+msgstr ""
+
+#: src/Admin/Menu.php:83
+#: src/Admin/Menu.php:84
+msgid "Nexora Chat"
+msgstr ""
+
+#: src/Admin/Menu.php:92
+#: src/Admin/Menu.php:93
+msgid "Settings"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:34
+msgid "User Personal Details"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:35
+msgid "User Address Details"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:36
+msgid "User Work Details"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:37
+msgid "User Document Details"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:38
+#: src/Admin/Meta_Boxes.php:42
+msgid "User Connection Details"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:39
+msgid "User Content Details"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:40
+msgid "User Chat Details"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:43
+msgid "User Connection Chat Details"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:45
+msgid "User Content Info"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:101
+#: src/Profile/Page.php:274
+msgid "Profile Image"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:102
+#: src/Profile/Page.php:275
+msgid "Cover Image"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:103
+msgid "Aadhar Card"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:104
+#: src/Profile/Page.php:277
+msgid "Driving License"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:105
+#: src/Profile/Page.php:278
+msgid "Company ID Card"
+msgstr ""
+
+#: src/Admin/Meta_Boxes.php:237
+#: src/Admin/Meta_Boxes.php:323
+msgid "No Subject"
+msgstr ""
+
+#: src/Admin/Settings.php:24
+msgid "Default Profile Image"
+msgstr ""
+
+#: src/Admin/Settings.php:25
+msgid "Default Cover Image"
+msgstr ""
+
+#: src/Admin/Settings.php:26
+msgid "Default Document Image"
+msgstr ""
+
+#: src/Admin/Settings.php:27
+msgid "Default Home Cover Image"
+msgstr ""
+
+#: src/Admin/Settings.php:28
+msgid "Default Feed Experience Image"
+msgstr ""
+
+#: src/Admin/Settings.php:29
+msgid "Default Real-Time Chat Image"
+msgstr ""
+
+#: src/Admin/Settings.php:30
+msgid "Default Smart Connections Image"
+msgstr ""
+
+#: src/Auth/Login.php:78
+#: src/Auth/Login.php:154
+#: src/Http/Rate_Limiter.php:210
+msgid "Too many requests. Please try again later."
+msgstr ""
+
+#: src/Auth/Login.php:87
+msgid "If the details are correct, an OTP has been sent to your email."
+msgstr ""
+
+#: src/Auth/Login.php:105
+msgid "Reset Password OTP - Nexora"
+msgstr ""
+
+#. translators: %s: six-digit one-time code.
+#: src/Auth/Login.php:107
+#, php-format
+msgid ""
+"Your OTP is: %s\n"
+"\n"
+"This OTP is valid for 10 minutes. If you did not request it, ignore this email."
+msgstr ""
+
+#: src/Auth/Login.php:122
+msgid "Too many attempts. Please try again later."
+msgstr ""
+
+#: src/Auth/Login.php:129
+msgid "Invalid or expired OTP"
+msgstr ""
+
+#: src/Auth/Login.php:140
+msgid "OTP verified"
+msgstr ""
+
+#: src/Auth/Login.php:165
+#: src/Auth/Login.php:180
+msgid "Invalid request"
+msgstr ""
+
+#: src/Auth/Login.php:170
+msgid "Reset session expired. Please verify OTP again."
+msgstr ""
+
+#: src/Auth/Login.php:174
+#: src/Auth/Registration.php:178
+#: src/Profile/Ajax.php:195
+msgid "Password must be at least 8 characters"
+msgstr ""
+
+#: src/Auth/Login.php:191
+msgid "Password Reset Successful - Nexora"
+msgstr ""
+
+#: src/Auth/Login.php:248
+msgid "Too many login attempts. Please try again later."
+msgstr ""
+
+#: src/Auth/Login.php:265
+#: src/Auth/Login.php:275
+#: src/Auth/Login.php:291
+msgid "Invalid username or password"
+msgstr ""
+
+#: src/Auth/Otp.php:126
+msgid "No OTP found"
+msgstr ""
+
+#: src/Auth/Otp.php:134
+msgid "OTP expired"
+msgstr ""
+
+#: src/Auth/Otp.php:142
+msgid "Too many wrong attempts. Please request a new OTP."
+msgstr ""
+
+#: src/Auth/Otp.php:150
+msgid "Invalid OTP"
+msgstr ""
+
+#: src/Auth/Recaptcha.php:157
+msgid "Captcha is required"
+msgstr ""
+
+#: src/Auth/Recaptcha.php:176
+msgid "Captcha request failed"
+msgstr ""
+
+#: src/Auth/Recaptcha.php:190
+msgid "Captcha verification failed"
+msgstr ""
+
+#: src/Auth/Registration.php:106
+msgid "Too many registrations. Please try again later."
+msgstr ""
+
+#: src/Auth/Registration.php:127
+msgid "Registration successful"
+msgstr ""
+
+#: src/Auth/Registration.php:165
+msgid "Required fields missing"
+msgstr ""
+
+#: src/Auth/Registration.php:169
+msgid "Invalid email address"
+msgstr ""
+
+#: src/Auth/Registration.php:174
+msgid "Username must be 3-30 characters (letters, numbers, . _ -)"
+msgstr ""
+
+#: src/Auth/Registration.php:182
+#: src/Profile/Ajax.php:199
+msgid "Passwords do not match"
+msgstr ""
+
+#: src/Auth/Registration.php:193
+#: src/Profile/Ajax.php:57
+msgid "Invalid date of birth"
+msgstr ""
+
+#: src/Auth/Registration.php:198
+msgid "User already exists"
+msgstr ""
+
+#: src/Auth/Registration.php:214
+msgid "User creation failed"
+msgstr ""
+
+#: src/Auth/Registration.php:241
+msgid "Profile creation failed"
+msgstr ""
+
+#: src/Auth/Registration.php:283
+msgid "🚀 New User Registered on Nexora"
+msgstr ""
+
+#: src/Chat/Ajax.php:38
+#: src/Connections/Service.php:87
+#: src/Connections/Service.php:93
+#: src/Notifications/Ajax.php:38
+msgid "Unauthorized"
+msgstr ""
+
+#: src/Chat/Ajax.php:51
+msgid "Invalid thread"
+msgstr ""
+
+#: src/Chat/Ajax.php:57
+#: src/Chat/Ajax.php:136
+#: src/Chat/Ajax.php:264
+msgid "Access denied"
+msgstr ""
+
+#: src/Chat/Ajax.php:182
+#: src/Chat/Repository.php:280
+#: templates/admin/metabox-user-chat.php:16
+msgid "User"
+msgstr ""
+
+#: src/Chat/Ajax.php:211
+#: src/Chat/Ajax.php:255
+msgid "Invalid data"
+msgstr ""
+
+#: src/Chat/Ajax.php:215
+msgid "Message is too long"
+msgstr ""
+
+#: src/Chat/Ajax.php:227
+msgid "Thread not found"
+msgstr ""
+
+#: src/Chat/Ajax.php:231
+msgid "This conversation is closed"
+msgstr ""
+
+#: src/Chat/Ajax.php:259
+msgid "Subject is too long"
+msgstr ""
+
+#: src/Chat/Ajax.php:272
+msgid "You can only chat with your connections"
+msgstr ""
+
+#: src/Chat/Ajax.php:279
+msgid "Could not create conversation"
+msgstr ""
+
+#: src/Chat/Ajax.php:316
+msgid "Invalid subject"
+msgstr ""
+
+#: src/Connections/Ajax.php:88
+#: templates/profile/not-found.php:8
+msgid "User not found"
+msgstr ""
+
+#: src/Connections/Ajax.php:101
+msgid "Request sent"
+msgstr ""
+
+#: src/Connections/Ajax.php:140
+msgid "Connection not found"
+msgstr ""
+
+#: src/Connections/Ajax.php:144
+msgid "Invalid status"
+msgstr ""
+
+#: src/Connections/Ajax.php:214
+#: src/Connections/Ajax.php:238
+#: src/Http/Ajax.php:71
+msgid "Profile not found"
+msgstr ""
+
+#: src/Connections/Ajax.php:222
+msgid "No connections found"
+msgstr ""
+
+#: src/Connections/Ajax.php:251
+msgid "No mutual connections found"
+msgstr ""
+
+#: src/Connections/Service.php:29
+msgid "You cannot connect with yourself"
+msgstr ""
+
+#: src/Connections/Service.php:34
+msgid "A connection or request already exists"
+msgstr ""
+
+#: src/Connections/Service.php:52
+msgid "Could not send request"
+msgstr ""
+
+#: src/Connections/Service.php:99
+msgid "Connection is not active"
+msgstr ""
+
+#: src/Connections/Service.php:149
+msgid "Connection status updated"
+msgstr ""
+
+#: src/Content/Ajax.php:42
+msgid "Title is required"
+msgstr ""
+
+#: src/Content/Ajax.php:51
+msgid "Invalid image selected"
+msgstr ""
+
+#: src/Content/Ajax.php:55
+msgid "Failed to create post"
+msgstr ""
+
+#: src/Content/Ajax.php:58
+msgid "Post created"
+msgstr ""
+
+#: src/Http/Ajax.php:59
+#: src/Http/Member_Ajax.php:21
+msgid "Unauthorized access"
+msgstr ""
+
+#: src/Http/Ajax.php:65
+msgid "Permission denied"
+msgstr ""
+
+#: src/Notifications/Ajax.php:28
+#: src/Profile/Ajax.php:175
+msgid "Not logged in"
+msgstr ""
+
+#: src/PostTypes/Registrar.php:30
+msgid "User Profiles"
+msgstr ""
+
+#: src/PostTypes/Registrar.php:42
+msgid "User Connections"
+msgstr ""
+
+#: src/PostTypes/Registrar.php:54
+msgid "User Content"
+msgstr ""
+
+#: src/Profile/Ajax.php:68
+msgid "Personal Info Updated"
+msgstr ""
+
+#: src/Profile/Ajax.php:87
+msgid "Address Info Updated"
+msgstr ""
+
+#: src/Profile/Ajax.php:110
+msgid "Invalid company email"
+msgstr ""
+
+#: src/Profile/Ajax.php:117
+msgid "Work Info Updated"
+msgstr ""
+
+#: src/Profile/Ajax.php:148
+msgid "Invalid file selected"
+msgstr ""
+
+#: src/Profile/Ajax.php:155
+msgid "This file is a private document and cannot be used as a public image"
+msgstr ""
+
+#: src/Profile/Ajax.php:161
+msgid "This file is already used as a public image. Please upload a separate file for your document"
+msgstr ""
+
+#: src/Profile/Ajax.php:167
+msgid "Documents updated"
+msgstr ""
+
+#: src/Profile/Ajax.php:191
+msgid "Current password is incorrect"
+msgstr ""
+
+#: src/Profile/Ajax.php:203
+msgid "New password must be different"
+msgstr ""
+
+#: src/Profile/Ajax.php:212
+msgid "Password updated successfully"
+msgstr ""
+
+#: src/Profile/Page.php:276
+msgid "Aadhaar Card"
+msgstr ""
+
+#. translators: %s: member name.
+#: src/Profile/Page.php:416
+#, php-format
+msgid "%s sent you a connection request"
+msgstr ""
+
+#. translators: %s: member name.
+#: src/Profile/Page.php:420
+#, php-format
+msgid "%s accepted your connection request"
+msgstr ""
+
+#. translators: %s: member name.
+#: src/Profile/Page.php:424
+#, php-format
+msgid "%s rejected your connection request"
+msgstr ""
+
+#. translators: %s: member name.
+#: src/Profile/Page.php:428
+#, php-format
+msgid "%s removed the connection with you"
+msgstr ""
+
+#. translators: %s: member name.
+#: src/Profile/Page.php:432
+#, php-format
+msgid "%s uploaded new content"
+msgstr ""
+
+#: src/Profile/Private_Documents.php:411
+msgid "Please log in."
+msgstr ""
+
+#: src/Profile/Private_Documents.php:416
+msgid "You cannot view this document."
+msgstr ""
+
+#: src/Profile/Private_Documents.php:423
+msgid "File not found."
+msgstr ""
+
+#. translators: %s: maximum upload size, e.g. 8 MB.
+#: src/Profile/Upload_Policy.php:201
+#, php-format
+msgid "File is too large. The maximum size is %s."
+msgstr ""
+
+#: src/Profile/Upload_Policy.php:217
+msgid "You have reached the maximum number of uploaded files. Please remove some before uploading more."
+msgstr ""
+
+#: src/Shortcodes/Contact_Form.php:41
+msgid "Thank you! Your message has been sent. We will get back to you soon."
+msgstr ""
+
+#: src/Shortcodes/Contact_Form.php:42
+msgid "Please fill in your name, a valid email and a message."
+msgstr ""
+
+#: src/Shortcodes/Contact_Form.php:43
+msgid "Too many messages sent. Please try again in a few minutes."
+msgstr ""
+
+#: src/Shortcodes/Contact_Form.php:44
+msgid "Sorry, the message could not be sent. Please try again later."
+msgstr ""
+
+#: src/Shortcodes/Contact_Form.php:129
+msgid "New contact message"
+msgstr ""
+
+#: src/Shortcodes/Home.php:161
+#: src/Shortcodes/Home.php:205
+msgid "Real-time chat"
+msgstr ""
+
+#: src/Shortcodes/Home.php:161
+msgid "Instant conversations with subject-based threads."
+msgstr ""
+
+#: src/Shortcodes/Home.php:162
+#: src/Shortcodes/Home.php:206
+msgid "Smart connections"
+msgstr ""
+
+#: src/Shortcodes/Home.php:162
+msgid "Build a meaningful network, not random followers."
+msgstr ""
+
+#: src/Shortcodes/Home.php:163
+msgid "Share content"
+msgstr ""
+
+#: src/Shortcodes/Home.php:163
+msgid "Post updates with images and keep a personal history."
+msgstr ""
+
+#: src/Shortcodes/Home.php:164
+msgid "Stay up to date on requests and responses."
+msgstr ""
+
+#: src/Shortcodes/Home.php:165
+msgid "Your profile"
+msgstr ""
+
+#: src/Shortcodes/Home.php:165
+msgid "Showcase your identity, work and documents securely."
+msgstr ""
+
+#: src/Shortcodes/Home.php:204
+msgid "Feed experience"
+msgstr ""
+
+#: src/Shortcodes/Home.php:219
+#: templates/admin/settings.php:38
+msgid "Your professional network"
+msgstr ""
+
+#: src/Shortcodes/Home.php:220
+#: templates/admin/settings.php:43
+msgid "Connect. Grow. Discover."
+msgstr ""
+
+#: src/Shortcodes/Home.php:221
+#: templates/admin/settings.php:48
+msgid "Nexora helps you connect, share, and grow your network in real-time."
+msgstr ""
+
+#: templates/admin/chat.php:4
+msgid "💬 Nexora Chat (Admin)"
+msgstr ""
+
+#: templates/admin/chat.php:9
+#: templates/admin/metabox-connection-chat.php:13
+msgid "Thread ID"
+msgstr ""
+
+#: templates/admin/chat.php:10
+#: templates/admin/metabox-user-chat.php:17
+msgid "Connection ID"
+msgstr ""
+
+#: templates/admin/chat.php:12
+msgid "User 1"
+msgstr ""
+
+#: templates/admin/chat.php:13
+msgid "User 2"
+msgstr ""
+
+#: templates/admin/chat.php:14
+#: templates/admin/metabox-connection-chat.php:15
+#: templates/shortcodes/contact-form.php:41
+msgid "Subject"
+msgstr ""
+
+#: templates/admin/chat.php:15
+msgid "Last Message"
+msgstr ""
+
+#: templates/admin/chat.php:16
+#: templates/admin/metabox-connection-chat.php:17
+#: templates/admin/metabox-contents.php:8
+#: templates/profile/content-history.php:7
+msgid "Action"
+msgstr ""
+
+#: templates/admin/chat.php:31
+msgid "Active"
+msgstr ""
+
+#: templates/admin/chat.php:33
+msgid "Inactive"
+msgstr ""
+
+#: templates/admin/chat.php:48
+#: templates/admin/metabox-connection-chat.php:44
+msgid "View Chat"
+msgstr ""
+
+#: templates/admin/chat.php:56
+msgid "No chats found"
+msgstr ""
+
+#: templates/admin/metabox-address.php:2
+#: templates/profile/tab-info.php:96
+msgid "Permanent Address"
+msgstr ""
+
+#: templates/admin/metabox-address.php:4
+#: templates/admin/metabox-address.php:11
+#: templates/profile/tab-info.php:14
+#: templates/profile/tab-info.php:100
+#: templates/profile/tab-info.php:127
+msgid "Address"
+msgstr ""
+
+#: templates/admin/metabox-address.php:5
+#: templates/admin/metabox-address.php:12
+#: templates/profile/tab-info.php:105
+#: templates/profile/tab-info.php:132
+msgid "City"
+msgstr ""
+
+#: templates/admin/metabox-address.php:6
+#: templates/admin/metabox-address.php:13
+#: templates/profile/tab-info.php:110
+#: templates/profile/tab-info.php:137
+msgid "State"
+msgstr ""
+
+#: templates/admin/metabox-address.php:7
+#: templates/admin/metabox-address.php:14
+#: templates/profile/tab-info.php:115
+#: templates/profile/tab-info.php:142
+msgid "Pincode"
+msgstr ""
+
+#: templates/admin/metabox-address.php:9
+#: templates/profile/tab-info.php:123
+msgid "Correspondence Address"
+msgstr ""
+
+#: templates/admin/metabox-connection-chat.php:6
+msgid "💬 Connection Chat Threads"
+msgstr ""
+
+#: templates/admin/metabox-connection-chat.php:8
+msgid "No threads found."
+msgstr ""
+
+#: templates/admin/metabox-connection-chat.php:14
+msgid "Users"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:6
+msgid "Sender User ID"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:11
+#: templates/admin/metabox-connections.php:8
+msgid "Sender Profile ID"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:16
+msgid "Sender User Name"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:21
+msgid "Receiver User ID"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:26
+#: templates/admin/metabox-connections.php:43
+msgid "Receiver Profile ID"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:31
+msgid "Receiver User Name"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:39
+msgid "Pending"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:40
+msgid "Accepted"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:41
+msgid "Rejected"
+msgstr ""
+
+#: templates/admin/metabox-connection.php:42
+msgid "Removed"
+msgstr ""
+
+#: templates/admin/metabox-connections.php:3
+#: templates/profile/history.php:11
+msgid "📥 Received Requests"
+msgstr ""
+
+#: templates/admin/metabox-connections.php:9
+msgid "Sender Username"
+msgstr ""
+
+#: templates/admin/metabox-connections.php:28
+#: templates/profile/history.php:21
+msgid "No received requests"
+msgstr ""
+
+#: templates/admin/metabox-connections.php:38
+#: templates/profile/history.php:30
+msgid "📤 Sent Requests"
+msgstr ""
+
+#: templates/admin/metabox-connections.php:44
+msgid "Receiver Username"
+msgstr ""
+
+#: templates/admin/metabox-connections.php:63
+#: templates/profile/history.php:40
+msgid "No sent requests"
+msgstr ""
+
+#: templates/admin/metabox-content.php:6
+msgid "User ID"
+msgstr ""
+
+#: templates/admin/metabox-content.php:11
+msgid "User Profile ID"
+msgstr ""
+
+#: templates/admin/metabox-content.php:16
+#: templates/admin/metabox-personal.php:2
+msgid "User Name"
+msgstr ""
+
+#: templates/admin/metabox-contents.php:6
+#: templates/profile/content-history.php:5
+msgid "Title"
+msgstr ""
+
+#: templates/admin/metabox-contents.php:7
+#: templates/admin/notifications.php:14
+#: templates/profile/content-history.php:6
+msgid "Date"
+msgstr ""
+
+#: templates/admin/metabox-contents.php:26
+#: templates/profile/content-history.php:29
+#: templates/profile/tab-notifications.php:55
+msgid "View"
+msgstr ""
+
+#: templates/admin/metabox-contents.php:34
+#: templates/profile/content-history.php:38
+msgid "No content found"
+msgstr ""
+
+#: templates/admin/metabox-documents.php:13
+#: templates/admin/settings.php:24
+msgid "Upload"
+msgstr ""
+
+#: templates/admin/metabox-documents.php:14
+#: templates/admin/settings.php:25
+#: templates/profile/tab-connections.php:76
+msgid "Remove"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:3
+#: templates/profile/tab-info.php:48
+msgid "First Name"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:4
+#: templates/profile/tab-info.php:53
+msgid "Last Name"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:5
+#: templates/profile/tab-info.php:42
+#: templates/shortcodes/contact-form.php:36
+msgid "Email"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:6
+#: templates/profile/tab-info.php:71
+msgid "Phone"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:7
+#: templates/profile/tab-info.php:77
+msgid "LinkedIn"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:9
+#: templates/profile/tab-info.php:58
+msgid "Gender"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:11
+msgid "Select Gender"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:12
+#: templates/auth/registration-form.php:19
+msgid "Male"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:13
+#: templates/auth/registration-form.php:20
+msgid "Female"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:14
+#: templates/auth/registration-form.php:21
+msgid "Other"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:17
+#: templates/profile/tab-info.php:64
+msgid "Birthdate"
+msgstr ""
+
+#: templates/admin/metabox-personal.php:22
+#: templates/profile/tab-info.php:84
+msgid "Bio"
+msgstr ""
+
+#: templates/admin/metabox-user-chat.php:8
+msgid "No user linked."
+msgstr ""
+
+#: templates/admin/metabox-user-chat.php:10
+msgid "No connections found."
+msgstr ""
+
+#: templates/admin/metabox-user-chat.php:12
+msgid "💬 User Chat Overview"
+msgstr ""
+
+#: templates/admin/metabox-user-chat.php:19
+msgid "Connection Time"
+msgstr ""
+
+#: templates/admin/metabox-user-chat.php:20
+msgid "Threads"
+msgstr ""
+
+#: templates/admin/metabox-user-chat.php:47
+msgid "No conversations"
+msgstr ""
+
+#: templates/admin/metabox-work.php:2
+#: templates/profile/tab-info.php:157
+msgid "Company Name"
+msgstr ""
+
+#: templates/admin/metabox-work.php:3
+#: templates/profile/tab-info.php:162
+msgid "Designation"
+msgstr ""
+
+#: templates/admin/metabox-work.php:4
+#: templates/profile/tab-info.php:167
+msgid "Company Email"
+msgstr ""
+
+#: templates/admin/metabox-work.php:5
+#: templates/profile/tab-info.php:172
+msgid "Company Phone"
+msgstr ""
+
+#: templates/admin/metabox-work.php:6
+#: templates/profile/tab-info.php:177
+msgid "Company Address"
+msgstr ""
+
+#: templates/admin/notifications.php:3
+#: templates/profile/tab-notifications.php:11
+msgid "🔔 Notifications"
+msgstr ""
+
+#: templates/admin/notifications.php:8
+msgid "ID"
+msgstr ""
+
+#: templates/admin/notifications.php:9
+msgid "Actor"
+msgstr ""
+
+#: templates/admin/notifications.php:10
+msgid "Receiver"
+msgstr ""
+
+#: templates/admin/notifications.php:11
+msgid "Type"
+msgstr ""
+
+#: templates/admin/notifications.php:12
+#: templates/shortcodes/contact-form.php:46
+msgid "Message"
+msgstr ""
+
+#: templates/admin/notifications.php:32
+#: templates/profile/tab-notifications.php:39
+msgid "Read"
+msgstr ""
+
+#: templates/admin/notifications.php:34
+msgid "Unread"
+msgstr ""
+
+#: templates/admin/notifications.php:42
+msgid "No notifications found"
+msgstr ""
+
+#: templates/admin/settings.php:10
+msgid "Profile System Settings"
+msgstr ""
+
+#: templates/admin/settings.php:31
+msgid "Home page content"
+msgstr ""
+
+#: templates/admin/settings.php:32
+msgid "Live numbers (members, connections, posts, conversations) are calculated automatically. Leave a field empty to use the default."
+msgstr ""
+
+#: templates/admin/settings.php:37
+msgid "Hero eyebrow"
+msgstr ""
+
+#: templates/admin/settings.php:42
+msgid "Hero title"
+msgstr ""
+
+#: templates/admin/settings.php:47
+msgid "Hero subtitle"
+msgstr ""
+
+#: templates/admin/settings.php:52
+msgid "Features"
+msgstr ""
+
+#: templates/admin/settings.php:54
+msgid "Real-time chat | Instant conversations with subject-based threads."
+msgstr ""
+
+#: templates/admin/settings.php:55
+msgid "One feature per line:"
+msgstr ""
+
+#: templates/admin/settings.php:55
+msgid "Title | Description"
+msgstr ""
+
+#: templates/admin/settings.php:60
+msgid "Testimonials"
+msgstr ""
+
+#: templates/admin/settings.php:62
+msgid "Jane Doe | Designer | Great place to meet people."
+msgstr ""
+
+#: templates/admin/settings.php:63
+msgid "One per line:"
+msgstr ""
+
+#: templates/admin/settings.php:63
+msgid "Name | Role | Quote"
+msgstr ""
+
+#: templates/admin/settings.php:63
+msgid ". The section is hidden when empty."
+msgstr ""
+
+#: templates/admin/settings.php:68
+msgid "Admin Notification Email"
+msgstr ""
+
+#: templates/admin/settings.php:75
+msgid "Enter admin email"
+msgstr ""
+
+#: templates/admin/settings.php:79
+msgid "All registration notifications will be sent to this email."
+msgstr ""
+
+#: templates/admin/settings.php:84
+msgid "Google reCAPTCHA Site Key"
+msgstr ""
+
+#: templates/admin/settings.php:91
+msgid "Enter Site Key"
+msgstr ""
+
+#: templates/admin/settings.php:95
+msgid "Used on frontend (forms)."
+msgstr ""
+
+#: templates/admin/settings.php:101
+msgid "Google reCAPTCHA Secret Key"
+msgstr ""
+
+#: templates/admin/settings.php:108
+msgid "Enter Secret Key"
+msgstr ""
+
+#: templates/admin/settings.php:112
+msgid "Used for backend verification. Keep it secure."
+msgstr ""
+
+#: templates/admin/settings.php:117
+msgid "Enable reCAPTCHA"
+msgstr ""
+
+#: templates/admin/settings.php:126
+msgid "Enable Google reCAPTCHA"
+msgstr ""
+
+#: templates/admin/settings.php:130
+msgid "Enable captcha protection on login, registration and forms."
+msgstr ""
+
+#: templates/auth/login-form.php:10
+msgid "Welcome Back 👋"
+msgstr ""
+
+#: templates/auth/login-form.php:12
+msgid "Username or Email"
+msgstr ""
+
+#: templates/auth/login-form.php:13
+msgid "Password"
+msgstr ""
+
+#: templates/auth/login-form.php:20
+#: templates/auth/registration-form.php:44
+msgid "Show Password"
+msgstr ""
+
+#: templates/auth/login-form.php:25
+#: templates/auth/registration-form.php:55
+#: templates/profile/guest-wall.php:13
+#: templates/shortcodes/home.php:45
+msgid "Login"
+msgstr ""
+
+#: templates/auth/login-form.php:28
+msgid "Don’t have an account?"
+msgstr ""
+
+#: templates/auth/login-form.php:29
+msgid "Register"
+msgstr ""
+
+#: templates/auth/login-form.php:34
+msgid "Forgot Password?"
+msgstr ""
+
+#. translators: %s: member's display name.
+#. translators: %s: administrator's display name.
+#: templates/auth/login-state.php:12
+#: templates/profile/admin-mode.php:13
+#: templates/shortcodes/home.php:39
+#, php-format
+msgid "Welcome back, %s"
+msgstr ""
+
+#. translators: %s: member's display name.
+#: templates/auth/login-state.php:13
+#: templates/auth/registration-state.php:11
+msgid "You are already logged in"
+msgstr ""
+
+#: templates/auth/login-state.php:17
+#: templates/auth/registration-state.php:14
+msgid "Go to Profile"
+msgstr ""
+
+#: templates/auth/login-state.php:21
+#: templates/profile/page.php:49
+msgid "Logout"
+msgstr ""
+
+#: templates/auth/registration-form.php:8
+msgid "Create Your Account"
+msgstr ""
+
+#: templates/auth/registration-form.php:13
+msgid "Email *"
+msgstr ""
+
+#: templates/auth/registration-form.php:16
+msgid "User Name *"
+msgstr ""
+
+#: templates/auth/registration-form.php:18
+msgid "Select Gender *"
+msgstr ""
+
+#: templates/auth/registration-form.php:25
+msgid "First Name *"
+msgstr ""
+
+#: templates/auth/registration-form.php:26
+msgid "Last Name *"
+msgstr ""
+
+#: templates/auth/registration-form.php:29
+msgid "Phone *"
+msgstr ""
+
+#: templates/auth/registration-form.php:30
+msgid "Date of Birth *"
+msgstr ""
+
+#: templates/auth/registration-form.php:35
+msgid "Password * (min 8 characters)"
+msgstr ""
+
+#: templates/auth/registration-form.php:36
+msgid "Confirm Password *"
+msgstr ""
+
+#: templates/auth/registration-form.php:51
+msgid "Create Account"
+msgstr ""
+
+#: templates/auth/registration-form.php:54
+msgid "Already have an account?"
+msgstr ""
+
+#. translators: %s: member's display name.
+#: templates/auth/registration-state.php:10
+#, php-format
+msgid "Hey %s"
+msgstr ""
+
+#: templates/chat/box.php:12
+msgid "Select Chat"
+msgstr ""
+
+#: templates/chat/box.php:28
+msgid "Type message..."
+msgstr ""
+
+#: templates/chat/box.php:29
+msgid "Send"
+msgstr ""
+
+#: templates/chat/sidebar.php:6
+msgid "Chats"
+msgstr ""
+
+#: templates/chat/sidebar.php:11
+msgid "Search users..."
+msgstr ""
+
+#: templates/mail/admin-new-member.php:1
+msgid "New User Registration"
+msgstr ""
+
+#: templates/mail/admin-new-member.php:2
+msgid "Username:"
+msgstr ""
+
+#: templates/mail/admin-new-member.php:3
+msgid "Name:"
+msgstr ""
+
+#: templates/mail/admin-new-member.php:4
+msgid "Email:"
+msgstr ""
+
+#: templates/mail/admin-new-member.php:5
+msgid "Time:"
+msgstr ""
+
+#: templates/mail/password-reset-success.php:4
+msgid "Password Reset Successful"
+msgstr ""
+
+#: templates/mail/password-reset-success.php:5
+msgid "Hi"
+msgstr ""
+
+#: templates/mail/password-reset-success.php:6
+msgid "Your password has been successfully reset."
+msgstr ""
+
+#: templates/mail/password-reset-success.php:7
+msgid "If this was you, enjoy using"
+msgstr ""
+
+#: templates/mail/password-reset-success.php:8
+msgid "If not, please contact support immediately."
+msgstr ""
+
+#: templates/mail/password-reset-success.php:10
+msgid "— Nexora Team"
+msgstr ""
+
+#: templates/profile/admin-mode.php:19
+msgid "You are currently in admin mode"
+msgstr ""
+
+#: templates/profile/admin-mode.php:23
+msgid "Manage users, content and system settings from your dashboard."
+msgstr ""
+
+#: templates/profile/admin-mode.php:29
+msgid "Go to Dashboard →"
+msgstr ""
+
+#: templates/profile/connection-cards.php:29
+#: templates/profile/tab-connections.php:40
+msgid "Mutual"
+msgstr ""
+
+#: templates/profile/guest-wall.php:6
+msgid "🔒 Access Restricted"
+msgstr ""
+
+#: templates/profile/guest-wall.php:8
+msgid "Please login or sign up to access your profile"
+msgstr ""
+
+#: templates/profile/guest-wall.php:18
+msgid "Sign Up"
+msgstr ""
+
+#: templates/profile/not-found.php:12
+msgid "We couldn’t find the profile you’re looking for"
+msgstr ""
+
+#: templates/profile/not-found.php:16
+msgid "The username might be incorrect, or the user may have removed their profile."
+msgstr ""
+
+#: templates/profile/not-found.php:23
+msgid "Go to Home →"
+msgstr ""
+
+#: templates/profile/page.php:20
+#: templates/profile/tab-info.php:22
+msgid "User Information"
+msgstr ""
+
+#: templates/profile/page.php:21
+#: templates/profile/tab-connections.php:9
+#: templates/profile/tab-connections.php:16
+#: templates/profile/tab-connections.php:30
+#: templates/profile/tab-connections.php:101
+#: templates/shortcodes/home.php:71
+msgid "Connections"
+msgstr ""
+
+#: templates/profile/page.php:23
+#: templates/profile/tab-content.php:6
+msgid "Content"
+msgstr ""
+
+#: templates/profile/tab-connections.php:10
+msgid "Login to explore connections"
+msgstr ""
+
+#: templates/profile/tab-connections.php:17
+msgid "Manage your network"
+msgstr ""
+
+#: templates/profile/tab-connections.php:21
+#: templates/profile/tab-content.php:11
+msgid "Add New"
+msgstr ""
+
+#: templates/profile/tab-connections.php:22
+msgid "Requests"
+msgstr ""
+
+#: templates/profile/tab-connections.php:23
+#: templates/profile/tab-content.php:12
+msgid "History"
+msgstr ""
+
+#: templates/profile/tab-connections.php:24
+msgid "Chat"
+msgstr ""
+
+#: templates/profile/tab-connections.php:31
+msgid "View their network"
+msgstr ""
+
+#: templates/profile/tab-connections.php:36
+msgid "All Connections"
+msgstr ""
+
+#: templates/profile/tab-connections.php:85
+msgid "No Connections Yet"
+msgstr ""
+
+#: templates/profile/tab-connections.php:87
+msgid "You haven’t connected with anyone yet."
+msgstr ""
+
+#: templates/profile/tab-connections.php:88
+msgid "Start building your network by sending connection requests 🚀"
+msgstr ""
+
+#: templates/profile/tab-connections.php:91
+msgid "+ Find People"
+msgstr ""
+
+#. translators: %s: number of mutual connections.
+#: templates/profile/tab-connections.php:107
+#, php-format
+msgid "%s Mutual Connections"
+msgstr ""
+
+#: templates/profile/tab-connections.php:120
+msgid "View All Connections"
+msgstr ""
+
+#: templates/profile/tab-content.php:7
+msgid "See Content of Other Users"
+msgstr ""
+
+#: templates/profile/tab-content.php:53
+#: templates/profile/tab-content.php:64
+msgid "No Content Yet"
+msgstr ""
+
+#: templates/profile/tab-content.php:54
+#: templates/profile/tab-content.php:65
+msgid "No one else has posted anything yet."
+msgstr ""
+
+#: templates/profile/tab-info.php:8
+msgid "Your Information"
+msgstr ""
+
+#: templates/profile/tab-info.php:9
+msgid "Manage your Informations"
+msgstr ""
+
+#: templates/profile/tab-info.php:13
+msgid "Personal"
+msgstr ""
+
+#: templates/profile/tab-info.php:15
+msgid "Work"
+msgstr ""
+
+#: templates/profile/tab-info.php:16
+#: templates/profile/tab-info.php:185
+msgid "Documents"
+msgstr ""
+
+#: templates/profile/tab-info.php:17
+msgid "Security"
+msgstr ""
+
+#: templates/profile/tab-info.php:23
+msgid "Login to explore more"
+msgstr ""
+
+#: templates/profile/tab-info.php:31
+msgid "Personal Information"
+msgstr ""
+
+#: templates/profile/tab-info.php:36
+msgid "Username"
+msgstr ""
+
+#: templates/profile/tab-info.php:92
+msgid "Address Information"
+msgstr ""
+
+#: templates/profile/tab-info.php:152
+msgid "Work Information"
+msgstr ""
+
+#: templates/profile/tab-info.php:199
+msgid "No File"
+msgstr ""
+
+#: templates/profile/tab-notifications.php:39
+msgid "New"
+msgstr ""
+
+#: templates/profile/tab-notifications.php:66
+msgid "No Notifications Yet"
+msgstr ""
+
+#: templates/profile/tab-notifications.php:69
+msgid "You're all caught up 🎉"
+msgstr ""
+
+#: templates/profile/tab-notifications.php:70
+msgid "Notifications will appear here when you get updates"
+msgstr ""
+
+#: templates/profile/tab-notifications.php:79
+msgid "Access restricted"
+msgstr ""
+
+#: templates/shortcodes/contact-form.php:27
+msgid "Leave this empty"
+msgstr ""
+
+#: templates/shortcodes/contact-form.php:31
+msgid "Your name"
+msgstr ""
+
+#: templates/shortcodes/contact-form.php:50
+msgid "Send message"
+msgstr ""
+
+#: templates/shortcodes/home.php:44
+#: templates/shortcodes/home.php:161
+msgid "Get Started"
+msgstr ""
+
+#: templates/shortcodes/home.php:67
+msgid "Members"
+msgstr ""
+
+#: templates/shortcodes/home.php:75
+msgid "Posts shared"
+msgstr ""
+
+#: templates/shortcodes/home.php:79
+msgid "Conversations"
+msgstr ""
+
+#: templates/shortcodes/home.php:88
+msgid "Why Nexora?"
+msgstr ""
+
+#: templates/shortcodes/home.php:104
+msgid "How it works"
+msgstr ""
+
+#: templates/shortcodes/home.php:107
+msgid "Sign up"
+msgstr ""
+
+#: templates/shortcodes/home.php:108
+msgid "Build your profile"
+msgstr ""
+
+#: templates/shortcodes/home.php:109
+msgid "Connect"
+msgstr ""
+
+#: templates/shortcodes/home.php:110
+msgid "Share & chat"
+msgstr ""
+
+#: templates/shortcodes/home.php:120
+msgid "A look inside"
+msgstr ""
+
+#: templates/shortcodes/home.php:138
+msgid "Loved by members"
+msgstr ""
+
+#: templates/shortcodes/home.php:160
+msgid "Join Nexora today"
+msgstr ""

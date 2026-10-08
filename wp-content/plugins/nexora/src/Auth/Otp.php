@@ -123,7 +123,7 @@ class Otp {
 		if ( ! $user_id || ! $saved_hash ) {
 			return array(
 				'ok'      => false,
-				'message' => 'No OTP found',
+				'message' => __( 'No OTP found', 'nexora' ),
 			);
 		}
 
@@ -131,7 +131,7 @@ class Otp {
 			self::clear( $user_id );
 			return array(
 				'ok'      => false,
-				'message' => 'OTP expired',
+				'message' => __( 'OTP expired', 'nexora' ),
 			);
 		}
 
@@ -139,7 +139,7 @@ class Otp {
 			self::clear( $user_id );
 			return array(
 				'ok'      => false,
-				'message' => 'Too many wrong attempts. Please request a new OTP.',
+				'message' => __( 'Too many wrong attempts. Please request a new OTP.', 'nexora' ),
 			);
 		}
 
@@ -147,7 +147,7 @@ class Otp {
 			update_user_meta( $user_id, 'otp_attempts', $attempts + 1 );
 			return array(
 				'ok'      => false,
-				'message' => 'Invalid OTP',
+				'message' => __( 'Invalid OTP', 'nexora' ),
 			);
 		}
 

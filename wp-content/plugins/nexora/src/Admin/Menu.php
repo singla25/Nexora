@@ -60,8 +60,8 @@ class Menu {
 	public function register_main_menu() {
 
 		add_menu_page(
-			'Nexora System',
-			'Nexora System',
+			__( 'Nexora System', 'nexora' ),
+			__( 'Nexora System', 'nexora' ),
 			'manage_options',
 			'nexora-system',
 			array( $this->settings, 'settings_page' ),
@@ -71,8 +71,8 @@ class Menu {
 
 		add_submenu_page(
 			'nexora-system',
-			'Notifications',
-			'Notifications',
+			__( 'Notifications', 'nexora' ),
+			__( 'Notifications', 'nexora' ),
 			'manage_options',
 			'nexora-notifications',
 			array( $this->pages, 'notifications_page' )
@@ -80,8 +80,8 @@ class Menu {
 
 		add_submenu_page(
 			'nexora-system',
-			'Nexora Chat',
-			'Nexora Chat',
+			__( 'Nexora Chat', 'nexora' ),
+			__( 'Nexora Chat', 'nexora' ),
 			'manage_options',
 			'nexora-chat',
 			array( $this->pages, 'nexora_user_chat' )
@@ -89,8 +89,8 @@ class Menu {
 
 		add_submenu_page(
 			'nexora-system',
-			'Settings',
-			'Settings',
+			__( 'Settings', 'nexora' ),
+			__( 'Settings', 'nexora' ),
 			'manage_options',
 			'nexora-system',
 			array( $this->settings, 'settings_page' )

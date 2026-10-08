@@ -8,7 +8,7 @@
 						<div class="notification-wrapper">
 
 							<div class="notification-header">
-								<h3>🔔 Notifications</h3>
+								<h3><?php esc_html_e( '🔔 Notifications', 'nexora' ); ?></h3>
 							</div>
 
 							<div class="notification-list">
@@ -36,7 +36,7 @@
 												</span>
 
 												<span class="noti-status <?php echo ! $noti['is_read'] ? 'new' : 'read'; ?>">
-													<?php echo ! $noti['is_read'] ? 'New' : 'Read'; ?>
+													<?php echo ! $noti['is_read'] ? esc_html__( 'New', 'nexora' ) : esc_html__( 'Read', 'nexora' ); ?>
 												</span>
 											</div>
 
@@ -52,7 +52,7 @@
 											data-id="<?php echo (int) $noti['id']; ?>"
 											data-type="received"
 										>
-											View
+											<?php esc_html_e( 'View', 'nexora' ); ?>
 										</button>
 
 									</div>
@@ -63,11 +63,11 @@
 
 										<div class="empty-icon">🔔</div>
 
-										<h3>No Notifications Yet</h3>
+										<h3><?php esc_html_e( 'No Notifications Yet', 'nexora' ); ?></h3>
 
 										<p>
-											You're all caught up 🎉 <br>
-											Notifications will appear here when you get updates
+																		<?php esc_html_e( 'You\'re all caught up 🎉', 'nexora' ); ?> <br>
+																		<?php esc_html_e( 'Notifications will appear here when you get updates', 'nexora' ); ?>
 										</p>
 									</div>
 
@@ -76,7 +76,7 @@
 						</div>
 
 						<?php else : ?>
-							<p>Access restricted</p>
+							<p><?php esc_html_e( 'Access restricted', 'nexora' ); ?></p>
 						<?php endif; ?>
 					</div>
 

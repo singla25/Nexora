@@ -1,13 +1,13 @@
 <?php /** @var array[] $received  @var array[] $sent  rows: profile_id, user_name, status */ ?>
 
-		<h2>📥 Received Requests</h2>
+		<h2><?php esc_html_e( '📥 Received Requests', 'nexora' ); ?></h2>
 
 		<table class="widefat striped">
 			<thead>
 				<tr>
-					<th>Sender Profile ID</th>
-					<th>Sender Username</th>
-					<th>Status</th>
+					<th><?php esc_html_e( 'Sender Profile ID', 'nexora' ); ?></th>
+					<th><?php esc_html_e( 'Sender Username', 'nexora' ); ?></th>
+					<th><?php esc_html_e( 'Status', 'nexora' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -25,7 +25,7 @@
 
 							<?php endforeach; else : ?>
 
-				<tr><td colspan="3">No received requests</td></tr>
+				<tr><td colspan="3"><?php esc_html_e( 'No received requests', 'nexora' ); ?></td></tr>
 
 			<?php endif; ?>
 
@@ -35,14 +35,14 @@
 
 		<br><br>
 
-		<h2>📤 Sent Requests</h2>
+		<h2><?php esc_html_e( '📤 Sent Requests', 'nexora' ); ?></h2>
 
 		<table class="widefat striped">
 			<thead>
 				<tr>
-					<th>Receiver Profile ID</th>
-					<th>Receiver Username</th>
-					<th>Status</th>
+					<th><?php esc_html_e( 'Receiver Profile ID', 'nexora' ); ?></th>
+					<th><?php esc_html_e( 'Receiver Username', 'nexora' ); ?></th>
+					<th><?php esc_html_e( 'Status', 'nexora' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -60,7 +60,7 @@
 
 							<?php endforeach; else : ?>
 
-				<tr><td colspan="3">No sent requests</td></tr>
+				<tr><td colspan="3"><?php esc_html_e( 'No sent requests', 'nexora' ); ?></td></tr>
 
 			<?php endif; ?>
 

@@ -8,7 +8,7 @@
 		RECEIVED
 	=============================== -->
 	<div class="history-section">
-		<h3>📥 Received Requests</h3>
+		<h3><?php esc_html_e( '📥 Received Requests', 'nexora' ); ?></h3>
 
 		<?php
 		if ( $received ) :
@@ -18,7 +18,7 @@
 							<?php \Nexora\Core\View::output( 'profile/history-card', array( 'row' => $row ) ); ?>
 
 					<?php endforeach; else : ?>
-			<p class="history-empty">No received requests</p>
+			<p class="history-empty"><?php esc_html_e( 'No received requests', 'nexora' ); ?></p>
 		<?php endif; ?>
 
 	</div>
@@ -27,7 +27,7 @@
 		SENT
 	=============================== -->
 	<div class="history-section">
-		<h3>📤 Sent Requests</h3>
+		<h3><?php esc_html_e( '📤 Sent Requests', 'nexora' ); ?></h3>
 
 		<?php
 		if ( $sent ) :
@@ -37,7 +37,7 @@
 							<?php \Nexora\Core\View::output( 'profile/history-card', array( 'row' => $row ) ); ?>
 
 					<?php endforeach; else : ?>
-			<p class="history-empty">No sent requests</p>
+			<p class="history-empty"><?php esc_html_e( 'No sent requests', 'nexora' ); ?></p>
 		<?php endif; ?>
 	</div>
 </div>

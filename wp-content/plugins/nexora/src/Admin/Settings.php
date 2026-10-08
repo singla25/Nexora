@@ -13,16 +13,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Settings {
 
-	/** Default-image options: option name, label, preview width. */
-	const IMAGES = array(
-		array( 'default_profile_image', 'Default Profile Image', 100 ),
-		array( 'default_cover_image', 'Default Cover Image', 150 ),
-		array( 'default_document_image', 'Default Document Image', 150 ),
-		array( 'default_home_cover_image', 'Default Home Cover Image', 150 ),
-		array( 'default_feed_experience_image', 'Default Feed Experience Image', 150 ),
-		array( 'default_real_time_chat_image', 'Default Real-Time Chat Image', 150 ),
-		array( 'default_smart_connections_image', 'Default Smart Connections Image', 150 ),
-	);
+	/**
+	 * Default-image options: option name, label, preview width.
+	 *
+	 * @return array[]
+	 */
+	private function images() {
+
+		return array(
+			array( 'default_profile_image', __( 'Default Profile Image', 'nexora' ), 100 ),
+			array( 'default_cover_image', __( 'Default Cover Image', 'nexora' ), 150 ),
+			array( 'default_document_image', __( 'Default Document Image', 'nexora' ), 150 ),
+			array( 'default_home_cover_image', __( 'Default Home Cover Image', 'nexora' ), 150 ),
+			array( 'default_feed_experience_image', __( 'Default Feed Experience Image', 'nexora' ), 150 ),
+			array( 'default_real_time_chat_image', __( 'Default Real-Time Chat Image', 'nexora' ), 150 ),
+			array( 'default_smart_connections_image', __( 'Default Smart Connections Image', 'nexora' ), 150 ),
+		);
+	}
 
 	/**
 	 * Hooks the settings registration.
@@ -88,7 +95,7 @@ class Settings {
 
 		$images = array();
 
-		foreach ( self::IMAGES as [$option, $label, $width] ) {
+		foreach ( $this->images() as [ $option, $label, $width ] ) {
 
 			$id = get_option( $option );
 

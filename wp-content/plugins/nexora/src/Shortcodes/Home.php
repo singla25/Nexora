@@ -158,11 +158,11 @@ class Home {
 	 */
 	public static function default_features() {
 		return array(
-			array( 'Real-time chat', 'Instant conversations with subject-based threads.' ),
-			array( 'Smart connections', 'Build a meaningful network, not random followers.' ),
-			array( 'Share content', 'Post updates with images and keep a personal history.' ),
-			array( 'Notifications', 'Stay up to date on requests and responses.' ),
-			array( 'Your profile', 'Showcase your identity, work and documents securely.' ),
+			array( __( 'Real-time chat', 'nexora' ), __( 'Instant conversations with subject-based threads.', 'nexora' ) ),
+			array( __( 'Smart connections', 'nexora' ), __( 'Build a meaningful network, not random followers.', 'nexora' ) ),
+			array( __( 'Share content', 'nexora' ), __( 'Post updates with images and keep a personal history.', 'nexora' ) ),
+			array( __( 'Notifications', 'nexora' ), __( 'Stay up to date on requests and responses.', 'nexora' ) ),
+			array( __( 'Your profile', 'nexora' ), __( 'Showcase your identity, work and documents securely.', 'nexora' ) ),
 		);
 	}
 
@@ -201,9 +201,9 @@ class Home {
 		// Preview images: only the ones set in Settings
 		$shots = array();
 		foreach ( array(
-			array( 'default_feed_experience_image', 'Feed experience' ),
-			array( 'default_real_time_chat_image', 'Real-time chat' ),
-			array( 'default_smart_connections_image', 'Smart connections' ),
+			array( 'default_feed_experience_image', __( 'Feed experience', 'nexora' ) ),
+			array( 'default_real_time_chat_image', __( 'Real-time chat', 'nexora' ) ),
+			array( 'default_smart_connections_image', __( 'Smart connections', 'nexora' ) ),
 		) as $item ) {
 			$id  = (int) get_option( $item[0] );
 			$url = $id ? wp_get_attachment_url( $id ) : '';
@@ -216,9 +216,9 @@ class Home {
 			'logged_in'    => $logged_in,
 			'login_url'    => Urls::login( true ),
 			'reg_url'      => Urls::registration( true ),
-			'eyebrow'      => $this->option_or( 'nexora_home_eyebrow', 'Your professional network' ),
-			'title'        => $this->option_or( 'nexora_home_title', 'Connect. Grow. Discover.' ),
-			'subtitle'     => $this->option_or( 'nexora_home_subtitle', 'Nexora helps you connect, share, and grow your network in real-time.' ),
+			'eyebrow'      => $this->option_or( 'nexora_home_eyebrow', __( 'Your professional network', 'nexora' ) ),
+			'title'        => $this->option_or( 'nexora_home_title', __( 'Connect. Grow. Discover.', 'nexora' ) ),
+			'subtitle'     => $this->option_or( 'nexora_home_subtitle', __( 'Nexora helps you connect, share, and grow your network in real-time.', 'nexora' ) ),
 			'cover'        => $cover_id ? wp_get_attachment_url( $cover_id ) : '',
 			'stats'        => array_map( array( self::class, 'short_number' ), $stats ),
 			'features'     => $features,

@@ -3,9 +3,9 @@
 		<table class="widefat striped">
 			<thead>
 				<tr>
-					<th>Title</th>
-					<th>Date</th>
-					<th>Action</th>
+					<th><?php esc_html_e( 'Title', 'nexora' ); ?></th>
+					<th><?php esc_html_e( 'Date', 'nexora' ); ?></th>
+					<th><?php esc_html_e( 'Action', 'nexora' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -23,7 +23,7 @@
 					<td>
 						<a href="<?php echo esc_url( $content['edit_url'] ); ?>" 
 						class="button button-primary">
-						View
+						<?php esc_html_e( 'View', 'nexora' ); ?>
 						</a>
 					</td>
 				</tr>
@@ -31,7 +31,7 @@
 							<?php endforeach; else : ?>
 
 				<tr>
-					<td colspan="3" style="text-align:center;">No content found</td>
+					<td colspan="3" style="text-align:center;"><?php esc_html_e( 'No content found', 'nexora' ); ?></td>
 				</tr>
 
 			<?php endif; ?>

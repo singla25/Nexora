@@ -5,19 +5,19 @@
  */
 ?>
 <?php if ( 'no_user' === $state ) : ?>
-<p>No user linked.</p>
+<p><?php esc_html_e( 'No user linked.', 'nexora' ); ?></p>
 <?php elseif ( 'no_connections' === $state ) : ?>
-<p>No connections found.</p>
+<p><?php esc_html_e( 'No connections found.', 'nexora' ); ?></p>
 <?php else : ?>
-<h3>💬 User Chat Overview</h3>
+<h3><?php esc_html_e( '💬 User Chat Overview', 'nexora' ); ?></h3>
 <table class="widefat striped" style="font-size:13px;">
 <thead>
 		<tr>
-			<th>User</th>
-			<th>Connection ID</th>
-			<th>Status</th>
-			<th>Connection Time</th>
-			<th>Threads</th>
+			<th><?php esc_html_e( 'User', 'nexora' ); ?></th>
+			<th><?php esc_html_e( 'Connection ID', 'nexora' ); ?></th>
+			<th><?php esc_html_e( 'Status', 'nexora' ); ?></th>
+			<th><?php esc_html_e( 'Connection Time', 'nexora' ); ?></th>
+			<th><?php esc_html_e( 'Threads', 'nexora' ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -44,7 +44,7 @@
 <?php endforeach; ?>
 </ul>
 <?php else : ?>
-<span style='color:#6b7280;'>No conversations</span>
+<span style='color:#6b7280;'><?php esc_html_e( 'No conversations', 'nexora' ); ?></span>
 <?php endif; ?>
 </td>
 </tr>

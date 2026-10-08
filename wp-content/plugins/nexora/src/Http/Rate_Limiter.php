@@ -207,6 +207,6 @@ class Rate_Limiter {
 	 * @return string
 	 */
 	public static function message() {
-		return 'Too many requests. Please try again later.';
+		return __( 'Too many requests. Please try again later.', 'nexora' );
 	}
 }

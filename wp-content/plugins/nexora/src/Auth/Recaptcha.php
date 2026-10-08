@@ -154,7 +154,7 @@ class Recaptcha {
 		if ( empty( $captcha_response ) ) {
 			return array(
 				'success' => false,
-				'message' => 'Captcha is required',
+				'message' => __( 'Captcha is required', 'nexora' ),
 			);
 		}
 
@@ -173,7 +173,7 @@ class Recaptcha {
 		if ( is_wp_error( $response ) ) {
 			return array(
 				'success' => false,
-				'message' => 'Captcha request failed',
+				'message' => __( 'Captcha request failed', 'nexora' ),
 			);
 		}
 
@@ -187,7 +187,7 @@ class Recaptcha {
 
 		return array(
 			'success' => false,
-			'message' => 'Captcha verification failed',
+			'message' => __( 'Captcha verification failed', 'nexora' ),
 		);
 	}
 }

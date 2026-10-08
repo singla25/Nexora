@@ -277,7 +277,7 @@ class Repository {
 
 			$user = get_userdata( $row->other_user_id );
 
-			$row->name = $user ? $user->display_name : 'User';
+			$row->name = $user ? $user->display_name : __( 'User', 'nexora' );
 		}
 
 		return $results;

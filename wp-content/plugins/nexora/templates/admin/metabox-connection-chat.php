@@ -3,18 +3,18 @@
  * @var array[] $threads  rows: id, users, subject, status, color, other_user, name
  */
 ?>
-<h3>💬 Connection Chat Threads</h3>
+<h3><?php esc_html_e( '💬 Connection Chat Threads', 'nexora' ); ?></h3>
 <?php if ( ! $threads ) : ?>
-<p>No threads found.</p>
+<p><?php esc_html_e( 'No threads found.', 'nexora' ); ?></p>
 <?php else : ?>
 <table class="widefat striped" style="font-size:13px;">
 <thead>
 		<tr>
-			<th>Thread ID</th>
-			<th>Users</th>
-			<th>Subject</th>
-			<th>Status</th>
-			<th>Action</th>
+			<th><?php esc_html_e( 'Thread ID', 'nexora' ); ?></th>
+			<th><?php esc_html_e( 'Users', 'nexora' ); ?></th>
+			<th><?php esc_html_e( 'Subject', 'nexora' ); ?></th>
+			<th><?php esc_html_e( 'Status', 'nexora' ); ?></th>
+			<th><?php esc_html_e( 'Action', 'nexora' ); ?></th>
 		</tr>
 	</thead><tbody>
 	<?php foreach ( $threads as $thread ) : ?>
@@ -41,7 +41,7 @@
 			data-user="<?php echo esc_attr( $thread['other_user'] ); ?>"
 			data-name="<?php echo esc_attr( $thread['name'] ); ?>"
 		>
-			View Chat
+			<?php esc_html_e( 'View Chat', 'nexora' ); ?>
 		</button>
 	</td>
 </tr>

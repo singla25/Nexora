@@ -9,7 +9,7 @@ $is_admin = current_user_can( 'manage_options' );
 		<div class="chat-header-left">
 			<div class="chat-avatar"></div>
 			<div>
-				<div id="chat-title">Select Chat</div>
+				<div id="chat-title"><?php esc_html_e( 'Select Chat', 'nexora' ); ?></div>
 
 				<div id="chat-subject-area"></div>
 			</div>
@@ -25,8 +25,8 @@ $is_admin = current_user_can( 'manage_options' );
 	<!-- FOOTER -->
 	<?php if ( ! $is_admin ) : ?>
 		<div class="chat-footer">
-			<input type="text" id="chat-input" placeholder="Type message...">
-			<button id="chat-send">Send</button>
+			<input type="text" id="chat-input" placeholder="<?php echo esc_attr__( 'Type message...', 'nexora' ); ?>">
+			<button id="chat-send"><?php esc_html_e( 'Send', 'nexora' ); ?></button>
 		</div>
 	<?php endif; ?>
 

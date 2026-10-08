@@ -75,7 +75,7 @@ class Login {
 		check_ajax_referer( 'profile_nonce', 'nonce' );
 
 		if ( Rate_Limiter::hit( 'otp_send' ) ) {
-			wp_send_json_error( 'Too many requests. Please try again later.' );
+			wp_send_json_error( __( 'Too many requests. Please try again later.', 'nexora' ) );
 		}
 
 		$username = sanitize_user( wp_unslash( $_POST['username'] ?? '' ) );
@@ -84,7 +84,7 @@ class Login {
 		$reply = function ( $user_id = 0 ) {
 			return array(
 				'user_id' => Otp::issue_ref( $user_id ),
-				'message' => 'If the details are correct, an OTP has been sent to your email.',
+				'message' => __( 'If the details are correct, an OTP has been sent to your email.', 'nexora' ),
 			);
 		};
 
@@ -102,8 +102,9 @@ class Login {
 
 		$otp = Otp::issue( $user->ID );
 
-		$subject = 'Reset Password OTP - Nexora';
-		$message = "Your OTP is: $otp\n\nThis OTP is valid for 10 minutes. If you did not request it, ignore this email.";
+		$subject = __( 'Reset Password OTP - Nexora', 'nexora' );
+		/* translators: %s: six-digit one-time code. */
+		$message = sprintf( __( "Your OTP is: %s\n\nThis OTP is valid for 10 minutes. If you did not request it, ignore this email.", 'nexora' ), $otp );
 
 		wp_mail( $user->user_email, $subject, $message );
 
@@ -118,14 +119,14 @@ class Login {
 		check_ajax_referer( 'profile_nonce', 'nonce' );
 
 		if ( Rate_Limiter::hit( 'otp_verify' ) ) {
-			wp_send_json_error( 'Too many attempts. Please try again later.' );
+			wp_send_json_error( __( 'Too many attempts. Please try again later.', 'nexora' ) );
 		}
 
 		$user_id = Otp::resolve_ref( sanitize_text_field( wp_unslash( $_POST['user_id'] ?? '' ) ) );
 		$otp     = sanitize_text_field( wp_unslash( $_POST['otp'] ?? '' ) );
 
 		if ( ! $user_id ) {
-			wp_send_json_error( 'Invalid or expired OTP' );
+			wp_send_json_error( __( 'Invalid or expired OTP', 'nexora' ) );
 		}
 
 		$result = Otp::verify( $user_id, $otp );
@@ -136,7 +137,7 @@ class Login {
 
 		wp_send_json_success(
 			array(
-				'message' => 'OTP verified',
+				'message' => __( 'OTP verified', 'nexora' ),
 				'token'   => $result['token'],
 			)
 		);
@@ -150,7 +151,7 @@ class Login {
 		check_ajax_referer( 'profile_nonce', 'nonce' );
 
 		if ( Rate_Limiter::hit( 'reset_password' ) ) {
-			wp_send_json_error( 'Too many requests. Please try again later.' );
+			wp_send_json_error( __( 'Too many requests. Please try again later.', 'nexora' ) );
 		}
 
 		$ref     = sanitize_text_field( wp_unslash( $_POST['user_id'] ?? '' ) );
@@ -161,22 +162,22 @@ class Login {
 		$password = wp_unslash( $_POST['password'] ?? '' );
 
 		if ( ! $user_id || '' === $token ) {
-			wp_send_json_error( 'Invalid request' );
+			wp_send_json_error( __( 'Invalid request', 'nexora' ) );
 		}
 
 		// The OTP must have been verified first (proves ownership of the email)
 		if ( ! Otp::token_valid( $user_id, $token ) ) {
-			wp_send_json_error( 'Reset session expired. Please verify OTP again.' );
+			wp_send_json_error( __( 'Reset session expired. Please verify OTP again.', 'nexora' ) );
 		}
 
 		if ( strlen( $password ) < 8 ) {
-			wp_send_json_error( 'Password must be at least 8 characters' );
+			wp_send_json_error( __( 'Password must be at least 8 characters', 'nexora' ) );
 		}
 
 		$user = get_userdata( $user_id );
 
 		if ( ! $user ) {
-			wp_send_json_error( 'Invalid request' );
+			wp_send_json_error( __( 'Invalid request', 'nexora' ) );
 		}
 
 		wp_set_password( $password, $user_id );
@@ -187,7 +188,7 @@ class Login {
 
 		wp_mail(
 			$user->user_email,
-			'Password Reset Successful - Nexora',
+			__( 'Password Reset Successful - Nexora', 'nexora' ),
 			View::render( 'mail/password-reset-success', array( 'user' => $user ) ),
 			array( 'Content-Type: text/html; charset=UTF-8' )
 		);
@@ -244,7 +245,7 @@ class Login {
 		check_ajax_referer( 'profile_nonce', 'nonce' );
 
 		if ( Rate_Limiter::hit( 'login' ) ) {
-			wp_send_json_error( 'Too many login attempts. Please try again later.' );
+			wp_send_json_error( __( 'Too many login attempts. Please try again later.', 'nexora' ) );
 		}
 
 		$captcha = new Recaptcha();
@@ -261,7 +262,7 @@ class Login {
 		$password = wp_unslash( $_POST['password'] ?? '' );
 
 		if ( '' === $login_input || '' === $password ) {
-			wp_send_json_error( 'Invalid username or password' );
+			wp_send_json_error( __( 'Invalid username or password', 'nexora' ) );
 		}
 
 		// Allow login with email
@@ -271,7 +272,7 @@ class Login {
 
 			// Same error as a wrong password (no account enumeration)
 			if ( ! $by_email ) {
-				wp_send_json_error( 'Invalid username or password' );
+				wp_send_json_error( __( 'Invalid username or password', 'nexora' ) );
 			}
 
 			$login_input = $by_email->user_login;
@@ -287,7 +288,7 @@ class Login {
 		);
 
 		if ( is_wp_error( $user ) ) {
-			wp_send_json_error( 'Invalid username or password' );
+			wp_send_json_error( __( 'Invalid username or password', 'nexora' ) );
 		}
 
 		wp_send_json_success(

@@ -408,19 +408,19 @@ class Private_Documents {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		if ( ! is_user_logged_in() ) {
-			wp_die( 'Please log in.', '', array( 'response' => 401 ) );
+			wp_die( esc_html__( 'Please log in.', 'nexora' ), '', array( 'response' => 401 ) );
 			return;
 		}
 
 		if ( ! self::can_view( $id, get_current_user_id() ) ) {
-			wp_die( 'You cannot view this document.', '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'You cannot view this document.', 'nexora' ), '', array( 'response' => 403 ) );
 			return;
 		}
 
 		$path = self::resolve_path( $id, $size );
 
 		if ( ! $path || ! is_file( $path ) ) {
-			wp_die( 'File not found.', '', array( 'response' => 404 ) );
+			wp_die( esc_html__( 'File not found.', 'nexora' ), '', array( 'response' => 404 ) );
 			return;
 		}
 

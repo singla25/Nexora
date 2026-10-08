@@ -26,12 +26,12 @@ class Service {
 	public function send_request( $sender_user_id, $sender_profile_id, $receiver_profile_id ) {
 
 		if ( $receiver_profile_id === $sender_profile_id ) {
-			return $this->fail( 'You cannot connect with yourself' );
+			return $this->fail( __( 'You cannot connect with yourself', 'nexora' ) );
 		}
 
 		// No duplicate pending / accepted connection in either direction
 		if ( Repository::active_between( $sender_profile_id, $receiver_profile_id ) ) {
-			return $this->fail( 'A connection or request already exists' );
+			return $this->fail( __( 'A connection or request already exists', 'nexora' ) );
 		}
 
 		$sender = array(
@@ -49,7 +49,7 @@ class Service {
 		$post_id = Repository::create_pending( $sender, $receiver );
 
 		if ( ! $post_id ) {
-			return $this->fail( 'Could not send request' );
+			return $this->fail( __( 'Could not send request', 'nexora' ) );
 		}
 
 		$notification = new Notifications();
@@ -84,19 +84,19 @@ class Service {
 
 		// Only the two people on the connection may change it
 		if ( $current_user_id !== $sender_user_id && $current_user_id !== $receiver_user_id ) {
-			return $this->fail( 'Unauthorized' );
+			return $this->fail( __( 'Unauthorized', 'nexora' ) );
 		}
 
 		// Only the receiver may accept / reject, and only a pending request
 		if ( in_array( $status, array( 'accepted', 'rejected' ), true ) ) {
 			if ( $current_user_id !== $receiver_user_id || 'pending' !== $old_status ) {
-				return $this->fail( 'Unauthorized' );
+				return $this->fail( __( 'Unauthorized', 'nexora' ) );
 			}
 		}
 
 		// Only an accepted connection can be removed
 		if ( 'removed' === $status && 'accepted' !== $old_status ) {
-			return $this->fail( 'Connection is not active' );
+			return $this->fail( __( 'Connection is not active', 'nexora' ) );
 		}
 
 		Repository::set_status( $connection_id, $status );
@@ -146,7 +146,7 @@ class Service {
 		} elseif ( 'removed' === $status ) {
 			$message = "{$actor_user_name} removed connection with {$receiver_user_name}";
 		} else {
-			$message = 'Connection status updated';
+			$message = __( 'Connection status updated', 'nexora' );
 		}
 
 		$notification = new Notifications();

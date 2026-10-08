@@ -26,7 +26,7 @@ if ( ! empty( $users ) ) :
 		</p>
 
 			<?php if ( $mutual ) : ?>
-		<span class="mutual-badge">Mutual</span>
+		<span class="mutual-badge"><?php esc_html_e( 'Mutual', 'nexora' ); ?></span>
 		<?php endif; ?>
 
 	</div>

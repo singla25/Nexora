@@ -34,11 +34,15 @@
 						<div class="nx-cta">
 							<?php if ( $logged_in ) : ?>
 								<a href="<?php echo esc_url( $primary_url ); ?>" class="nx-btn nx-primary">
-									<?php echo esc_html( sprintf( 'Welcome back, %s', $user->display_name ) ); ?> &rarr;
+									<?php
+									/* translators: %s: member's display name. */
+									echo esc_html( sprintf( __( 'Welcome back, %s', 'nexora' ), $user->display_name ) );
+									?>
+									&rarr;
 								</a>
 							<?php else : ?>
-								<a href="<?php echo esc_url( $reg_url ); ?>" class="nx-btn nx-primary">Get Started</a>
-								<a href="<?php echo esc_url( $login_url ); ?>" class="nx-btn nx-outline">Login</a>
+								<a href="<?php echo esc_url( $reg_url ); ?>" class="nx-btn nx-primary"><?php esc_html_e( 'Get Started', 'nexora' ); ?></a>
+								<a href="<?php echo esc_url( $login_url ); ?>" class="nx-btn nx-outline"><?php esc_html_e( 'Login', 'nexora' ); ?></a>
 							<?php endif; ?>
 						</div>
 					</div>
@@ -60,19 +64,19 @@
 					<div class="nx-stats-grid">
 						<div class="nx-stat-box">
 							<h3><?php echo esc_html( $stats['members'] ); ?></h3>
-							<p>Members</p>
+							<p><?php esc_html_e( 'Members', 'nexora' ); ?></p>
 						</div>
 						<div class="nx-stat-box">
 							<h3><?php echo esc_html( $stats['connections'] ); ?></h3>
-							<p>Connections</p>
+							<p><?php esc_html_e( 'Connections', 'nexora' ); ?></p>
 						</div>
 						<div class="nx-stat-box">
 							<h3><?php echo esc_html( $stats['posts'] ); ?></h3>
-							<p>Posts shared</p>
+							<p><?php esc_html_e( 'Posts shared', 'nexora' ); ?></p>
 						</div>
 						<div class="nx-stat-box">
 							<h3><?php echo esc_html( $stats['chats'] ); ?></h3>
-							<p>Conversations</p>
+							<p><?php esc_html_e( 'Conversations', 'nexora' ); ?></p>
 						</div>
 					</div>
 				</div>
@@ -81,7 +85,7 @@
 			<!-- FEATURES (editable in Nexora > Settings) -->
 			<section class="nx-section">
 				<div class="nx-container">
-					<h2 class="nx-section-title">Why Nexora?</h2>
+					<h2 class="nx-section-title"><?php esc_html_e( 'Why Nexora?', 'nexora' ); ?></h2>
 
 					<div class="nx-grid">
 						<?php foreach ( $features as $feature ) : ?>
@@ -97,13 +101,13 @@
 			<!-- HOW IT WORKS -->
 			<section class="nx-section nx-steps">
 				<div class="nx-container">
-					<h2 class="nx-section-title">How it works</h2>
+					<h2 class="nx-section-title"><?php esc_html_e( 'How it works', 'nexora' ); ?></h2>
 
 					<div class="nx-steps-grid">
-						<div class="nx-step"><span>1</span><p>Sign up</p></div>
-						<div class="nx-step"><span>2</span><p>Build your profile</p></div>
-						<div class="nx-step"><span>3</span><p>Connect</p></div>
-						<div class="nx-step"><span>4</span><p>Share &amp; chat</p></div>
+						<div class="nx-step"><span>1</span><p><?php esc_html_e( 'Sign up', 'nexora' ); ?></p></div>
+						<div class="nx-step"><span>2</span><p><?php esc_html_e( 'Build your profile', 'nexora' ); ?></p></div>
+						<div class="nx-step"><span>3</span><p><?php esc_html_e( 'Connect', 'nexora' ); ?></p></div>
+						<div class="nx-step"><span>4</span><p><?php esc_html_e( 'Share & chat', 'nexora' ); ?></p></div>
 					</div>
 				</div>
 			</section>
@@ -113,7 +117,7 @@
 				<!-- PREVIEW (only the images set in Settings) -->
 				<section class="nx-section">
 					<div class="nx-container">
-						<h2 class="nx-section-title">A look inside</h2>
+						<h2 class="nx-section-title"><?php esc_html_e( 'A look inside', 'nexora' ); ?></h2>
 
 						<div class="nx-demo-grid">
 							<?php foreach ( $shots as $shot ) : ?>
@@ -131,7 +135,7 @@
 				<!-- TESTIMONIALS (editable in Nexora > Settings; hidden when empty) -->
 				<section class="nx-section">
 					<div class="nx-container">
-						<h2 class="nx-section-title">Loved by members</h2>
+						<h2 class="nx-section-title"><?php esc_html_e( 'Loved by members', 'nexora' ); ?></h2>
 
 						<div class="nx-test-grid">
 							<?php foreach ( $testimonials as $t ) : ?>
@@ -153,8 +157,8 @@
 			<?php if ( ! $logged_in ) : ?>
 				<!-- CTA -->
 				<section class="nx-final-cta">
-					<h2>Join Nexora today</h2>
-					<a href="<?php echo esc_url( $reg_url ); ?>" class="nx-btn nx-btn--inverse">Get Started</a>
+					<h2><?php esc_html_e( 'Join Nexora today', 'nexora' ); ?></h2>
+					<a href="<?php echo esc_url( $reg_url ); ?>" class="nx-btn nx-btn--inverse"><?php esc_html_e( 'Get Started', 'nexora' ); ?></a>
 				</section>
 			<?php endif; ?>
 

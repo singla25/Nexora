@@ -30,13 +30,20 @@ class Contact_Form {
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle' ) );
 	}
 
-	/** Message shown after the form was submitted, keyed by the nx_contact query argument. */
-	const NOTICES = array(
-		'sent'    => array( 'ok', 'status', 'Thank you! Your message has been sent. We will get back to you soon.' ),
-		'invalid' => array( 'error', 'alert', 'Please fill in your name, a valid email and a message.' ),
-		'limit'   => array( 'error', 'alert', 'Too many messages sent. Please try again in a few minutes.' ),
-		'error'   => array( 'error', 'alert', 'Sorry, the message could not be sent. Please try again later.' ),
-	);
+	/**
+	 * Messages shown after the form was submitted, keyed by the nx_contact query argument.
+	 *
+	 * @return array[] Each is [type (ok|error), ARIA role, text].
+	 */
+	private function notices() {
+
+		return array(
+			'sent'    => array( 'ok', 'status', __( 'Thank you! Your message has been sent. We will get back to you soon.', 'nexora' ) ),
+			'invalid' => array( 'error', 'alert', __( 'Please fill in your name, a valid email and a message.', 'nexora' ) ),
+			'limit'   => array( 'error', 'alert', __( 'Too many messages sent. Please try again in a few minutes.', 'nexora' ) ),
+			'error'   => array( 'error', 'alert', __( 'Sorry, the message could not be sent. Please try again later.', 'nexora' ) ),
+		);
+	}
 
 	/**
 	 * Renders the contact form with the result of the last submission.
@@ -53,9 +60,11 @@ class Contact_Form {
 
 		$notice = null;
 
-		if ( isset( self::NOTICES[ $status ] ) ) {
-			[$type, $role, $text] = self::NOTICES[ $status ];
-			$notice               = array(
+		$notices = $this->notices();
+
+		if ( isset( $notices[ $status ] ) ) {
+			[ $type, $role, $text ] = $notices[ $status ];
+			$notice                 = array(
 				'type' => $type,
 				'role' => $role,
 				'text' => $text,
@@ -117,7 +126,7 @@ class Contact_Form {
 		}
 
 		$subject = '[' . wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . '] '
-			. ( '' !== $subject ? $subject : 'New contact message' );
+			. ( '' !== $subject ? $subject : __( 'New contact message', 'nexora' ) );
 
 		$body = "Name: {$name}\nEmail: {$email}\n\n{$message}\n";
 

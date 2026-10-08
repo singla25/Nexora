@@ -197,7 +197,8 @@ class Upload_Policy {
 		$max = $this->max_bytes();
 
 		if ( ! empty( $file['size'] ) && (int) $file['size'] > $max ) {
-			$file['error'] = sprintf( 'File is too large. The maximum size is %s.', size_format( $max ) );
+			/* translators: %s: maximum upload size, e.g. 8 MB. */
+			$file['error'] = sprintf( __( 'File is too large. The maximum size is %s.', 'nexora' ), size_format( $max ) );
 			return $file;
 		}
 
@@ -213,7 +214,7 @@ class Upload_Policy {
 		);
 
 		if ( $count >= $limit ) {
-			$file['error'] = 'You have reached the maximum number of uploaded files. Please remove some before uploading more.';
+			$file['error'] = __( 'You have reached the maximum number of uploaded files. Please remove some before uploading more.', 'nexora' );
 		}
 
 		return $file;

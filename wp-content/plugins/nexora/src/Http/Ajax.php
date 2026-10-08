@@ -46,29 +46,29 @@ class Ajax {
 	 * Guard for logged-in member endpoints: nonce, login, 'read' capability and
 	 * (optionally) a linked user_profile post. Ends the request on failure.
 	 *
-	 * @param string $nonce_action Nonce action the page localized.
-	 * @param bool   $require_profile Require a user_profile post for the current user.
-	 * @param string $unauth_message Error text for logged-out callers.
+	 * @param string      $nonce_action Nonce action the page localized.
+	 * @param bool        $require_profile Require a user_profile post for the current user.
+	 * @param string|null $unauth_message Error text for logged-out callers (a generic one when omitted).
 	 * @return array user_id and profile_id.
 	 */
-	public static function member( $nonce_action = 'profile_nonce', $require_profile = true, $unauth_message = 'Unauthorized access' ) {
+	public static function member( $nonce_action = 'profile_nonce', $require_profile = true, $unauth_message = null ) {
 
 		check_ajax_referer( $nonce_action, 'nonce' );
 
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( $unauth_message );
+			wp_send_json_error( null !== $unauth_message ? $unauth_message : __( 'Unauthorized access', 'nexora' ) );
 		}
 
 		$user_id = get_current_user_id();
 
 		if ( ! current_user_can( 'read' ) ) {
-			wp_send_json_error( 'Permission denied' );
+			wp_send_json_error( __( 'Permission denied', 'nexora' ) );
 		}
 
 		$profile_id = (int) get_user_meta( $user_id, '_profile_id', true );
 
 		if ( $require_profile && ( ! $profile_id || get_post_type( $profile_id ) !== 'user_profile' ) ) {
-			wp_send_json_error( 'Profile not found' );
+			wp_send_json_error( __( 'Profile not found', 'nexora' ) );
 		}
 
 		return array(

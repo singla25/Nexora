@@ -85,7 +85,7 @@ class Ajax extends Member_Ajax {
 		$receiver_profile_id = absint( $_POST['receiver_profile_id'] ?? 0 );
 
 		if ( ! $receiver_profile_id || get_post_type( $receiver_profile_id ) !== 'user_profile' ) {
-			wp_send_json_error( 'User not found' );
+			wp_send_json_error( __( 'User not found', 'nexora' ) );
 		}
 
 		if ( Rate_Limiter::hit( 'connection_request', 'u' . $auth['user_id'] ) ) {
@@ -98,7 +98,7 @@ class Ajax extends Member_Ajax {
 			wp_send_json_error( $result['message'] );
 		}
 
-		wp_send_json_success( 'Request sent' );
+		wp_send_json_success( __( 'Request sent', 'nexora' ) );
 	}
 
 	/**
@@ -137,11 +137,11 @@ class Ajax extends Member_Ajax {
 		$status        = $this->post_value( 'status' );
 
 		if ( ! $connection_id || get_post_type( $connection_id ) !== 'user_connections' ) {
-			wp_send_json_error( 'Connection not found' );
+			wp_send_json_error( __( 'Connection not found', 'nexora' ) );
 		}
 
 		if ( ! in_array( $status, array( 'accepted', 'rejected', 'removed' ), true ) ) {
-			wp_send_json_error( 'Invalid status' );
+			wp_send_json_error( __( 'Invalid status', 'nexora' ) );
 		}
 
 		$result = $this->service->change_status( $auth['user_id'], $connection_id, $status );
@@ -211,7 +211,7 @@ class Ajax extends Member_Ajax {
 		$profile_id = absint( $_POST['profile_id'] ?? 0 );
 
 		if ( ! $profile_id || get_post_type( $profile_id ) !== 'user_profile' ) {
-			wp_send_json_error( 'Profile not found' );
+			wp_send_json_error( __( 'Profile not found', 'nexora' ) );
 		}
 
 		wp_send_json_success(
@@ -219,7 +219,7 @@ class Ajax extends Member_Ajax {
 				'profile/connection-cards',
 				array(
 					'users'         => $this->card_rows( Repository::accepted_profile_ids( $profile_id ) ),
-					'empty_message' => 'No connections found',
+					'empty_message' => __( 'No connections found', 'nexora' ),
 					'mutual'        => false,
 				)
 			)
@@ -235,7 +235,7 @@ class Ajax extends Member_Ajax {
 		$other_profile_id = absint( $_POST['profile_id'] ?? 0 );
 
 		if ( ! $other_profile_id || get_post_type( $other_profile_id ) !== 'user_profile' ) {
-			wp_send_json_error( 'Profile not found' );
+			wp_send_json_error( __( 'Profile not found', 'nexora' ) );
 		}
 
 		$mutual_ids = array_intersect(
@@ -248,7 +248,7 @@ class Ajax extends Member_Ajax {
 				'profile/connection-cards',
 				array(
 					'users'         => $this->card_rows( $mutual_ids ),
-					'empty_message' => 'No mutual connections found',
+					'empty_message' => __( 'No mutual connections found', 'nexora' ),
 					'mutual'        => true,
 				)
 			)

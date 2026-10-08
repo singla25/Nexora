@@ -42,7 +42,7 @@ class List_Columns {
 
 			// Add after Title column
 			if ( 'title' === $key ) {
-				$new_columns['user_full_name'] = 'Name';
+				$new_columns['user_full_name'] = __( 'Name', 'nexora' );
 			}
 		}
 
@@ -83,7 +83,7 @@ class List_Columns {
 
 			// Add after Title column
 			if ( 'title' === $key ) {
-				$new_columns['connection_status'] = 'Status';
+				$new_columns['connection_status'] = __( 'Status', 'nexora' );
 			}
 		}
 
@@ -134,7 +134,7 @@ class List_Columns {
 
 			// Add after Title column
 			if ( 'title' === $key ) {
-				$new_columns['user_name'] = 'Name';
+				$new_columns['user_name'] = __( 'Name', 'nexora' );
 			}
 		}
 

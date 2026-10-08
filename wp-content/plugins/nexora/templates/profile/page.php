@@ -17,12 +17,12 @@
 
 				<!-- TABS -->
 				<div class="profile-tabs">
-					<button class="tab-btn active" data-tab="user-info">User Information</button>
-					<button class="tab-btn" data-tab="connections">Connections</button>
+					<button class="tab-btn active" data-tab="user-info"><?php esc_html_e( 'User Information', 'nexora' ); ?></button>
+					<button class="tab-btn" data-tab="connections"><?php esc_html_e( 'Connections', 'nexora' ); ?></button>
 					<?php if ( $is_owner ) : ?>
-						<button class="tab-btn" data-tab="content">Content</button>
+						<button class="tab-btn" data-tab="content"><?php esc_html_e( 'Content', 'nexora' ); ?></button>
 						<button class="tab-btn" data-tab="notifications">
-							Notifications
+							<?php esc_html_e( 'Notifications', 'nexora' ); ?>
 							<?php if ( $unread_count > 0 ) : ?>
 								<span class="noti-badge">
 									<?php echo (int) $unread_count; ?>
@@ -46,7 +46,7 @@
 				<div style="text-align:center; margin-top:30px;">
 					<a class="logout-btn" href="<?php echo esc_url( $logout_url ); ?>" 
 					style="display:inline-block; padding:12px 25px; background:#ef4444; color:#fff; border-radius:10px; text-decoration:none;">
-						Logout
+						<?php esc_html_e( 'Logout', 'nexora' ); ?>
 					</a>
 				</div>
 			<?php endif; ?>

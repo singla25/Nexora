@@ -31,18 +31,18 @@ class Meta_Boxes {
 	 */
 	public function add_meta_boxes() {
 
-		add_meta_box( 'user_personal_details', 'User Personal Details', array( $this, 'user_personal_details' ), 'user_profile' );
-		add_meta_box( 'user_address_details', 'User Address Details', array( $this, 'user_address_details' ), 'user_profile' );
-		add_meta_box( 'user_work_details', 'User Work Details', array( $this, 'user_work_details' ), 'user_profile' );
-		add_meta_box( 'user_document_details', 'User Document Details', array( $this, 'user_document_details' ), 'user_profile' );
-		add_meta_box( 'user_connection_details', 'User Connection Details', array( $this, 'user_connection_details' ), 'user_profile' );
-		add_meta_box( 'user_content_details', 'User Content Details', array( $this, 'user_content_details' ), 'user_profile' );
-		add_meta_box( 'user_chat_details', 'User Chat Details', array( $this, 'user_chat_details' ), 'user_profile' );
+		add_meta_box( 'user_personal_details', __( 'User Personal Details', 'nexora' ), array( $this, 'user_personal_details' ), 'user_profile' );
+		add_meta_box( 'user_address_details', __( 'User Address Details', 'nexora' ), array( $this, 'user_address_details' ), 'user_profile' );
+		add_meta_box( 'user_work_details', __( 'User Work Details', 'nexora' ), array( $this, 'user_work_details' ), 'user_profile' );
+		add_meta_box( 'user_document_details', __( 'User Document Details', 'nexora' ), array( $this, 'user_document_details' ), 'user_profile' );
+		add_meta_box( 'user_connection_details', __( 'User Connection Details', 'nexora' ), array( $this, 'user_connection_details' ), 'user_profile' );
+		add_meta_box( 'user_content_details', __( 'User Content Details', 'nexora' ), array( $this, 'user_content_details' ), 'user_profile' );
+		add_meta_box( 'user_chat_details', __( 'User Chat Details', 'nexora' ), array( $this, 'user_chat_details' ), 'user_profile' );
 
-		add_meta_box( 'user_connection_meta_box', 'User Connection Details', array( $this, 'user_connection_meta_box' ), 'user_connections' );
-		add_meta_box( 'user_connection_chat_box', 'User Connection Chat Details', array( $this, 'user_connection_chat_box' ), 'user_connections' );
+		add_meta_box( 'user_connection_meta_box', __( 'User Connection Details', 'nexora' ), array( $this, 'user_connection_meta_box' ), 'user_connections' );
+		add_meta_box( 'user_connection_chat_box', __( 'User Connection Chat Details', 'nexora' ), array( $this, 'user_connection_chat_box' ), 'user_connections' );
 
-		add_meta_box( 'user_content_meta_box', 'User Content Info', array( $this, 'render_user_content_meta_box' ), 'user_content' );
+		add_meta_box( 'user_content_meta_box', __( 'User Content Info', 'nexora' ), array( $this, 'render_user_content_meta_box' ), 'user_content' );
 	}
 
 	/**
@@ -98,11 +98,11 @@ class Meta_Boxes {
 	public function user_document_details( $post ) {
 
 		$labels = array(
-			'profile_image'   => 'Profile Image',
-			'cover_image'     => 'Cover Image',
-			'aadhaar_card'    => 'Aadhar Card',
-			'driving_license' => 'Driving License',
-			'company_id_card' => 'Company ID Card',
+			'profile_image'   => __( 'Profile Image', 'nexora' ),
+			'cover_image'     => __( 'Cover Image', 'nexora' ),
+			'aadhaar_card'    => __( 'Aadhar Card', 'nexora' ),
+			'driving_license' => __( 'Driving License', 'nexora' ),
+			'company_id_card' => __( 'Company ID Card', 'nexora' ),
 		);
 
 		$docs = array();
@@ -234,7 +234,7 @@ class Meta_Boxes {
 
 			foreach ( $chat_db->get_threads_by_connection( $conn_id ) as $t ) {
 				$threads[] = array(
-					'subject' => ! empty( $t->subject ) ? $t->subject : 'No Subject',
+					'subject' => ! empty( $t->subject ) ? $t->subject : __( 'No Subject', 'nexora' ),
 					'status'  => $t->status,
 					'color'   => 'active' === $t->status ? '#16a34a' : '#dc2626',
 				);
@@ -320,7 +320,7 @@ class Meta_Boxes {
 			$threads[] = array(
 				'id'         => $thread->id,
 				'users'      => $user1 . ' & ' . $user2,
-				'subject'    => ! empty( $thread->subject ) ? $thread->subject : 'No Subject',
+				'subject'    => ! empty( $thread->subject ) ? $thread->subject : __( 'No Subject', 'nexora' ),
 				'status'     => $thread->status,
 				'color'      => 'active' === $thread->status ? '#16a34a' : '#dc2626',
 				// Admin screen: never use the logged-in admin as the "other" user

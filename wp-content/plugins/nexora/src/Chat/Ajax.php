@@ -35,7 +35,7 @@ class Ajax {
 	 */
 	private function authorize() {
 
-		return \Nexora\Http\Ajax::member( 'nexora_chat_nonce', false, 'Unauthorized' )['user_id'];
+		return \Nexora\Http\Ajax::member( 'nexora_chat_nonce', false, __( 'Unauthorized', 'nexora' ) )['user_id'];
 	}
 
 	/**
@@ -48,13 +48,13 @@ class Ajax {
 	private function require_participant( $thread_id, $user_id ) {
 
 		if ( ! $thread_id ) {
-			wp_send_json_error( 'Invalid thread' );
+			wp_send_json_error( __( 'Invalid thread', 'nexora' ) );
 		}
 
 		$chat_db = new \Nexora\Chat\Repository();
 
 		if ( ! $chat_db->is_user_in_thread( $thread_id, $user_id ) ) {
-			wp_send_json_error( 'Access denied' );
+			wp_send_json_error( __( 'Access denied', 'nexora' ) );
 		}
 
 		return $chat_db;
@@ -133,7 +133,7 @@ class Ajax {
 		$connection_id = absint( $_POST['connection_id'] ?? 0 );
 
 		if ( ! $connection_id || ! $this->user_in_connection( $connection_id, $user_id ) ) {
-			wp_send_json_error( 'Access denied' );
+			wp_send_json_error( __( 'Access denied', 'nexora' ) );
 		}
 
 		$chat_db = new \Nexora\Chat\Repository();
@@ -179,7 +179,7 @@ class Ajax {
 
 		foreach ( $messages as $msg ) {
 			$user             = get_userdata( $msg->sender_id );
-			$msg->sender_name = $user ? $user->display_name : 'User';
+			$msg->sender_name = $user ? $user->display_name : __( 'User', 'nexora' );
 		}
 
 		wp_send_json_success( $messages );
@@ -208,11 +208,11 @@ class Ajax {
 		$message   = trim( sanitize_textarea_field( wp_unslash( $_POST['message'] ?? '' ) ) );
 
 		if ( ! $thread_id || '' === $message ) {
-			wp_send_json_error( 'Invalid data' );
+			wp_send_json_error( __( 'Invalid data', 'nexora' ) );
 		}
 
 		if ( mb_strlen( $message ) > 2000 ) {
-			wp_send_json_error( 'Message is too long' );
+			wp_send_json_error( __( 'Message is too long', 'nexora' ) );
 		}
 
 		$chat_db = $this->require_participant( $thread_id, $user_id );
@@ -224,11 +224,11 @@ class Ajax {
 		$thread = $chat_db->get_thread_status( $thread_id );
 
 		if ( ! $thread ) {
-			wp_send_json_error( 'Thread not found' );
+			wp_send_json_error( __( 'Thread not found', 'nexora' ) );
 		}
 
 		if ( 'active' !== $thread->status ) {
-			wp_send_json_error( 'This conversation is closed' );
+			wp_send_json_error( __( 'This conversation is closed', 'nexora' ) );
 		}
 
 		$message_id = $chat_db->send_message( $thread_id, $user_id, $message );
@@ -252,16 +252,16 @@ class Ajax {
 		$connection_id = absint( $_POST['connection_id'] ?? 0 );
 
 		if ( ! $user2 || '' === $subject || ! $connection_id ) {
-			wp_send_json_error( 'Invalid data' );
+			wp_send_json_error( __( 'Invalid data', 'nexora' ) );
 		}
 
 		if ( mb_strlen( $subject ) > 255 ) {
-			wp_send_json_error( 'Subject is too long' );
+			wp_send_json_error( __( 'Subject is too long', 'nexora' ) );
 		}
 
 		// The connection must be accepted and link exactly these two users
 		if ( ! $this->user_in_connection( $connection_id, $user1 ) ) {
-			wp_send_json_error( 'Access denied' );
+			wp_send_json_error( __( 'Access denied', 'nexora' ) );
 		}
 
 		$sender   = (int) get_post_meta( $connection_id, 'sender_user_id', true );
@@ -269,14 +269,14 @@ class Ajax {
 		$other    = ( $sender === $user1 ) ? $receiver : $sender;
 
 		if ( $other !== $user2 || get_post_meta( $connection_id, 'status', true ) !== 'accepted' ) {
-			wp_send_json_error( 'You can only chat with your connections' );
+			wp_send_json_error( __( 'You can only chat with your connections', 'nexora' ) );
 		}
 
 		$chat_db   = new \Nexora\Chat\Repository();
 		$thread_id = $chat_db->create_thread( array( $user1, $user2 ), $connection_id, 'active', 'private', $subject );
 
 		if ( ! $thread_id ) {
-			wp_send_json_error( 'Could not create conversation' );
+			wp_send_json_error( __( 'Could not create conversation', 'nexora' ) );
 		}
 
 		wp_send_json_success(
@@ -313,7 +313,7 @@ class Ajax {
 		$subject   = sanitize_text_field( wp_unslash( $_POST['subject'] ?? '' ) );
 
 		if ( '' === $subject || mb_strlen( $subject ) > 255 ) {
-			wp_send_json_error( 'Invalid subject' );
+			wp_send_json_error( __( 'Invalid subject', 'nexora' ) );
 		}
 
 		$chat_db = $this->require_participant( $thread_id, $user_id );

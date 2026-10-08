@@ -3,13 +3,13 @@
 					<div class="tab-content" id="content">
 						<div class="content-header">
 							<div class="content-left">
-								<h3>Content</h3>
-								<span class="content-sub">See Content of Other Users</span>
+								<h3><?php esc_html_e( 'Content', 'nexora' ); ?></h3>
+								<span class="content-sub"><?php esc_html_e( 'See Content of Other Users', 'nexora' ); ?></span>
 							</div>
 
 							<div class="content-right">
-								<button class="content-tab" data-type="add">Add New</button>
-								<button class="content-tab" data-type="history">History</button>
+								<button class="content-tab" data-type="add"><?php esc_html_e( 'Add New', 'nexora' ); ?></button>
+								<button class="content-tab" data-type="history"><?php esc_html_e( 'History', 'nexora' ); ?></button>
 							</div>
 						</div>
 
@@ -50,8 +50,8 @@
 								<!-- EMPTY STATE -->
 								<div class="empty-content">
 									<div class="empty-icon">📭</div>
-									<h3>No Content Yet</h3>
-									<p>No one else has posted anything yet.</p>
+									<h3><?php esc_html_e( 'No Content Yet', 'nexora' ); ?></h3>
+									<p><?php esc_html_e( 'No one else has posted anything yet.', 'nexora' ); ?></p>
 								</div>
 
 							<?php endif; ?>
@@ -61,8 +61,8 @@
 								<!-- OPTIONAL: if literally no posts exist at all -->
 								<div class="empty-content">
 									<div class="empty-icon">📭</div>
-									<h3>No Content Yet</h3>
-									<p>No one else has posted anything yet.</p>
+									<h3><?php esc_html_e( 'No Content Yet', 'nexora' ); ?></h3>
+									<p><?php esc_html_e( 'No one else has posted anything yet.', 'nexora' ); ?></p>
 								</div>
 
 							<?php endif; ?>

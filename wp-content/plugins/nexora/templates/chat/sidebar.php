@@ -3,12 +3,12 @@
 
 	<!-- HEADER -->
 	<div class="chat-sidebar-header">
-		<h3>Chats</h3>
+		<h3><?php esc_html_e( 'Chats', 'nexora' ); ?></h3>
 	</div>
 
 	<!-- SEARCH -->
 	<div class="chat-search-box">
-		<input type="text" id="chat-search" placeholder="Search users...">
+		<input type="text" id="chat-search" placeholder="<?php echo esc_attr__( 'Search users...', 'nexora' ); ?>">
 		<div id="chat-search-results"></div>
 	</div>
 

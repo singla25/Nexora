@@ -2,9 +2,9 @@
 <table style="width:100%; border-collapse:collapse;">
 	<thead>
 		<tr>
-			<th style="padding:8px;">Title</th>
-			<th style="padding:8px;">Date</th>
-			<th style="padding:8px;">Action</th>
+			<th style="padding:8px;"><?php esc_html_e( 'Title', 'nexora' ); ?></th>
+			<th style="padding:8px;"><?php esc_html_e( 'Date', 'nexora' ); ?></th>
+			<th style="padding:8px;"><?php esc_html_e( 'Action', 'nexora' ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -26,7 +26,7 @@
 					data-image="<?php echo esc_url( $entry['image'] ); ?>"
 					data-date="<?php echo esc_attr( $entry['date'] ); ?>"
 				>
-					View
+					<?php esc_html_e( 'View', 'nexora' ); ?>
 				</button>
 
 			</td>
@@ -35,7 +35,7 @@
 			<?php endforeach; else : ?>
 
 		<tr>
-			<td colspan="3" style="text-align:center;">No content found</td>
+			<td colspan="3" style="text-align:center;"><?php esc_html_e( 'No content found', 'nexora' ); ?></td>
 		</tr>
 
 	<?php endif; ?>

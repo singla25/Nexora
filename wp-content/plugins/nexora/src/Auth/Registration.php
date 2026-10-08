@@ -103,7 +103,7 @@ class Registration {
 
 		// Basic throttling: max 5 sign-ups per IP per hour
 		if ( Rate_Limiter::blocked( 'register' ) ) {
-			wp_send_json_error( 'Too many registrations. Please try again later.' );
+			wp_send_json_error( __( 'Too many registrations. Please try again later.', 'nexora' ) );
 		}
 
 		$captcha = new Recaptcha();
@@ -124,7 +124,7 @@ class Registration {
 
 		wp_send_json_success(
 			array(
-				'message'  => 'Registration successful',
+				'message'  => __( 'Registration successful', 'nexora' ),
 				'redirect' => Urls::profile( $input['user_name'] ),
 			)
 		);
@@ -162,24 +162,24 @@ class Registration {
 	private function validate( array &$input ) {
 
 		if ( empty( $input['email'] ) || empty( $input['user_name'] ) || empty( $input['password'] ) || empty( $input['confirm_pass'] ) ) {
-			wp_send_json_error( 'Required fields missing' );
+			wp_send_json_error( __( 'Required fields missing', 'nexora' ) );
 		}
 
 		if ( ! is_email( $input['email'] ) ) {
-			wp_send_json_error( 'Invalid email address' );
+			wp_send_json_error( __( 'Invalid email address', 'nexora' ) );
 		}
 
 		// The username is used in profile URLs and as a lookup key
 		if ( ! preg_match( '/^[A-Za-z0-9_.-]{3,30}$/', $input['user_name'] ) ) {
-			wp_send_json_error( 'Username must be 3-30 characters (letters, numbers, . _ -)' );
+			wp_send_json_error( __( 'Username must be 3-30 characters (letters, numbers, . _ -)', 'nexora' ) );
 		}
 
 		if ( strlen( $input['password'] ) < 8 ) {
-			wp_send_json_error( 'Password must be at least 8 characters' );
+			wp_send_json_error( __( 'Password must be at least 8 characters', 'nexora' ) );
 		}
 
 		if ( $input['password'] !== $input['confirm_pass'] ) {
-			wp_send_json_error( 'Passwords do not match' );
+			wp_send_json_error( __( 'Passwords do not match', 'nexora' ) );
 		}
 
 		if ( ! in_array( $input['gender'], array( 'male', 'female', 'other', '' ), true ) ) {
@@ -190,12 +190,12 @@ class Registration {
 			$dt = \DateTime::createFromFormat( 'Y-m-d', $input['birthdate'] );
 
 			if ( ! $dt || $dt->format( 'Y-m-d' ) !== $input['birthdate'] || $dt > new \DateTime( 'today' ) ) {
-				wp_send_json_error( 'Invalid date of birth' );
+				wp_send_json_error( __( 'Invalid date of birth', 'nexora' ) );
 			}
 		}
 
 		if ( username_exists( $input['user_name'] ) || email_exists( $input['email'] ) ) {
-			wp_send_json_error( 'User already exists' );
+			wp_send_json_error( __( 'User already exists', 'nexora' ) );
 		}
 	}
 
@@ -211,7 +211,7 @@ class Registration {
 		$wp_user_id = wp_create_user( $input['user_name'], $input['password'], $input['email'] );
 
 		if ( is_wp_error( $wp_user_id ) ) {
-			wp_send_json_error( 'User creation failed' );
+			wp_send_json_error( __( 'User creation failed', 'nexora' ) );
 		}
 
 		wp_update_user(
@@ -238,7 +238,7 @@ class Registration {
 			// Roll back so the user can try again
 			require_once ABSPATH . 'wp-admin/includes/user.php';
 			wp_delete_user( $wp_user_id );
-			wp_send_json_error( 'Profile creation failed' );
+			wp_send_json_error( __( 'Profile creation failed', 'nexora' ) );
 		}
 
 		update_post_meta( $post_id, '_wp_user_id', $wp_user_id );
@@ -280,7 +280,7 @@ class Registration {
 
 		wp_mail(
 			$admin_email,
-			'🚀 New User Registered on Nexora',
+			__( '🚀 New User Registered on Nexora', 'nexora' ),
 			View::render(
 				'mail/admin-new-member',
 				array(

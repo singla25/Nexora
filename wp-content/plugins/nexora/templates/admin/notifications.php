@@ -1,17 +1,17 @@
 <?php /** @var object[] $notifications  rows from the notifications table */ ?>
 		<div class="wrap">
-			<h1>🔔 Notifications</h1>
+			<h1><?php esc_html_e( '🔔 Notifications', 'nexora' ); ?></h1>
 
 			<table class="widefat striped">
 				<thead>
 					<tr>
-						<th>ID</th>
-						<th>Actor</th>
-						<th>Receiver</th>
-						<th>Type</th>
-						<th>Message</th>
-						<th>Status</th>
-						<th>Date</th>
+						<th><?php esc_html_e( 'ID', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Actor', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Receiver', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Type', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Message', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Status', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Date', 'nexora' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -29,9 +29,9 @@
 						<td><?php echo esc_html( $n->message ); ?></td>
 						<td>
 												<?php if ( $n->is_read ) : ?>
-								<span style="color: grey; font-weight: 600;">Read</span>
+								<span style="color: grey; font-weight: 600;"><?php esc_html_e( 'Read', 'nexora' ); ?></span>
 							<?php else : ?>
-								<span style="color: green; font-weight: 600;">Unread</span>
+								<span style="color: green; font-weight: 600;"><?php esc_html_e( 'Unread', 'nexora' ); ?></span>
 							<?php endif; ?>
 						</td>
 						<td><?php echo esc_html( $n->created_at ); ?></td>
@@ -39,7 +39,7 @@
 
 									<?php endforeach; else : ?>
 
-					<tr><td colspan="7" style="text-align: center;">No notifications found</td></tr>
+					<tr><td colspan="7" style="text-align: center;"><?php esc_html_e( 'No notifications found', 'nexora' ); ?></td></tr>
 
 				<?php endif; ?>
 

@@ -1,19 +1,19 @@
 <?php /** @var object[] $threads  admin thread rows plus user1, user2, other_user, last_message_text */ ?>
 
 		<div class="wrap">
-			<h1>💬 Nexora Chat (Admin)</h1>
+			<h1><?php esc_html_e( '💬 Nexora Chat (Admin)', 'nexora' ); ?></h1>
 
 			<table class="widefat striped">
 				<thead>
 					<tr>
-						<th>Thread ID</th>
-						<th>Connection ID</th> <!-- ✅ NEW -->
-						<th>Status</th>        <!-- ✅ NEW -->
-						<th>User 1</th>
-						<th>User 2</th>
-						<th>Subject</th>
-						<th>Last Message</th>
-						<th>Action</th>
+						<th><?php esc_html_e( 'Thread ID', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Connection ID', 'nexora' ); ?></th> <!-- ✅ NEW -->
+						<th><?php esc_html_e( 'Status', 'nexora' ); ?></th>        <!-- ✅ NEW -->
+						<th><?php esc_html_e( 'User 1', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'User 2', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Subject', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Last Message', 'nexora' ); ?></th>
+						<th><?php esc_html_e( 'Action', 'nexora' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -28,9 +28,9 @@
 						<td><?php echo esc_html( ! empty( $thread->connection_id ) ? $thread->connection_id : '-' ); ?></td>
 						<td>
 												<?php if ( 'active' === $thread->status ) : ?>
-								<span style="color: green; font-weight: 600;">Active</span>
+								<span style="color: green; font-weight: 600;"><?php esc_html_e( 'Active', 'nexora' ); ?></span>
 							<?php else : ?>
-								<span style="color: red; font-weight: 600;">Inactive</span>
+								<span style="color: red; font-weight: 600;"><?php esc_html_e( 'Inactive', 'nexora' ); ?></span>
 							<?php endif; ?>
 						</td>
 						<td><?php echo esc_html( $thread->user1 ); ?></td>
@@ -45,7 +45,7 @@
 								data-user="<?php echo esc_attr( $thread->other_user ); ?>"
 								data-name="<?php echo esc_attr( $thread->user1 . ' and ' . $thread->user2 ); ?>"
 							>
-								View Chat
+								<?php esc_html_e( 'View Chat', 'nexora' ); ?>
 							</button>
 						</td>
 					</tr>
@@ -53,7 +53,7 @@
 									<?php endforeach; else : ?>
 
 					<tr>
-						<td colspan="5" style="text-align:center;">No chats found</td>
+						<td colspan="5" style="text-align:center;"><?php esc_html_e( 'No chats found', 'nexora' ); ?></td>
 					</tr>
 
 				<?php endif; ?>

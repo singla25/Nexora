@@ -271,11 +271,11 @@ class Page {
 	private function document_cards( $profile_id, $is_owner, $default_profile, $default_cover, $default_doc ) {
 
 		$labels = array(
-			'profile_image'   => 'Profile Image',
-			'cover_image'     => 'Cover Image',
-			'aadhaar_card'    => 'Aadhaar Card',
-			'driving_license' => 'Driving License',
-			'company_id_card' => 'Company ID Card',
+			'profile_image'   => __( 'Profile Image', 'nexora' ),
+			'cover_image'     => __( 'Cover Image', 'nexora' ),
+			'aadhaar_card'    => __( 'Aadhaar Card', 'nexora' ),
+			'driving_license' => __( 'Driving License', 'nexora' ),
+			'company_id_card' => __( 'Company ID Card', 'nexora' ),
 		);
 
 		$cards = array();
@@ -412,19 +412,24 @@ class Page {
 		switch ( $noti->type ) {
 
 			case 'request':
-				return "{$actor} sent you a connection request";
+				/* translators: %s: member name. */
+				return sprintf( __( '%s sent you a connection request', 'nexora' ), $actor );
 
 			case 'accepted':
-				return "{$actor} accepted your connection request";
+				/* translators: %s: member name. */
+				return sprintf( __( '%s accepted your connection request', 'nexora' ), $actor );
 
 			case 'rejected':
-				return "{$actor} rejected your connection request";
+				/* translators: %s: member name. */
+				return sprintf( __( '%s rejected your connection request', 'nexora' ), $actor );
 
 			case 'removed':
-				return "{$actor} removed the connection with you";
+				/* translators: %s: member name. */
+				return sprintf( __( '%s removed the connection with you', 'nexora' ), $actor );
 
 			case 'content':
-				return "{$actor} uploaded new content";
+				/* translators: %s: member name. */
+				return sprintf( __( '%s uploaded new content', 'nexora' ), $actor );
 
 			default:
 				return esc_html( $noti->message ); // fallback

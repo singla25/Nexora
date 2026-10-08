@@ -39,7 +39,7 @@ class Ajax extends Member_Ajax {
 		$image_id    = absint( $_POST['image'] ?? 0 );
 
 		if ( '' === $title ) {
-			wp_send_json_error( 'Title is required' );
+			wp_send_json_error( __( 'Title is required', 'nexora' ) );
 		}
 
 		if ( Rate_Limiter::hit( 'content_save', 'u' . $user_id ) ) {
@@ -48,14 +48,14 @@ class Ajax extends Member_Ajax {
 
 		// The image must be the member's own, and never a private ID document
 		if ( $image_id && ( ! $this->owns_attachment( $image_id, $user_id ) || Private_Documents::is_private( $image_id ) ) ) {
-			wp_send_json_error( 'Invalid image selected' );
+			wp_send_json_error( __( 'Invalid image selected', 'nexora' ) );
 		}
 
 		if ( ! Repository::create( $user_id, $profile_id, $title, $description, $image_id ) ) {
-			wp_send_json_error( 'Failed to create post' );
+			wp_send_json_error( __( 'Failed to create post', 'nexora' ) );
 		}
 
-		wp_send_json_success( 'Post created' );
+		wp_send_json_success( __( 'Post created', 'nexora' ) );
 	}
 
 	/**

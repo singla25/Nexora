@@ -24,30 +24,30 @@
 
 				<!-- honeypot: real visitors never see or fill this -->
 				<div class="nx-hp" aria-hidden="true">
-					<label>Leave this empty <input type="text" name="nx_website" tabindex="-1" autocomplete="off"></label>
+					<label><?php esc_html_e( 'Leave this empty', 'nexora' ); ?> <input type="text" name="nx_website" tabindex="-1" autocomplete="off"></label>
 				</div>
 
 				<div class="nx-form-row">
-					<label for="nx-contact-name">Your name</label>
+					<label for="nx-contact-name"><?php esc_html_e( 'Your name', 'nexora' ); ?></label>
 					<input type="text" id="nx-contact-name" name="nx_name" value="<?php echo esc_attr( $name ); ?>" required maxlength="100">
 				</div>
 
 				<div class="nx-form-row">
-					<label for="nx-contact-email">Email</label>
+					<label for="nx-contact-email"><?php esc_html_e( 'Email', 'nexora' ); ?></label>
 					<input type="email" id="nx-contact-email" name="nx_email" value="<?php echo esc_attr( $email ); ?>" required maxlength="150">
 				</div>
 
 				<div class="nx-form-row">
-					<label for="nx-contact-subject">Subject</label>
+					<label for="nx-contact-subject"><?php esc_html_e( 'Subject', 'nexora' ); ?></label>
 					<input type="text" id="nx-contact-subject" name="nx_subject" maxlength="150">
 				</div>
 
 				<div class="nx-form-row">
-					<label for="nx-contact-message">Message</label>
+					<label for="nx-contact-message"><?php esc_html_e( 'Message', 'nexora' ); ?></label>
 					<textarea id="nx-contact-message" name="nx_message" rows="6" required maxlength="3000"></textarea>
 				</div>
 
-				<button type="submit" class="nx-btn nx-primary">Send message</button>
+				<button type="submit" class="nx-btn nx-primary"><?php esc_html_e( 'Send message', 'nexora' ); ?></button>
 			</form>
 		</div>
 

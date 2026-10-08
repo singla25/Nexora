@@ -27,7 +27,7 @@ class Registrar {
 		register_post_type(
 			'user_profile',
 			array(
-				'label'        => 'User Profiles',
+				'label'        => __( 'User Profiles', 'nexora' ),
 				'public'       => false,
 				'show_ui'      => true,
 				'supports'     => array( 'title', 'thumbnail' ),
@@ -39,7 +39,7 @@ class Registrar {
 		register_post_type(
 			'user_connections',
 			array(
-				'label'        => 'User Connections',
+				'label'        => __( 'User Connections', 'nexora' ),
 				'public'       => false,
 				'show_ui'      => true,
 				'supports'     => array( 'title' ),
@@ -51,7 +51,7 @@ class Registrar {
 		register_post_type(
 			'user_content',
 			array(
-				'label'        => 'User Content',
+				'label'        => __( 'User Content', 'nexora' ),
 				'public'       => false,
 				'show_ui'      => true,
 				'supports'     => array( 'title', 'editor', 'thumbnail' ),

@@ -25,7 +25,7 @@ class Ajax {
 	 */
 	public function mark_notification_read() {
 
-		$user_id = Http::member( 'profile_nonce', false, 'Not logged in' )['user_id'];
+		$user_id = Http::member( 'profile_nonce', false, __( 'Not logged in', 'nexora' ) )['user_id'];
 
 		$id = absint( $_POST['id'] ?? 0 );
 
@@ -35,7 +35,7 @@ class Ajax {
 
 		// A member can only touch their own notifications
 		if ( ! $row || (int) $row->receiver_user_id !== (int) $user_id ) {
-			wp_send_json_error( 'Unauthorized' );
+			wp_send_json_error( __( 'Unauthorized', 'nexora' ) );
 		}
 
 		$notification->mark_as_read( $id );
