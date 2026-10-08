@@ -36,14 +36,6 @@
                         <td><?php echo esc_html($thread->last_message_text); ?></td>
 
                         <td>
-                            <!-- <button class="button button-primary nexora-open-chat" data-thread="<?php echo $thread->id; ?>">
-                                View Chat
-                            </button> -->
-                            <!-- <button class="button button-primary nexora-open-chat" 
-                                    data-thread="<?php echo esc_attr($thread->id); ?>" 
-                                    data-user="<?php echo esc_attr($thread->other_user); ?>" > 
-                                View Chat 
-                            </button> -->
                             <button 
                                 class="button button-primary nexora-open-chat"
                                 data-thread="<?php echo esc_attr($thread->id); ?>"

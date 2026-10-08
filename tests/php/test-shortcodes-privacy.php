@@ -100,6 +100,21 @@ nx_assert( false !== strpos( do_shortcode( '[nexora_home]' ), 'nx-' ) || '' !== 
 $h = do_shortcode( '[nexora_contact_form]' );
 nx_assert( false !== strpos( $h, 'name="nx_contact_nonce"' ) && false !== strpos( $h, 'name="nx_website"' ) && false !== strpos( $h, 'admin-post.php' ), 'contact form has nonce, honeypot and posts to admin-post.php' );
 
+/* ---------- contact form notices ---------- */
+foreach ( array(
+	'sent'    => array( 'nx-form-notice--ok" role="status"', 'Your message has been sent' ),
+	'invalid' => array( 'nx-form-notice--error" role="alert"', 'valid email and a message' ),
+	'limit'   => array( 'nx-form-notice--error" role="alert"', 'Too many messages' ),
+	'error'   => array( 'nx-form-notice--error" role="alert"', 'could not be sent' ),
+) as $status => $expect ) {
+	$_GET['nx_contact'] = $status;
+	$h = do_shortcode( '[nexora_contact_form]' );
+	nx_assert( false !== strpos( $h, $expect[0] ) && false !== strpos( $h, $expect[1] ), "contact form shows the '$status' notice" );
+}
+$_GET['nx_contact'] = 'bogus';
+nx_assert( false === strpos( do_shortcode( '[nexora_contact_form]' ), 'nx-form-notice' ), 'unknown status shows no notice' );
+unset( $_GET['nx_contact'] );
+
 /* ---------- contact handler (runs in a child process because it exits) ---------- */
 $contact = function ( array $post ) {
 	putenv( 'NX_POST=' . wp_json_encode( $post ) );

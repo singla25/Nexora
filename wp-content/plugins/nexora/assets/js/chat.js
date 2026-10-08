@@ -103,10 +103,6 @@ jQuery(document).on('click', '.chat-user', function(){
             openChat(null);
         }
 
-        // ✅ NOW THIS WILL WORK
-        console.log("User:", window.selectedUserForThread);
-        console.log("Connection:", window.selectedConnectionId);
-        console.log("Status:", window.currentConnectionStatus);
     });
 
     jQuery('#chat-search').val('');
@@ -356,17 +352,11 @@ function loadUserThreads() {
 
         let html = '';
 
-        // ✅ SORT BY LATEST UPDATED
-        // res.data.sort((a, b) => {
-        //     return new Date(b.updated_at) - new Date(a.updated_at);
-        // });
-
         let activeHTML = '';
         let inactiveHTML = '';
 
         res.data.forEach(thread => {
 
-            // let subject = thread.subject || 'No subject';
             let subject = thread.subject || 'No subject yet';
 
             let last_message = thread.last_message || 'No messages yet';
@@ -403,17 +393,6 @@ function loadUserThreads() {
             } else {
                 inactiveHTML += item;
             }
-
-            // html += `
-            //     <div class="chat-thread" data-thread="${thread.id}" data-user="${thread.other_user_id}" data-connection-id="${thread.connection_id}" data-status="${thread.status}">
-            //         <div class="chat-thread-name">${thread.name}</div>
-            //         <div class="chat-thread-badge">${badge}</div>
-            //         <div class="chat-thread-last">
-            //             ${subject}
-            //             <div class="chat-thread-time">${time}</div>
-            //         </div>
-            //     </div>
-            // `;
         });
 
         let finalHTML = `
@@ -425,7 +404,6 @@ function loadUserThreads() {
         `;
 
         jQuery('#chat-thread-list').html(finalHTML);
-        // jQuery('#chat-thread-list').html(html);
     });
 }
 
@@ -445,7 +423,6 @@ jQuery(document).on('click', '.chat-thread', function(){
     window.currentThreadStatus = status;
     window.selectedConnectionId = connectionId; // ✅ IMPORTANT
 
-    console.log("Thread Click → Connection:", connectionId);
 
     updateChatHeader();
     openChat(threadId);
@@ -559,10 +536,6 @@ jQuery(document).on('click', '#start-new-chat', function(){
     `);
 
     // ✅ DEBUG
-    console.log("New Chat Context:");
-    console.log("User:", window.selectedUserForThread);
-    console.log("Connection:", window.selectedConnectionId);
-    console.log("Status:", window.currentConnectionStatus);
 });
 
 /* ===============================

@@ -87,17 +87,17 @@ $legacy = nx_test_attachment( $alice['user_id'], 'legacy-licence' );
 $legacy_file = get_attached_file( $legacy );
 $wpdb->insert( $wpdb->postmeta, array( 'post_id' => $alice['profile_id'], 'meta_key' => 'driving_license', 'meta_value' => $legacy ) ); // bypass the update hook
 nx_assert( '' === (string) get_post_meta( $legacy, '_nexora_private', true ), 'legacy doc is still public before migration' );
-$dry = Nexora_Private_Documents::migrate_all( true );
+$dry = \Nexora\Profile\Documents_Migration::migrate_all( true );
 nx_assert( 1 <= $dry['would_move'] && file_exists( $legacy_file ) && '' === (string) get_post_meta( $legacy, '_nexora_private', true ), 'dry run reports but changes nothing' );
-$res = Nexora_Private_Documents::migrate_all( false );
+$res = \Nexora\Profile\Documents_Migration::migrate_all( false );
 nx_assert( $res['moved'] >= 1 && '1' === get_post_meta( $legacy, '_nexora_private', true ) && ! file_exists( $legacy_file ) && file_exists( get_attached_file( $legacy ) ), 'migration moves the legacy document' );
-$again = Nexora_Private_Documents::migrate_all( false );
+$again = \Nexora\Profile\Documents_Migration::migrate_all( false );
 nx_assert_same( 0, $again['moved'], 'migration is idempotent (second run moves nothing)' );
 // missing file: reported, nothing broken
 $ghost = nx_test_attachment( $alice['user_id'], 'ghost' );
 unlink( get_attached_file( $ghost ) );
 $wpdb->insert( $wpdb->postmeta, array( 'post_id' => $alice['profile_id'], 'meta_key' => 'company_id_card', 'meta_value' => $ghost ) );
-$res = Nexora_Private_Documents::migrate_all( false );
+$res = \Nexora\Profile\Documents_Migration::migrate_all( false );
 nx_assert( $res['failed'] >= 1 && '' === (string) get_post_meta( $ghost, '_nexora_private', true ), 'missing file is reported as failed and left untouched' );
 
 nx_test_finish();

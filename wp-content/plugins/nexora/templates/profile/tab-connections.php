@@ -121,10 +121,5 @@
                                 </div>
                             <?php endif; ?>
                         </div>
-
-                        <!-- CHAT -->
-                        <!-- <div id="connection-chat" style="display:none;">
-                            <?php // echo do_shortcode('[better_messages]'); ?>
-                        </div> -->
                     </div>
 

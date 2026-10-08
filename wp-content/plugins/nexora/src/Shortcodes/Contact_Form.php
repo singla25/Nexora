@@ -2,6 +2,9 @@
 
 namespace Nexora\Shortcodes;
 
+use Nexora\Core\View;
+use Nexora\Http\Rate_Limiter;
+
 if (!defined('ABSPATH')) exit;
 
 /**
@@ -22,66 +25,35 @@ class Contact_Form {
         add_action('admin_post_' . self::ACTION, [$this, 'handle']);
     }
 
+    /** Message shown after the form was submitted, keyed by the nx_contact query argument. */
+    const NOTICES = [
+        'sent'    => ['ok',    'status', 'Thank you! Your message has been sent. We will get back to you soon.'],
+        'invalid' => ['error', 'alert',  'Please fill in your name, a valid email and a message.'],
+        'limit'   => ['error', 'alert',  'Too many messages sent. Please try again in a few minutes.'],
+        'error'   => ['error', 'alert',  'Sorry, the message could not be sent. Please try again later.'],
+    ];
+
     public function render() {
 
         $status = isset($_GET['nx_contact']) ? sanitize_key(wp_unslash($_GET['nx_contact'])) : '';
 
-        $current = is_singular() ? get_permalink() : home_url('/');
+        $user = wp_get_current_user();
 
-        $user  = wp_get_current_user();
-        $name  = $user->exists() ? $user->display_name : '';
-        $email = $user->exists() ? $user->user_email : '';
+        $notice = null;
 
-        ob_start(); ?>
+        if (isset(self::NOTICES[$status])) {
+            [$type, $role, $text] = self::NOTICES[$status];
+            $notice = ['type' => $type, 'role' => $role, 'text' => $text];
+        }
 
-        <div class="nx-contact-form">
-
-            <?php if ($status === 'sent'): ?>
-                <p class="nx-form-notice nx-form-notice--ok" role="status">Thank you! Your message has been sent. We will get back to you soon.</p>
-            <?php elseif ($status === 'invalid'): ?>
-                <p class="nx-form-notice nx-form-notice--error" role="alert">Please fill in your name, a valid email and a message.</p>
-            <?php elseif ($status === 'limit'): ?>
-                <p class="nx-form-notice nx-form-notice--error" role="alert">Too many messages sent. Please try again in a few minutes.</p>
-            <?php elseif ($status === 'error'): ?>
-                <p class="nx-form-notice nx-form-notice--error" role="alert">Sorry, the message could not be sent. Please try again later.</p>
-            <?php endif; ?>
-
-            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-                <input type="hidden" name="action" value="<?php echo esc_attr(self::ACTION); ?>">
-                <input type="hidden" name="redirect_to" value="<?php echo esc_url($current); ?>">
-                <?php wp_nonce_field(self::ACTION, 'nx_contact_nonce'); ?>
-
-                <!-- honeypot: real visitors never see or fill this -->
-                <div class="nx-hp" aria-hidden="true">
-                    <label>Leave this empty <input type="text" name="nx_website" tabindex="-1" autocomplete="off"></label>
-                </div>
-
-                <div class="nx-form-row">
-                    <label for="nx-contact-name">Your name</label>
-                    <input type="text" id="nx-contact-name" name="nx_name" value="<?php echo esc_attr($name); ?>" required maxlength="100">
-                </div>
-
-                <div class="nx-form-row">
-                    <label for="nx-contact-email">Email</label>
-                    <input type="email" id="nx-contact-email" name="nx_email" value="<?php echo esc_attr($email); ?>" required maxlength="150">
-                </div>
-
-                <div class="nx-form-row">
-                    <label for="nx-contact-subject">Subject</label>
-                    <input type="text" id="nx-contact-subject" name="nx_subject" maxlength="150">
-                </div>
-
-                <div class="nx-form-row">
-                    <label for="nx-contact-message">Message</label>
-                    <textarea id="nx-contact-message" name="nx_message" rows="6" required maxlength="3000"></textarea>
-                </div>
-
-                <button type="submit" class="nx-btn nx-primary">Send message</button>
-            </form>
-        </div>
-
-        <?php
-        return ob_get_clean();
+        return View::render('shortcodes/contact-form', [
+            'notice'     => $notice,
+            'action'     => self::ACTION,
+            'action_url' => admin_url('admin-post.php'),
+            'redirect'   => is_singular() ? get_permalink() : home_url('/'),
+            'name'       => $user->exists() ? $user->display_name : '',
+            'email'      => $user->exists() ? $user->user_email : '',
+        ]);
     }
 
     public function handle() {
@@ -104,7 +76,7 @@ class Contact_Form {
             $back('sent');
         }
 
-        if (\Nexora\Http\Rate_Limiter::blocked('contact')) {
+        if (Rate_Limiter::blocked('contact')) {
             $back('limit');
         }
 
@@ -130,7 +102,7 @@ class Contact_Form {
         // name / email were sanitised (no line breaks), so they cannot inject headers
         $headers = ['Reply-To: ' . $name . ' <' . $email . '>'];
 
-        \Nexora\Http\Rate_Limiter::hit('contact');
+        Rate_Limiter::hit('contact');
 
         $sent = wp_mail($to, $subject, $body, $headers);
 

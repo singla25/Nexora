@@ -26,6 +26,7 @@ class Plugin {
         new \Nexora\Notifications\Ajax();
         new \Nexora\Content\Ajax();
         new \Nexora\Profile\Private_Documents();
+        new \Nexora\Profile\Documents_Migration();
         new \Nexora\Profile\Upload_Policy();
         new \Nexora\Shortcodes\Home();
         new \Nexora\Integrations\Better_Messages();
