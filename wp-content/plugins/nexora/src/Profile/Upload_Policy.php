@@ -28,6 +28,34 @@ class Upload_Policy {
         add_filter('user_has_cap', [$this, 'grant_upload_in_context'], 10, 4);
         add_filter('upload_size_limit', [$this, 'limit_size']);
         add_filter('wp_handle_upload_prefilter', [$this, 'check_upload']);
+
+        // Members see only their own files in the media library and may only upload images and PDFs
+        add_filter('ajax_query_attachments_args', [$this, 'own_files_only']);
+        add_filter('upload_mimes', [$this, 'restrict_member_mimes']);
+    }
+
+    public function own_files_only($query) {
+
+        if (!current_user_can('manage_options')) {
+            $query['author'] = get_current_user_id();
+        }
+
+        return $query;
+    }
+
+    public function restrict_member_mimes($mimes) {
+
+        if (current_user_can('manage_options')) {
+            return $mimes;
+        }
+
+        return [
+            'jpg|jpeg|jpe' => 'image/jpeg',
+            'png'          => 'image/png',
+            'gif'          => 'image/gif',
+            'webp'         => 'image/webp',
+            'pdf'          => 'application/pdf',
+        ];
     }
 
     /* ===============================

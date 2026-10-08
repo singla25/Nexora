@@ -49,6 +49,51 @@ class Repository {
     }
 
     /**
+     * Accepted connections of a profile as [connection post id, the other profile id] pairs, newest first.
+     *
+     * @return array<int,array{connection_id:int,profile_id:string}>
+     */
+    public static function accepted_pairs($profile_id) {
+
+        $connections = get_posts([
+            'post_type' => 'user_connections',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                [
+                    'key' => 'status',
+                    'value' => 'accepted'
+                ],
+                [
+                    'relation' => 'OR',
+                    [
+                        'key' => 'sender_profile_id',
+                        'value' => $profile_id
+                    ],
+                    [
+                        'key' => 'receiver_profile_id',
+                        'value' => $profile_id
+                    ]
+                ]
+            ]
+        ]);
+
+        $pairs = [];
+
+        foreach ($connections as $conn) {
+
+            $sender   = get_post_meta($conn->ID, 'sender_profile_id', true);
+            $receiver = get_post_meta($conn->ID, 'receiver_profile_id', true);
+
+            $pairs[] = [
+                'connection_id' => $conn->ID,
+                'profile_id'    => ($sender == $profile_id) ? $receiver : $sender,
+            ];
+        }
+
+        return $pairs;
+    }
+
+    /**
      * Profiles that must not be offered as "add new": the profile itself and everyone it already
      * has a pending or accepted connection with.
      */

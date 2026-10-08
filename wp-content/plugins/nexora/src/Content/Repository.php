@@ -51,4 +51,26 @@ class Repository {
             ]
         ]);
     }
+
+    /**
+     * The content feed for a profile: every post written by someone else, newest first.
+     *
+     * @return array{posts:\WP_Post[],any_exist:bool} any_exist is true when the site has any posts at all.
+     */
+    public static function feed_for($profile_id) {
+
+        $all    = get_posts(['post_type' => 'user_content', 'posts_per_page' => -1]);
+        $others = [];
+
+        foreach ($all as $post) {
+
+            if (get_post_meta($post->ID, 'user_profile_id', true) == $profile_id) {
+                continue;
+            }
+
+            $others[] = $post;
+        }
+
+        return ['posts' => $others, 'any_exist' => !empty($all)];
+    }
 }
