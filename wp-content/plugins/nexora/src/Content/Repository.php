@@ -12,7 +12,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Repository {
 
 	/**
-	 * @return int New post id, 0 on failure.
+	 * Create.
+	 *
+	 * @param int    $user_id User ID.
+	 * @param int    $profile_id Profile (user_profile) post ID.
+	 * @param string $title Post title.
+	 * @param string $description Post body.
+	 * @param int    $image_id Attachment ID of the post image, 0 for none.
+	 * @return int New post ID, 0 on failure.
 	 */
 	public static function create( $user_id, $profile_id, $title, $description, $image_id = 0 ) {
 
@@ -41,7 +48,13 @@ class Repository {
 		return (int) $post_id;
 	}
 
-	/** A profile's own posts, newest first. */
+	/**
+	 * A profile's own posts, newest first.
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @param int $limit Maximum number of posts (-1 for all).
+	 * @return \WP_Post[]
+	 */
 	public static function for_profile( $profile_id, $limit = 100 ) {
 
 		return get_posts(
@@ -61,6 +74,7 @@ class Repository {
 	/**
 	 * The content feed for a profile: every post written by someone else, newest first.
 	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
 	 * @return array{posts:\WP_Post[],any_exist:bool} any_exist is true when the site has any posts at all.
 	 */
 	public static function feed_for( $profile_id ) {

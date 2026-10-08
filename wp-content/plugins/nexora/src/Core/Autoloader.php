@@ -16,12 +16,26 @@ class Autoloader {
 
 	const PREFIX = 'Nexora\\';
 
-	/** @var string */
+	/**
+	 * Absolute path of src/ with a trailing slash.
+	 *
+	 * @var string
+	 */
 	private static $base = '';
 
-	/** @var array<string,string> lower-cased legacy name => current class */
+	/**
+	 * Old class names (lower-cased) mapped to the current class.
+	 *
+	 * @var array<string,string>
+	 */
 	private static $legacy = array();
 
+	/**
+	 * Registers the PSR-4 autoloader and the legacy class-name aliases.
+	 *
+	 * @param string $base_dir Absolute path of the src/ folder.
+	 * @param array  $legacy_map Old class name => current class name.
+	 */
 	public static function register( $base_dir, array $legacy_map = array() ) {
 
 		self::$base = rtrim( $base_dir, '/\\' ) . '/';
@@ -33,6 +47,11 @@ class Autoloader {
 		spl_autoload_register( array( self::class, 'load' ) );
 	}
 
+	/**
+	 * Loads a Nexora\ class from src/, or aliases an old global class name.
+	 *
+	 * @param string $class_name Fully qualified class name being loaded.
+	 */
 	public static function load( $class_name ) {
 
 		if ( strncmp( $class_name, self::PREFIX, strlen( self::PREFIX ) ) === 0 ) {

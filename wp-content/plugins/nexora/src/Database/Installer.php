@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Installer {
 
+	/**
+	 * Creates the notification and chat tables (plugin activation).
+	 */
 	public static function activate() {
 
 		// Notification table

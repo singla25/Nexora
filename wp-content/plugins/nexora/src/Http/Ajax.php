@@ -19,9 +19,9 @@ class Ajax {
 	 * Register $callback for wp_ajax_nexora_<legacy>. The un-prefixed $legacy name keeps
 	 * working for one release and fires 'nexora_deprecated_ajax_action' so it can be tracked.
 	 *
-	 * @param string   $legacy   Old action name, e.g. 'get_requests'.
+	 * @param string   $legacy Old action name, e.g. 'get_requests'.
 	 * @param callable $callback Handler.
-	 * @param bool     $guest    Also reachable by logged-out visitors (wp_ajax_nopriv_*).
+	 * @param bool     $guest Also reachable by logged-out visitors (wp_ajax_nopriv_*).
 	 */
 	public static function register( $legacy, $callback, $guest = false ) {
 
@@ -46,17 +46,12 @@ class Ajax {
 	 * Guard for logged-in member endpoints: nonce, login, 'read' capability and
 	 * (optionally) a linked user_profile post. Ends the request on failure.
 	 *
-	 * @param string     $nonce_action     Nonce action the page localized.
-	 * @param bool       $require_profile  Require a user_profile post for the current user.
-	 * @param string     $unauth_message   Error text for logged-out callers.
-	 * @param array|null $request      Override of $_REQUEST (tests); null = use the real request.
-	 * @return array{user_id:int,profile_id:int}
+	 * @param string $nonce_action Nonce action the page localized.
+	 * @param bool   $require_profile Require a user_profile post for the current user.
+	 * @param string $unauth_message Error text for logged-out callers.
+	 * @return array user_id and profile_id.
 	 */
-	public static function member( $nonce_action = 'profile_nonce', $require_profile = true, $unauth_message = 'Unauthorized access', $request = null ) {
-
-		if ( null !== $request ) {
-			$_REQUEST = array_merge( $_REQUEST, $request );
-		}
+	public static function member( $nonce_action = 'profile_nonce', $require_profile = true, $unauth_message = 'Unauthorized access' ) {
 
 		check_ajax_referer( $nonce_action, 'nonce' );
 

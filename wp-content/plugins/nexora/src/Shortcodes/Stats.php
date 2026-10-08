@@ -15,11 +15,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Stats {
 
+	/**
+	 * Registers [nexora_stat] and [nexora_auth_buttons].
+	 */
 	public function __construct() {
 		add_shortcode( 'nexora_stat', array( $this, 'stat' ) );
 		add_shortcode( 'nexora_auth_buttons', array( $this, 'auth_buttons' ) );
 	}
 
+	/**
+	 * Shortcode: one live platform number.
+	 *
+	 * @param array|string $atts Shortcode attributes.
+	 * @return string
+	 */
 	public function stat( $atts ) {
 
 		$atts = shortcode_atts( array( 'type' => 'members' ), $atts, 'nexora_stat' );
@@ -34,6 +43,11 @@ class Stats {
 		return esc_html( \Nexora\Shortcodes\Home::short_number( $stats[ $type ] ) );
 	}
 
+	/**
+	 * Shortcode: Log in / Sign up, or the member's profile link and Log out.
+	 *
+	 * @return string HTML.
+	 */
 	public function auth_buttons() {
 
 		if ( ! is_user_logged_in() ) {

@@ -16,9 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Service {
 
 	/**
-	 * @param int $sender_user_id
-	 * @param int $sender_profile_id
+	 * Send request.
+	 *
+	 * @param int $sender_user_id User ID of the sender.
+	 * @param int $sender_profile_id Profile post ID of the sender.
 	 * @param int $receiver_profile_id An existing user_profile post id.
+	 * @return array ok (bool) and, on failure, message.
 	 */
 	public function send_request( $sender_user_id, $sender_profile_id, $receiver_profile_id ) {
 
@@ -68,9 +71,10 @@ class Service {
 	/**
 	 * Accept / reject (receiver only, pending only) or remove (either party, accepted only).
 	 *
-	 * @param int    $current_user_id
-	 * @param int    $connection_id  A user_connections post id.
-	 * @param string $status         accepted | rejected | removed
+	 * @param int    $current_user_id ID of the logged-in user.
+	 * @param int    $connection_id A user_connections post id.
+	 * @param string $status accepted | rejected | removed.
+	 * @return array ok (bool) and, on failure, message.
 	 */
 	public function change_status( $current_user_id, $connection_id, $status ) {
 
@@ -108,6 +112,12 @@ class Service {
 
 	/**
 	 * Tell the other party what the acting user just did.
+	 *
+	 * @param int    $connection_id Connection (user_connections) post ID.
+	 * @param int    $current_user_id ID of the logged-in user.
+	 * @param int    $sender_user_id User ID of the sender.
+	 * @param int    $receiver_user_id User ID of the receiving member.
+	 * @param string $status The new status.
 	 */
 	private function notify_status_change( $connection_id, $current_user_id, $sender_user_id, $receiver_user_id, $status ) {
 
@@ -156,6 +166,12 @@ class Service {
 		);
 	}
 
+	/**
+	 * Failure result with a message for the caller to show.
+	 *
+	 * @param string $message Message for the member.
+	 * @return array ok => false and the message.
+	 */
 	private function fail( $message ) {
 		return array(
 			'ok'      => false,

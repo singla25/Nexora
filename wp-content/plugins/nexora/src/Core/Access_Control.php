@@ -13,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Access_Control {
 
+	/**
+	 * Hooks the admin-bar, wp-admin, wp-login and login-redirect rules.
+	 */
 	public function __construct() {
 		add_action( 'after_setup_theme', array( $this, 'hide_admin_bar' ) );
 		add_action( 'admin_init', array( $this, 'block_wp_admin' ) );
@@ -20,6 +23,9 @@ class Access_Control {
 		add_filter( 'login_redirect', array( $this, 'login_redirect' ), 10, 3 );
 	}
 
+	/**
+	 * Hides the admin bar from everyone except administrators.
+	 */
 	public function hide_admin_bar() {
 
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -27,6 +33,9 @@ class Access_Control {
 		}
 	}
 
+	/**
+	 * Sends visitors and members away from wp-admin (AJAX, REST, cron and admin-post stay open).
+	 */
 	public function block_wp_admin() {
 
 		// Allow AJAX
@@ -64,6 +73,9 @@ class Access_Control {
 		}
 	}
 
+	/**
+	 * Sends non-administrators away from wp-login.php (logout and post-password stay open).
+	 */
 	public function block_wp_login() {
 
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
@@ -98,6 +110,14 @@ class Access_Control {
 		exit;
 	}
 
+	/**
+	 * Where a user lands after logging in.
+	 *
+	 * @param string                   $redirect_to URL WordPress would redirect to.
+	 * @param string                   $request Redirect URL the login form asked for.
+	 * @param \WP_User|\WP_Error|mixed $user The user who logged in (or the failure).
+	 * @return string
+	 */
 	public function login_redirect( $redirect_to, $request, $user ) {
 
 		// Failed login / no user yet: leave WordPress' default untouched

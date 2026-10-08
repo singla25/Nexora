@@ -29,6 +29,9 @@ class Otp {
 	/**
 	 * New opaque reference. With a user id it resolves to that account; without one it is a
 	 * random value of the same shape that resolves to nothing (so replies look identical).
+	 *
+	 * @param int $user_id User ID.
+	 * @return string 32 hex characters.
 	 */
 	public static function issue_ref( $user_id = 0 ) {
 
@@ -41,7 +44,12 @@ class Otp {
 		return $ref;
 	}
 
-	/** Account id behind a reference, or 0. */
+	/**
+	 * Account id behind a reference, or 0.
+	 *
+	 * @param string $ref Opaque reference held by the browser.
+	 * @return int User ID, or 0 when unknown or expired.
+	 */
 	public static function resolve_ref( $ref ) {
 
 		$ref = is_string( $ref ) ? $ref : '';
@@ -53,6 +61,11 @@ class Otp {
 		return (int) get_transient( self::REF_PREFIX . $ref );
 	}
 
+	/**
+	 * Discards a reset reference once it is no longer needed.
+	 *
+	 * @param string $ref Opaque reference held by the browser.
+	 */
 	public static function forget_ref( $ref ) {
 		delete_transient( self::REF_PREFIX . $ref );
 	}
@@ -62,7 +75,12 @@ class Otp {
 		OTP
 	=============================== */
 
-	/** True while an issued OTP has not expired yet. */
+	/**
+	 * True while an issued OTP has not expired yet.
+	 *
+	 * @param int $user_id User ID.
+	 * @return bool
+	 */
 	public static function has_active_otp( $user_id ) {
 
 		$expiry = (int) get_user_meta( $user_id, 'otp_expiry', true );
@@ -72,6 +90,9 @@ class Otp {
 
 	/**
 	 * Create an OTP for the user and return it in clear (to be emailed). Only a hash is stored.
+	 *
+	 * @param int $user_id User ID.
+	 * @return string The six-digit code (not stored in clear).
 	 */
 	public static function issue( $user_id ) {
 
@@ -89,7 +110,9 @@ class Otp {
 	/**
 	 * Check an OTP. On success it is consumed and a one-time reset token is returned.
 	 *
-	 * @return array{ok:bool,message?:string,token?:string}
+	 * @param int    $user_id User ID.
+	 * @param string $otp The code the member typed.
+	 * @return array ok (bool) plus message on failure or token on success.
 	 */
 	public static function verify( $user_id, $otp ) {
 
@@ -149,7 +172,13 @@ class Otp {
 		RESET TOKEN
 	=============================== */
 
-	/** True when $token is the live reset token of the user (does not consume it). */
+	/**
+	 * True when $token is the live reset token of the user (does not consume it).
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $token Reset token the browser sent.
+	 * @return bool
+	 */
 	public static function token_valid( $user_id, $token ) {
 
 		$saved_token = get_user_meta( $user_id, 'reset_token', true );
@@ -158,7 +187,11 @@ class Otp {
 		return $saved_token && time() <= $expiry && wp_check_password( $token, $saved_token );
 	}
 
-	/** Remove every trace of an OTP / reset token. */
+	/**
+	 * Remove every trace of an OTP / reset token.
+	 *
+	 * @param int $user_id User ID.
+	 */
 	public static function clear( $user_id ) {
 		delete_user_meta( $user_id, 'reset_otp' );
 		delete_user_meta( $user_id, 'otp_expiry' );

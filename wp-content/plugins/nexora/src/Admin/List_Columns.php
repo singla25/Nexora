@@ -11,6 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class List_Columns {
 
+	/**
+	 * Adds the extra columns to the three post-type list screens.
+	 */
 	public function __construct() {
 
 		add_filter( 'manage_user_profile_posts_columns', array( $this, 'add_name_column' ) );
@@ -23,6 +26,12 @@ class List_Columns {
 		add_action( 'manage_user_content_posts_custom_column', array( $this, 'manage_user_name_column' ), 10, 2 );
 	}
 
+	/**
+	 * Adds a "Name" column after the title on the profile list.
+	 *
+	 * @param array $columns Existing list-table columns, keyed by column key.
+	 * @return array Columns including the new one.
+	 */
 	public function add_name_column( $columns ) {
 
 		$new_columns = array();
@@ -40,6 +49,12 @@ class List_Columns {
 		return $new_columns;
 	}
 
+	/**
+	 * Prints the member's first and last name in the "Name" column.
+	 *
+	 * @param string $column Column key.
+	 * @param int    $post_id Post ID.
+	 */
 	public function manage_name_column( $column, $post_id ) {
 
 		if ( 'user_full_name' === $column ) {
@@ -52,6 +67,12 @@ class List_Columns {
 		}
 	}
 
+	/**
+	 * Adds a "Status" column after the title on the connections list.
+	 *
+	 * @param array $columns Existing list-table columns, keyed by column key.
+	 * @return array Columns including the new one.
+	 */
 	public function add_status_column( $columns ) {
 
 		$new_columns = array();
@@ -69,6 +90,12 @@ class List_Columns {
 		return $new_columns;
 	}
 
+	/**
+	 * Prints the connection status (Accepted / Rejected / Removed / Pending) with its colour.
+	 *
+	 * @param string $column Column key.
+	 * @param int    $post_id Post ID.
+	 */
 	public function manage_status_column( $column, $post_id ) {
 
 		if ( 'connection_status' === $column ) {
@@ -91,6 +118,12 @@ class List_Columns {
 		}
 	}
 
+	/**
+	 * Adds a "Name" column after the title on the content list.
+	 *
+	 * @param array $columns Existing list-table columns, keyed by column key.
+	 * @return array Columns including the new one.
+	 */
 	public function add_user_name_column( $columns ) {
 
 		$new_columns = array();
@@ -108,6 +141,12 @@ class List_Columns {
 		return $new_columns;
 	}
 
+	/**
+	 * Prints the author's full name in the content list.
+	 *
+	 * @param string $column Column key.
+	 * @param int    $post_id Post ID.
+	 */
 	public function manage_user_name_column( $column, $post_id ) {
 
 		if ( 'user_name' === $column ) {

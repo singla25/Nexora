@@ -6,12 +6,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Google reCAPTCHA: renders the widget and verifies the answer with Google.
+ * The keys and the on/off switch are options set in Nexora System > Settings.
+ */
 class Recaptcha {
 
+	/**
+	 * Public site key.
+	 *
+	 * @var string
+	 */
 	private $site_key;
+
+	/**
+	 * Secret key (never printed).
+	 *
+	 * @var string
+	 */
 	private $secret_key;
+
+	/**
+	 * Whether the captcha is switched on.
+	 *
+	 * @var mixed
+	 */
 	private $enabled;
 
+	/**
+	 * Reads the captcha options.
+	 */
 	public function __construct() {
 		$this->site_key   = get_option( 'recaptcha_site_key' );
 		$this->secret_key = get_option( 'recaptcha_secret_key' );
@@ -25,6 +49,8 @@ class Recaptcha {
 	 *     (from the stored home URL, never the request's Host header) resolves to a
 	 *     private / loopback address.
 	 * A live site that ships with WP_ENVIRONMENT_TYPE=local still gets the captcha.
+	 *
+	 * @return bool True when the captcha should be skipped.
 	 */
 	public function is_local() {
 
@@ -52,12 +78,20 @@ class Recaptcha {
 		return filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) === false;
 	}
 
-	// 🔹 Check if captcha is enabled
+	/**
+	 * True when the captcha is switched on and both keys are set.
+	 *
+	 * @return bool
+	 */
 	public function is_enabled() {
 		return ! empty( $this->enabled ) && ! empty( $this->site_key ) && ! empty( $this->secret_key );
 	}
 
-	// 🔹 Render captcha HTML (Frontend)
+	/**
+	 * Returns the captcha widget markup, or an empty string when it is off.
+	 *
+	 * @return string HTML, or an empty string.
+	 */
 	public function render() {
 
 		if ( $this->is_local() ) {
@@ -72,7 +106,9 @@ class Recaptcha {
                 data-sitekey="' . esc_attr( $this->site_key ) . '"></div>';
 	}
 
-	// 🔹 Enqueue script (call once globally)
+	/**
+	 * Loads Google's captcha script when the captcha is active.
+	 */
 	public function enqueue_script() {
 
 		if ( $this->is_local() ) {
@@ -95,7 +131,12 @@ class Recaptcha {
 		// phpcs:enable WordPress.WP.EnqueuedResourceParameters.MissingVersion
 	}
 
-	// 🔹 Verify captcha (Backend)
+	/**
+	 * Checks the captcha response with Google.
+	 *
+	 * @param string $captcha_response The g-recaptcha-response value the browser sent.
+	 * @return array success (bool) and, on failure, message.
+	 */
 	public function verify( $captcha_response ) {
 
 		// 🔥 BYPASS ON LOCAL

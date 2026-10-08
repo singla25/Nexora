@@ -38,7 +38,9 @@ nx_assert( ! empty( $g['success'] ), 'guest action reachable under the new name'
 
 /* shared guard */
 wp_set_current_user( $alice['user_id'] );
-$ctx = Nexora_Ajax::member( 'profile_nonce', true, 'x', array( 'nonce' => wp_create_nonce( 'profile_nonce' ) ) );
+$_REQUEST['nonce'] = wp_create_nonce( 'profile_nonce' );
+$ctx = Nexora_Ajax::member( 'profile_nonce', true, 'x' );
+unset( $_REQUEST['nonce'] );
 nx_assert_same( array( 'user_id' => $alice['user_id'], 'profile_id' => $alice['profile_id'] ), $ctx, 'Nexora_Ajax::member() returns user and profile ids' );
 
 /* the front end only calls the new names */

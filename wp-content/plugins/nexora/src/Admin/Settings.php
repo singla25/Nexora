@@ -24,10 +24,16 @@ class Settings {
 		array( 'default_smart_connections_image', 'Default Smart Connections Image', 150 ),
 	);
 
+	/**
+	 * Hooks the settings registration.
+	 */
 	public function __construct() {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 	}
 
+	/**
+	 * Registers the options of the settings page with their sanitisers.
+	 */
 	public function register_settings() {
 		register_setting( 'profile_settings_group', 'default_profile_image' );
 		register_setting( 'profile_settings_group', 'default_cover_image' );
@@ -75,6 +81,9 @@ class Settings {
 		);
 	}
 
+	/**
+	 * Prints Nexora System > Settings.
+	 */
 	public function settings_page() {
 
 		$images = array();

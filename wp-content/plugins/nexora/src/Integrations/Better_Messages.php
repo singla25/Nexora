@@ -14,17 +14,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Better_Messages {
 
+	/**
+	 * Hooks the Better Messages user-search filter.
+	 */
 	public function __construct() {
 
 		add_filter( 'better_messages_search_user_sql_condition', array( $this, 'nexora_filter_search_query_users' ), 10, 4 );
 	}
 
 	/**
-	 * @param string[] $conditions  SQL conditions Better Messages builds.
-	 * @param int[]    $included_ids
-	 * @param string   $search
-	 * @param int      $user_id     The member searching.
-	 * @return string[]
+	 * Limits Better Messages' user search to the searching member's accepted connections.
+	 *
+	 * @param string[] $conditions SQL conditions Better Messages builds.
+	 * @param int[]    $included_ids User IDs Better Messages already includes.
+	 * @param string   $search Search term.
+	 * @param int      $user_id The member searching.
+	 * @return string[] Conditions with the connection restriction added.
 	 */
 	public function nexora_filter_search_query_users( $conditions, $included_ids, $search, $user_id ) {
 

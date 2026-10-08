@@ -6,13 +6,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Data access for chat: the threads, participants, messages and message_meta tables.
+ */
 class Repository {
 
+	/**
+	 * Threads table name.
+	 *
+	 * @var string
+	 */
 	private $threads_table;
+
+	/**
+	 * Thread participants table name.
+	 *
+	 * @var string
+	 */
 	private $participants_table;
+
+	/**
+	 * Messages table name.
+	 *
+	 * @var string
+	 */
 	private $messages_table;
+
+	/**
+	 * Message meta table name.
+	 *
+	 * @var string
+	 */
 	private $message_meta_table;
 
+	/**
+	 * Resolves the table names.
+	 */
 	public function __construct() {
 		global $wpdb;
 
@@ -95,6 +124,13 @@ class Repository {
 
 	/**
 	 * Insert New Thread and It's Participants
+	 *
+	 * @param int[]  $users User IDs of the participants.
+	 * @param int    $connection_id Connection (user_connections) post ID.
+	 * @param string $thread_status Thread status: active or inactive.
+	 * @param string $type Thread type.
+	 * @param string $subject Conversation subject.
+	 * @return int New thread ID, 0 on failure.
 	 */
 	public function create_thread( $users, $connection_id, $thread_status, $type = 'private', $subject = '' ) {
 
@@ -133,6 +169,9 @@ class Repository {
 
 	/**
 	 * GET LATEST THREAD BETWEEN USERS
+	 *
+	 * @param int $connection_id Connection (user_connections) post ID.
+	 * @return object|null id and status of the latest thread.
 	 */
 	public function get_thread_by_connection( $connection_id ) {
 		global $wpdb;
@@ -153,6 +192,9 @@ class Repository {
 
 	/**
 	 * GET THREAD STATUS
+	 *
+	 * @param int $thread_id Chat thread ID.
+	 * @return object|null id and status.
 	 */
 	public function get_thread_status( $thread_id ) {
 		global $wpdb;
@@ -171,6 +213,10 @@ class Repository {
 
 	/**
 	 * GET USER PARTICIPANTS
+	 *
+	 * @param int $thread_id Chat thread ID.
+	 * @param int $user_id User ID.
+	 * @return bool
 	 */
 	public function is_user_in_thread( $thread_id, $user_id ) {
 		global $wpdb;
@@ -190,6 +236,9 @@ class Repository {
 
 	/**
 	 * GET USER THREADS (CHAT LIST)
+	 *
+	 * @param int $user_id User ID.
+	 * @return object[] Threads with unread count, other participant, last message and name.
 	 */
 	public function get_user_threads( $user_id ) {
 		global $wpdb;
@@ -236,6 +285,11 @@ class Repository {
 
 	/**
 	 * Send Messgae
+	 *
+	 * @param int    $thread_id Chat thread ID.
+	 * @param int    $sender_id User ID of the sender.
+	 * @param string $message Message text.
+	 * @return int ID of the new message.
 	 */
 	public function send_message( $thread_id, $sender_id, $message ) {
 		global $wpdb;
@@ -282,6 +336,10 @@ class Repository {
 
 	/**
 	 * Get Latest Messages (INITIAL LOAD)
+	 *
+	 * @param int $thread_id Chat thread ID.
+	 * @param int $limit Maximum number of messages.
+	 * @return object[] Oldest first.
 	 */
 	public function get_latest_messages( $thread_id, $limit = 20 ) {
 		global $wpdb;
@@ -305,6 +363,9 @@ class Repository {
 
 	/**
 	 * MARK AS READ
+	 *
+	 * @param int $thread_id Chat thread ID.
+	 * @param int $user_id User ID.
 	 */
 	public function mark_as_read_chat( $thread_id, $user_id ) {
 		global $wpdb;
@@ -324,6 +385,8 @@ class Repository {
 
 	/**
 	 * GET ALL USER THREADS (Thread List For Admin)
+	 *
+	 * @return object[]
 	 */
 	public function get_all_threads() {
 		global $wpdb;
@@ -343,6 +406,8 @@ class Repository {
 
 	/**
 	 * GET ALL THREADS WITH LAST MESSAGE (ADMIN)
+	 *
+	 * @return object[]
 	 */
 	public function get_all_threads_with_last_message() {
 		global $wpdb;
@@ -367,6 +432,12 @@ class Repository {
 		);
 	}
 
+	/**
+	 * Every conversation of a connection with its participant ids.
+	 *
+	 * @param int $connection_id Connection (user_connections) post ID.
+	 * @return object[]
+	 */
 	public function get_threads_by_connection( $connection_id ) {
 		global $wpdb;
 
@@ -389,6 +460,9 @@ class Repository {
 
 	/**
 	 * GET THREAD SUBJECT
+	 *
+	 * @param int $thread_id Chat thread ID.
+	 * @return string|null The subject, or null for an unknown thread.
 	 */
 	public function get_thread_subject( $thread_id ) {
 		global $wpdb;
@@ -407,6 +481,10 @@ class Repository {
 
 	/**
 	 * UPDATE THREAD SUBJECT
+	 *
+	 * @param int    $thread_id Chat thread ID.
+	 * @param string $subject Conversation subject.
+	 * @return int|false Rows changed, or false on error.
 	 */
 	public function update_thread_subject( $thread_id, $subject ) {
 		global $wpdb;
@@ -420,6 +498,9 @@ class Repository {
 
 	/**
 	 * UPDATE THREAD STATUS
+	 *
+	 * @param int $connection_id Connection (user_connections) post ID.
+	 * @return int|false Rows changed, or false on error.
 	 */
 	public function inactive_threads_by_connection( $connection_id ) {
 		global $wpdb;

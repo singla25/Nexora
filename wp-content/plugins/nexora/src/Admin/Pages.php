@@ -15,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Pages {
 
+	/**
+	 * Lists every notification (Nexora System > Notifications).
+	 */
 	public function notifications_page() {
 
 		View::output(
@@ -25,6 +28,9 @@ class Pages {
 		);
 	}
 
+	/**
+	 * Lists every chat thread with its two participants and last message (Nexora System > Nexora Chat).
+	 */
 	public function nexora_user_chat() {
 
 		$threads = ( new Chat() )->get_all_threads_with_last_message();

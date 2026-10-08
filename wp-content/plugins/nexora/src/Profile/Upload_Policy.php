@@ -24,6 +24,9 @@ class Upload_Policy {
 	const DEFAULT_MAX_BYTES = 8 * MB_IN_BYTES;
 	const DEFAULT_MAX_FILES = 100;
 
+	/**
+	 * Hooks the upload capability, size and type rules.
+	 */
 	public function __construct() {
 
 		add_action( 'init', array( $this, 'maybe_cleanup_role_cap' ) );
@@ -36,6 +39,12 @@ class Upload_Policy {
 		add_filter( 'upload_mimes', array( $this, 'restrict_member_mimes' ) );
 	}
 
+	/**
+	 * Limits a member's media library to their own files.
+	 *
+	 * @param array $query Media library query arguments.
+	 * @return array
+	 */
 	public function own_files_only( $query ) {
 
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -45,6 +54,12 @@ class Upload_Policy {
 		return $query;
 	}
 
+	/**
+	 * Limits members to images and PDFs.
+	 *
+	 * @param array $mimes Allowed extension => MIME type map.
+	 * @return array
+	 */
 	public function restrict_member_mimes( $mimes ) {
 
 		if ( current_user_can( 'manage_options' ) ) {
@@ -79,6 +94,9 @@ class Upload_Policy {
 		update_option( self::CLEANED_OPTION, 1, false );
 	}
 
+	/**
+	 * Removes the old stored upload_files capability from the subscriber role.
+	 */
 	public static function cleanup_role_cap() {
 
 		$role = get_role( 'subscriber' );
@@ -88,6 +106,11 @@ class Upload_Policy {
 		}
 	}
 
+	/**
+	 * True while the request is the profile page or the media uploader's own AJAX.
+	 *
+	 * @return bool
+	 */
 	private function upload_context() {
 
 		if ( wp_doing_ajax() ) {
@@ -105,6 +128,15 @@ class Upload_Policy {
 			&& \Nexora\Core\Assets::is_page_for( 'profile-page', 'profile_dashboard' );
 	}
 
+	/**
+	 * Gives a member upload_files only in an upload context.
+	 *
+	 * @param array    $allcaps All capabilities of the user, keyed by capability.
+	 * @param array    $caps Primitive capabilities being checked.
+	 * @param array    $args Arguments of the capability check.
+	 * @param \WP_User $user The user being checked.
+	 * @return array
+	 */
 	public function grant_upload_in_context( $allcaps, $caps, $args, $user ) {
 
 		if ( ! in_array( 'upload_files', (array) $caps, true ) || ! empty( $allcaps['upload_files'] ) ) {
@@ -122,22 +154,40 @@ class Upload_Policy {
 		return $allcaps;
 	}
 
-	/*
-	===============================
-		LIMITS
-	=============================== */
+	/**
+	 * True for logged-in users who are not administrators.
+	 *
+	 * @return bool
+	 */
 	private function is_limited_member() {
 		return is_user_logged_in() && ! current_user_can( 'manage_options' );
 	}
 
+	/**
+	 * Largest file a member may upload.
+	 *
+	 * @return int
+	 */
 	private function max_bytes() {
 		return (int) apply_filters( 'nexora_member_max_upload_bytes', self::DEFAULT_MAX_BYTES );
 	}
 
+	/**
+	 * Caps the upload size for members.
+	 *
+	 * @param string $size Image size name, or an empty string for the full file.
+	 * @return int
+	 */
 	public function limit_size( $size ) {
 		return $this->is_limited_member() ? min( (int) $size, $this->max_bytes() ) : $size;
 	}
 
+	/**
+	 * Refuses a member's upload that is too large or over the file-count limit.
+	 *
+	 * @param array $file The upload as PHP describes it (name, type, size, error).
+	 * @return array The upload, with an error message set when it is refused.
+	 */
 	public function check_upload( $file ) {
 
 		if ( ! $this->is_limited_member() || ! is_array( $file ) ) {

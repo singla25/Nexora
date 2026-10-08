@@ -6,16 +6,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Data access for the notifications table.
+ */
 class Repository {
 
+	/**
+	 * Notifications table name.
+	 *
+	 * @var string
+	 */
 	private $table;
 
+	/**
+	 * Resolves the table name.
+	 */
 	public function __construct() {
 		global $wpdb;
 		$this->table = $wpdb->prefix . 'nexora_notifications';
 	}
 
-	// CREATE TABLE
+	/**
+	 * Creates the notifications table.
+	 */
 	public function create_table() {
 
 		global $wpdb;
@@ -56,7 +69,11 @@ class Repository {
 		dbDelta( $sql );
 	}
 
-	// INSERT
+	/**
+	 * Stores a notification.
+	 *
+	 * @param array $data Notification fields: actor_/receiver_ user_id and user_name, type, connection_id, message.
+	 */
 	public function insert( $data ) {
 
 		global $wpdb;
@@ -89,7 +106,11 @@ class Repository {
 		);
 	}
 
-	// FETCH (Latest First)
+	/**
+	 * Every notification, newest first (admin overview).
+	 *
+	 * @return object[]
+	 */
 	public function get_all() {
 
 		global $wpdb;
@@ -99,6 +120,13 @@ class Repository {
 		);
 	}
 
+	/**
+	 * A member's notifications, unread first then newest.
+	 *
+	 * @param int $user_id User ID.
+	 * @param int $limit Maximum number of notifications.
+	 * @return object[]
+	 */
 	public function get_notifications( $user_id, $limit = 50 ) {
 
 		global $wpdb;
@@ -115,7 +143,12 @@ class Repository {
 		);
 	}
 
-	// Fetch row on the basis of Id
+	/**
+	 * One notification by id.
+	 *
+	 * @param int $id Notification ID.
+	 * @return object|null
+	 */
 	public function get_row( $id ) {
 
 		global $wpdb;
@@ -128,7 +161,12 @@ class Repository {
 		);
 	}
 
-	// Get Unread Notification Count
+	/**
+	 * Number of unread notifications of a member.
+	 *
+	 * @param int $user_id User ID.
+	 * @return string|null Count as returned by the database.
+	 */
 	public function get_unread_count( $user_id ) {
 
 		global $wpdb;
@@ -143,7 +181,11 @@ class Repository {
 		);
 	}
 
-	// MARK AS READ
+	/**
+	 * Marks a notification as read.
+	 *
+	 * @param int $id Notification ID.
+	 */
 	public function mark_as_read( $id ) {
 
 		global $wpdb;

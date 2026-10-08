@@ -19,10 +19,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Rate_Limiter {
 
-	/** Tests only: pretend it is this unix time. */
+	/**
+	 * Tests only: pretend it is this unix time.
+	 *
+	 * @var int|null
+	 */
 	public static $time_override = null;
 
-	/** name => [max hits, window in seconds] */
+	/**
+	 * Default limits, keyed by bucket name: [max hits, window in seconds].
+	 *
+	 * @return array
+	 */
 	public static function defaults() {
 		return array(
 			'login'              => array( 10, 15 * MINUTE_IN_SECONDS ),
@@ -38,6 +46,12 @@ class Rate_Limiter {
 		);
 	}
 
+	/**
+	 * Limit and window of a bucket, or null for an unknown bucket.
+	 *
+	 * @param string $name Bucket name.
+	 * @return array|null Limit and window in seconds.
+	 */
 	private static function config( $name ) {
 
 		$all = apply_filters( 'nexora_rate_limits', self::defaults() );
@@ -45,6 +59,11 @@ class Rate_Limiter {
 		return isset( $all[ $name ] ) && is_array( $all[ $name ] ) ? array( (int) $all[ $name ][0], max( 1, (int) $all[ $name ][1] ) ) : null;
 	}
 
+	/**
+	 * Current unix time (overridable in tests).
+	 *
+	 * @return int
+	 */
 	private static function now() {
 		return null !== self::$time_override ? (int) self::$time_override : time();
 	}
@@ -53,6 +72,8 @@ class Rate_Limiter {
 	 * REMOTE_ADDR, unless the site owner names a trusted proxy header
 	 * (define('NEXORA_CLIENT_IP_HEADER', 'HTTP_CF_CONNECTING_IP') or the
 	 * 'nexora_client_ip_header' filter). Forwarded headers are never trusted by default.
+	 *
+	 * @return string
 	 */
 	public static function client_ip() {
 
@@ -75,6 +96,14 @@ class Rate_Limiter {
 		return $remote;
 	}
 
+	/**
+	 * Storage key for a bucket, subject and the current window.
+	 *
+	 * @param string      $name Bucket name.
+	 * @param string|null $subject What is being limited (user id, or null for the client IP).
+	 * @param int         $window Window length in seconds.
+	 * @return string
+	 */
 	private static function key( $name, $subject, $window ) {
 
 		$subject = ( null === $subject || '' === $subject ) ? self::client_ip() : (string) $subject;
@@ -83,7 +112,13 @@ class Rate_Limiter {
 		return 'nexora_rl_' . md5( $name . '|' . $subject ) . '_' . $slot;
 	}
 
-	/** Hits recorded for this subject in the current window. */
+	/**
+	 * Hits recorded for this subject in the current window.
+	 *
+	 * @param string      $name Bucket name.
+	 * @param string|null $subject What is being limited (null for the client IP).
+	 * @return int
+	 */
 	public static function count( $name, $subject = null ) {
 
 		$cfg = self::config( $name );
@@ -103,7 +138,13 @@ class Rate_Limiter {
 		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $key ) );
 	}
 
-	/** True when the subject has already used up the window (does not count a hit). */
+	/**
+	 * True when the subject has already used up the window (does not count a hit).
+	 *
+	 * @param string      $name Bucket name.
+	 * @param string|null $subject What is being limited (null for the client IP).
+	 * @return bool
+	 */
 	public static function blocked( $name, $subject = null ) {
 
 		$cfg = self::config( $name );
@@ -113,6 +154,10 @@ class Rate_Limiter {
 
 	/**
 	 * Record one hit. Returns true when this hit is OVER the limit.
+	 *
+	 * @param string      $name Bucket name.
+	 * @param string|null $subject What is being limited (null for the client IP).
+	 * @return bool True when this hit is over the limit.
 	 */
 	public static function hit( $name, $subject = null ) {
 
@@ -156,7 +201,11 @@ class Rate_Limiter {
 		return $count > $cfg[0];
 	}
 
-	/** Standard message for AJAX replies. */
+	/**
+	 * Standard message for AJAX replies.
+	 *
+	 * @return string
+	 */
 	public static function message() {
 		return 'Too many requests. Please try again later.';
 	}

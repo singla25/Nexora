@@ -17,12 +17,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Ajax extends Member_Ajax {
 
+	/**
+	 * Registers the content AJAX actions.
+	 */
 	public function __construct() {
 		Http::register( 'save_user_content', array( $this, 'save_user_content' ) );
 		Http::register( 'get_user_content_history', array( $this, 'get_user_content_history' ) );
 	}
 
-	// ADD NEW CONTENT
+	/**
+	 * Publishes a post on the member's profile (rate limited).
+	 */
 	public function save_user_content() {
 
 		$auth       = $this->member();
@@ -53,7 +58,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success( 'Post created' );
 	}
 
-	// HISTORY
+	/**
+	 * Renders the member's own posts.
+	 */
 	public function get_user_content_history() {
 
 		$auth = $this->member();

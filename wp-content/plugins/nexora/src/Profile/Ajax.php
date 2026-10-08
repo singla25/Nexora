@@ -16,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Ajax extends Member_Ajax {
 
+	/**
+	 * Registers the profile editing AJAX actions.
+	 */
 	public function __construct() {
 
 		Http::register( 'update_personal_info', array( $this, 'update_personal_info' ) );
@@ -25,7 +28,9 @@ class Ajax extends Member_Ajax {
 		Http::register( 'update_profile_password', array( $this, 'update_profile_password' ) );
 	}
 
-	// PERSONAL INFO
+	/**
+	 * Saves the member's personal details.
+	 */
 	public function update_personal_info() {
 
 		$auth = $this->member();
@@ -63,7 +68,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success( 'Personal Info Updated' );
 	}
 
-	// ADDRESS INFO
+	/**
+	 * Saves the member's addresses.
+	 */
 	public function update_address_info() {
 
 		$auth = $this->member();
@@ -80,7 +87,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success( 'Address Info Updated' );
 	}
 
-	// WORK INFO
+	/**
+	 * Saves the member's work details.
+	 */
 	public function update_work_info() {
 
 		$auth = $this->member();
@@ -108,7 +117,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success( 'Work Info Updated' );
 	}
 
-	// DOCUMENTS
+	/**
+	 * Links (or unlinks) the member's images and ID documents.
+	 */
 	public function update_documents_info() {
 
 		$auth = $this->member();
@@ -156,7 +167,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success( 'Documents updated' );
 	}
 
-	// CHANGE PASSWORD
+	/**
+	 * Changes the member's password (rate limited).
+	 */
 	public function update_profile_password() {
 
 		$user_id = Http::member( 'profile_nonce', false, 'Not logged in' )['user_id'];

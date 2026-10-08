@@ -11,6 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Documents_Migration {
 
+	/**
+	 * Registers the WP-CLI command.
+	 */
 	public function __construct() {
 
 		if ( defined( 'WP_CLI' ) && \WP_CLI ) {
@@ -21,7 +24,8 @@ class Documents_Migration {
 	/**
 	 * Move every ID document that is still public. Idempotent: private ones are skipped.
 	 *
-	 * @return array{moved:int,failed:int,skipped:int,would_move:int,errors:string[]}
+	 * @param bool $dry_run Only count what would be moved.
+	 * @return array moved, failed, skipped, would_move counts and an errors list.
 	 */
 	public static function migrate_all( $dry_run = false ) {
 
@@ -74,7 +78,10 @@ class Documents_Migration {
 	}
 
 	/**
-	 * wp nexora migrate-documents [--dry-run]
+	 * Runs `wp nexora migrate-documents [--dry-run]`.
+	 *
+	 * @param array $args Positional WP-CLI arguments (none used).
+	 * @param array $assoc_args Named WP-CLI arguments.
 	 */
 	public function cli_migrate( $args, $assoc_args ) {
 

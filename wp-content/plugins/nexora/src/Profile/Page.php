@@ -19,6 +19,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Page {
 
+	/**
+	 * Registers the shortcode, assets and the /profile-page/<username> rewrite.
+	 */
 	public function __construct() {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
@@ -28,10 +31,9 @@ class Page {
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 	}
 
-	/*
-	===============================
-		ASSETS
-	=============================== */
+	/**
+	 * Loads the profile scripts and hands the page its data (profile page only).
+	 */
 	public function enqueue_assets() {
 
 		// Profile scripts, the media library and the owner's private data are only for the profile page
@@ -84,10 +86,9 @@ class Page {
 		);
 	}
 
-	/*
-	===============================
-		ROUTING RULES
-	=============================== */
+	/**
+	 * Maps /profile-page/<username> to the profile page.
+	 */
 	public function rewrite_rule() {
 		add_rewrite_rule(
 			'^profile-page/([^/]+)/?$',
@@ -96,15 +97,22 @@ class Page {
 		);
 	}
 
+	/**
+	 * Registers the username query variable.
+	 *
+	 * @param string[] $vars Registered query variables.
+	 * @return string[] Query variables including username.
+	 */
 	public function query_vars( $vars ) {
 		$vars[] = 'username';
 		return $vars;
 	}
 
-	/*
-	===============================
-		RENDER PROFILE
-	=============================== */
+	/**
+	 * Renders [profile_dashboard]: a login wall, admin card, not-found card or the profile.
+	 *
+	 * @return string HTML.
+	 */
 	public function render_profile() {
 
 		// Only run on profile page
@@ -166,6 +174,11 @@ class Page {
 
 	/**
 	 * Everything the profile templates print, prepared here so templates only echo.
+	 *
+	 * @param int    $profile_id Profile (user_profile) post ID.
+	 * @param string $role_type guest, viewer or owner.
+	 * @param int    $current_user_id ID of the logged-in user.
+	 * @return array
 	 */
 	private function view_data( $profile_id, $role_type, $current_user_id ) {
 
@@ -232,6 +245,12 @@ class Page {
 		);
 	}
 
+	/**
+	 * URL of a default image option, or an empty string.
+	 *
+	 * @param string $option Option name.
+	 * @return string
+	 */
 	private function default_image_url( $option ) {
 
 		$id = get_option( $option );
@@ -241,6 +260,13 @@ class Page {
 
 	/**
 	 * Cards of the Documents section. Only the owner sees ID documents.
+	 *
+	 * @param int    $profile_id Profile (user_profile) post ID.
+	 * @param bool   $is_owner Whether the visitor owns the profile.
+	 * @param string $default_profile Default profile image URL.
+	 * @param string $default_cover Default cover image URL.
+	 * @param string $default_doc Default document image URL.
+	 * @return array[] Rows with label and url.
 	 */
 	private function document_cards( $profile_id, $is_owner, $default_profile, $default_cover, $default_doc ) {
 
@@ -286,6 +312,9 @@ class Page {
 
 	/**
 	 * The profile's accepted connections as cards.
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return array[]
 	 */
 	private function established_connections( $profile_id ) {
 
@@ -309,6 +338,12 @@ class Page {
 		return $cards;
 	}
 
+	/**
+	 * The member's notifications prepared for the template.
+	 *
+	 * @param int $user_id User ID.
+	 * @return array[]
+	 */
 	private function notification_rows( $user_id ) {
 
 		$rows = array();
@@ -332,7 +367,8 @@ class Page {
 	/**
 	 * Posts by other members (the content tab).
 	 *
-	 * @return array{rows:array[],any_exist:bool}
+	 * @param int $current_user_id ID of the logged-in user.
+	 * @return array rows (array[]) and any_exist (bool).
 	 */
 	private function content_feed( $current_user_id ) {
 
@@ -365,6 +401,9 @@ class Page {
 
 	/**
 	 * Text shown for a notification row (UI transformation of the stored type).
+	 *
+	 * @param object $noti Notification row.
+	 * @return string Text (already escaped).
 	 */
 	private function format_notification_message( $noti ) {
 

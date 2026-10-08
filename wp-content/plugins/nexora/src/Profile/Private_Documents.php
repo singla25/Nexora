@@ -28,6 +28,9 @@ class Private_Documents {
 	/** Profile meta keys whose files are shown to other members. */
 	const PUBLIC_KEYS = array( 'profile_image', 'cover_image' );
 
+	/**
+	 * Hooks the protection of ID documents and the download action.
+	 */
 	public function __construct() {
 
 		// Protect on every path that links a document (front end, admin, imports)
@@ -43,19 +46,33 @@ class Private_Documents {
 		add_action( 'wp_ajax_' . self::ACTION, array( $this, 'serve' ) );
 	}
 
-	/*
-	===============================
-		STATE
-	=============================== */
+	/**
+	 * True when the attachment is a private ID document.
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 * @return bool
+	 */
 	public static function is_private( $attachment_id ) {
 		return get_post_meta( (int) $attachment_id, self::FLAG, true ) === '1';
 	}
 
+	/**
+	 * Absolute path of the private folder.
+	 *
+	 * @return string
+	 */
 	public static function dir() {
 		$up = wp_upload_dir();
 		return $up['basedir'] . '/' . self::DIR;
 	}
 
+	/**
+	 * Gated download URL for an attachment (optionally one image size).
+	 *
+	 * @param int    $attachment_id Attachment post ID.
+	 * @param string $size Image size name, or an empty string for the full file.
+	 * @return string
+	 */
 	public static function url_for( $attachment_id, $size = '' ) {
 
 		$args = array(
@@ -73,6 +90,9 @@ class Private_Documents {
 	/**
 	 * True when the attachment is already used by something other members can see
 	 * (profile / cover image, post thumbnail), so moving it would break that page.
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 * @return bool
 	 */
 	public static function in_public_use( $attachment_id ) {
 
@@ -87,10 +107,11 @@ class Private_Documents {
 		);
 	}
 
-	/*
-	===============================
-		STORAGE
-	=============================== */
+	/**
+	 * Creates the private folder with its deny rule and index file.
+	 *
+	 * @return bool
+	 */
 	private static function ensure_dir() {
 
 		$dir = self::dir();
@@ -123,6 +144,9 @@ class Private_Documents {
 	/**
 	 * Move an attachment (all sizes) into the private folder. Copy first, verify,
 	 * switch the database, and only then delete the originals.
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 * @return bool True when the attachment is (now) private.
 	 */
 	public static function protect( $attachment_id ) {
 
@@ -214,10 +238,14 @@ class Private_Documents {
 		return true;
 	}
 
-	/*
-	===============================
-		HOOKS
-	=============================== */
+	/**
+	 * Makes an attachment private when it is linked as an ID document.
+	 *
+	 * @param int    $meta_id Meta row ID.
+	 * @param int    $post_id ID of the post the meta belongs to.
+	 * @param string $key Meta key.
+	 * @param mixed  $value Meta value (an attachment ID for the document keys).
+	 */
 	public function on_meta_change( $meta_id, $post_id, $key, $value ) {
 
 		if ( ! in_array( $key, self::DOC_KEYS, true ) || get_post_type( $post_id ) !== 'user_profile' ) {
@@ -231,11 +259,27 @@ class Private_Documents {
 		}
 	}
 
+	/**
+	 * Points a private attachment's URL at the gated download.
+	 *
+	 * @param string $url Attachment URL.
+	 * @param int    $attachment_id Attachment post ID.
+	 * @return string
+	 */
 	public function filter_url( $url, $attachment_id ) {
 		return self::is_private( $attachment_id ) ? self::url_for( $attachment_id ) : $url;
 	}
 
-	// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- $icon: required by the filter's four arguments.
+	// phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- $icon: the filter passes four arguments.
+	/**
+	 * Points a private attachment's image URL at the gated download.
+	 *
+	 * @param array|false $image Image data: URL, width, height, is_intermediate.
+	 * @param int         $attachment_id Attachment post ID.
+	 * @param string      $size Image size name, or an empty string for the full file.
+	 * @param bool        $icon Whether an icon was requested (unused).
+	 * @return array|false
+	 */
 	public function filter_image_src( $image, $attachment_id, $size, $icon ) {
 
 		if ( ! $image || ! self::is_private( $attachment_id ) ) {
@@ -247,7 +291,15 @@ class Private_Documents {
 
 		return $image;
 	}
+	// phpcs:enable Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 
+	/**
+	 * Gives the media library the gated URLs of a private attachment.
+	 *
+	 * @param array    $response Attachment data for the media library.
+	 * @param \WP_Post $attachment Attachment post.
+	 * @return array
+	 */
 	public function filter_js( $response, $attachment ) {
 
 		if ( ! is_array( $response ) || ! self::is_private( $attachment->ID ) ) {
@@ -266,14 +318,27 @@ class Private_Documents {
 		return $response;
 	}
 
+	/**
+	 * Removes responsive sources for private attachments.
+	 *
+	 * @param array|false $sources Responsive image sources.
+	 * @param array       $size_array Requested width and height.
+	 * @param string      $image_src Image URL.
+	 * @param array       $image_meta Image metadata.
+	 * @param int         $attachment_id Attachment post ID.
+	 * @return array|false
+	 */
 	public function filter_srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
 		return self::is_private( $attachment_id ) ? false : $sources;
 	}
 
-	/*
-	===============================
-		AUTHORIZATION + DOWNLOAD
-	=============================== */
+	/**
+	 * True when the user may open this private document (its owner or an administrator).
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 * @param int $user_id User ID.
+	 * @return bool
+	 */
 	public static function can_view( $attachment_id, $user_id ) {
 
 		$attachment_id = (int) $attachment_id;
@@ -304,6 +369,10 @@ class Private_Documents {
 	/**
 	 * Absolute path of the full file or of a named size; null when the size is
 	 * unknown. Only names that exist in the attachment metadata are accepted.
+	 *
+	 * @param int    $attachment_id Attachment post ID.
+	 * @param string $size Image size name, or an empty string for the full file.
+	 * @return string|null Absolute path, or null when the size is unknown or the file is missing.
 	 */
 	public static function resolve_path( $attachment_id, $size = '' ) {
 
@@ -327,6 +396,9 @@ class Private_Documents {
 		return null;
 	}
 
+	/**
+	 * Streams a private document to its owner or an administrator.
+	 */
 	public function serve() {
 
 		// Read-only download: access is decided by login + ownership (can_view), not by a nonce, so plain <img> links work.

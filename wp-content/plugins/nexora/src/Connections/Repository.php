@@ -12,7 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Repository {
 
-	/** Profile ids connected (accepted) with this profile. */
+	/**
+	 * Profile ids connected (accepted) with this profile.
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return array Profile IDs.
+	 */
 	public static function accepted_profile_ids( $profile_id ) {
 
 		$connections = get_posts(
@@ -55,6 +60,7 @@ class Repository {
 	/**
 	 * Accepted connections of a profile as [connection post id, the other profile id] pairs, newest first.
 	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
 	 * @return array<int,array{connection_id:int,profile_id:string}>
 	 */
 	public static function accepted_pairs( $profile_id ) {
@@ -102,6 +108,9 @@ class Repository {
 	/**
 	 * Profiles that must not be offered as "add new": the profile itself and everyone it already
 	 * has a pending or accepted connection with.
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return int[] Profile IDs.
 	 */
 	public static function unavailable_profile_ids( $profile_id ) {
 
@@ -139,7 +148,13 @@ class Repository {
 		return array_values( array_unique( $blocked ) );
 	}
 
-	/** True when a pending or accepted connection exists between the two profiles, in either direction. */
+	/**
+	 * True when a pending or accepted connection exists between the two profiles, in either direction.
+	 *
+	 * @param int $profile_a First profile ID.
+	 * @param int $profile_b Second profile ID.
+	 * @return bool
+	 */
 	public static function active_between( $profile_a, $profile_b ) {
 
 		$existing = get_posts(
@@ -185,7 +200,12 @@ class Repository {
 		return ! empty( $existing );
 	}
 
-	/** Pending requests addressed to this profile. */
+	/**
+	 * Pending requests addressed to this profile.
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return \WP_Post[] Connection posts.
+	 */
 	public static function pending_for( $profile_id ) {
 
 		return get_posts(
@@ -206,16 +226,33 @@ class Repository {
 		);
 	}
 
-	/** Every connection post received by this profile (any status). */
+	/**
+	 * Every connection post received by this profile (any status).
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return \WP_Post[] Connection posts.
+	 */
 	public static function received_by( $profile_id ) {
 		return self::by_side( 'receiver_profile_id', $profile_id );
 	}
 
-	/** Every connection post sent by this profile (any status). */
+	/**
+	 * Every connection post sent by this profile (any status).
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return \WP_Post[] Connection posts.
+	 */
 	public static function sent_by( $profile_id ) {
 		return self::by_side( 'sender_profile_id', $profile_id );
 	}
 
+	/**
+	 * Connection posts whose given profile meta equals the profile id.
+	 *
+	 * @param string $meta_key Connection meta key to match (sender_profile_id or receiver_profile_id).
+	 * @param int    $profile_id Profile (user_profile) post ID.
+	 * @return \WP_Post[]
+	 */
 	private static function by_side( $meta_key, $profile_id ) {
 
 		return get_posts(
@@ -232,7 +269,12 @@ class Repository {
 		);
 	}
 
-	/** Connection posts where the WP user is sender or receiver. */
+	/**
+	 * Connection posts where the WP user is sender or receiver.
+	 *
+	 * @param int $user_id User ID.
+	 * @return \WP_Post[] Connection posts.
+	 */
 	public static function for_user( $user_id ) {
 
 		return get_posts(
@@ -257,6 +299,8 @@ class Repository {
 	/**
 	 * Create a pending request. $sender / $receiver: user_id, profile_id, user_name.
 	 *
+	 * @param array $sender Sending member: user_id, profile_id, user_name.
+	 * @param array $receiver Receiving member: user_id, profile_id, user_name.
 	 * @return int Post id, 0 on failure.
 	 */
 	public static function create_pending( array $sender, array $receiver ) {
@@ -286,10 +330,22 @@ class Repository {
 		return (int) $post_id;
 	}
 
+	/**
+	 * Current status of a connection post.
+	 *
+	 * @param int $connection_id Connection (user_connections) post ID.
+	 * @return string
+	 */
 	public static function status( $connection_id ) {
 		return get_post_meta( $connection_id, 'status', true );
 	}
 
+	/**
+	 * Stores a new status on a connection post.
+	 *
+	 * @param int    $connection_id Connection (user_connections) post ID.
+	 * @param string $status Connection status: pending, accepted, rejected or removed.
+	 */
 	public static function set_status( $connection_id, $status ) {
 		update_post_meta( $connection_id, 'status', $status );
 	}

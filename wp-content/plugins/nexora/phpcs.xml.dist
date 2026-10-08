@@ -44,6 +44,11 @@
 		<exclude-pattern>*</exclude-pattern>
 	</rule>
 
+	<!-- `/** @var ... */` blocks at the top of a template annotate its variables; they are not API docs. -->
+	<rule ref="Generic.Commenting.DocComment.MissingShort">
+		<exclude-pattern>*/templates/*</exclude-pattern>
+	</rule>
+
 	<!-- Template files are included inside View::render(), so their variables are function-local, not global. -->
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
 		<exclude-pattern>*/templates/*</exclude-pattern>

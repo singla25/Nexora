@@ -6,8 +6,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Chat module: loads the chat assets and prints the chat popup for logged-in members.
+ */
 class Module {
 
+	/**
+	 * Hooks the chat assets and popup.
+	 */
 	public function __construct() {
 
 		// INIT CHAT MODULES
@@ -23,6 +29,9 @@ class Module {
 		add_action( 'admin_footer', array( $this, 'load_chat_template' ) );
 	}
 
+	/**
+	 * Loads the chat styles and script for logged-in members.
+	 */
 	public function enqueue_assets() {
 
 		// Chat is for logged-in members only
@@ -58,7 +67,9 @@ class Module {
 		);
 	}
 
-	// LOAD CHAT TEMPLATE
+	/**
+	 * Prints the chat popup in the footer for logged-in members.
+	 */
 	public function load_chat_template() {
 		if ( ! is_user_logged_in() ) {
 			return;

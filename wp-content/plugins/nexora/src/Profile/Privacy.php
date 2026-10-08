@@ -9,9 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * What a visitor may learn about a profile. The single place that decides who gets private data.
  *
- *   guest  - not logged in
- *   viewer - logged in, looking at somebody else's profile
- *   owner  - logged in, looking at their own profile
+ * Guest: not logged in.
+ * Viewer: logged in, looking at somebody else's profile.
+ * Owner: logged in, looking at their own profile.
  */
 class Privacy {
 
@@ -19,6 +19,13 @@ class Privacy {
 	const VIEWER = 'viewer';
 	const OWNER  = 'owner';
 
+	/**
+	 * Relationship of the visitor to the profile (guest, viewer or owner).
+	 *
+	 * @param int        $current_user_id ID of the logged-in user.
+	 * @param int|string $owner_user_id User ID of the profile's owner.
+	 * @return string guest, viewer or owner.
+	 */
 	public static function role( $current_user_id, $owner_user_id ) {
 
 		if ( ! is_user_logged_in() ) {
@@ -35,6 +42,10 @@ class Privacy {
 	/**
 	 * Profile data handed to the browser (profilePageData.userData).
 	 * Public fields for everybody; contact details, address and ID documents only for the owner.
+	 *
+	 * @param int    $profile_id Profile (user_profile) post ID.
+	 * @param string $role guest, viewer or owner.
+	 * @return array
 	 */
 	public static function script_data( $profile_id, $role ) {
 

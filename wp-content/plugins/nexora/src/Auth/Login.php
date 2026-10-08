@@ -10,8 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * The [profile_login] page: password login, and the email one-time-code flow for resetting a password.
+ */
 class Login {
 
+	/**
+	 * Registers the [profile_login] shortcode and the login / OTP / reset AJAX actions.
+	 */
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'login_enqueue_assets' ) );
 		add_shortcode( 'profile_login', array( $this, 'login_form' ) );
@@ -25,6 +31,9 @@ class Login {
 		\Nexora\Http\Ajax::register( 'reset_password', array( $this, 'reset_password' ), true );
 	}
 
+	/**
+	 * Loads the login scripts, styles and captcha on the login page only.
+	 */
 	public function login_enqueue_assets() {
 
 		// Only the login page needs these scripts (and the guest nonce)
@@ -58,9 +67,9 @@ class Login {
 		$captcha->enqueue_script();
 	}
 
-	// ---------------------------
-	// SEND OTP
-	// ---------------------------
+	/**
+	 * Emails a one-time code to a member who asks to reset their password. The reply is identical for unknown accounts.
+	 */
 	public function send_otp() {
 
 		check_ajax_referer( 'profile_nonce', 'nonce' );
@@ -101,9 +110,9 @@ class Login {
 		wp_send_json_success( $reply( $user->ID ) );
 	}
 
-	// ---------------------------
-	// VERIFY OTP
-	// ---------------------------
+	/**
+	 * Checks the one-time code and, if right, returns a short-lived reset token.
+	 */
 	public function verify_otp() {
 
 		check_ajax_referer( 'profile_nonce', 'nonce' );
@@ -133,9 +142,9 @@ class Login {
 		);
 	}
 
-	// ---------------------------
-	// RESET Password
-	// ---------------------------
+	/**
+	 * Sets a new password for a member who holds a valid reset token, then logs them in.
+	 */
 	public function reset_password() {
 
 		check_ajax_referer( 'profile_nonce', 'nonce' );
@@ -194,9 +203,11 @@ class Login {
 		);
 	}
 
-	// ---------------------------
-	// LogIn Form
-	// ---------------------------
+	/**
+	 * Renders the login form, or an "already logged in" card.
+	 *
+	 * @return string HTML.
+	 */
 	public function login_form() {
 
 		// Already logged in
@@ -225,6 +236,9 @@ class Login {
 		);
 	}
 
+	/**
+	 * Logs a member in by username or email after the captcha and rate-limit checks.
+	 */
 	public function handle_login() {
 
 		check_ajax_referer( 'profile_nonce', 'nonce' );

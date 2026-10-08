@@ -13,10 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class View {
 
 	/**
+	 * Render.
+	 *
 	 * @param string $template Path under templates/ without .php, e.g. 'chat/layout'.
-	 * @param array  $vars     Variables made available to the template. Inside a template, `$vars` is that same
-	 *                         array, so a template can hand its variables on to a partial.
-	 * @return string The rendered HTML ('' when the template does not exist).
+	 * @param array  $vars Variables made available to the template. Inside a template `$vars` is that same array, so a template can hand its variables on to a partial.
+	 * @return string The rendered HTML (empty when the template does not exist).
 	 */
 	public static function render( $template, array $vars = array() ) {
 
@@ -36,7 +37,12 @@ class View {
 		return ob_get_clean();
 	}
 
-	/** Render and print. */
+	/**
+	 * Render and print.
+	 *
+	 * @param string $template Template path under templates/ without .php.
+	 * @param array  $vars Variables made available to the template.
+	 */
 	public static function output( $template, array $vars = array() ) {
 		// Every template escapes what it prints.
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

@@ -11,7 +11,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Repository {
 
-	/** Profile post id of a WP user (0 when none). */
+	/**
+	 * Profile post id of a WP user (0 when none).
+	 *
+	 * @param int $user_id User ID.
+	 * @return int
+	 */
 	public static function id_for_user( $user_id ) {
 
 		$id = (int) get_user_meta( $user_id, '_profile_id', true );
@@ -19,7 +24,12 @@ class Repository {
 		return ( $id && get_post_type( $id ) === 'user_profile' ) ? $id : 0;
 	}
 
-	/** Profile post id for a username (the user_name meta), or 0. */
+	/**
+	 * Profile post id for a username (the user_name meta), or 0.
+	 *
+	 * @param string $username Username (the user_name meta).
+	 * @return int
+	 */
 	public static function id_by_username( $username ) {
 
 		$username = sanitize_user( $username, true );
@@ -47,11 +57,22 @@ class Repository {
 		return $ids ? (int) $ids[0] : 0;
 	}
 
-	/** Name shown for a profile (first + last). */
+	/**
+	 * Name shown for a profile (first + last).
+	 *
+	 * @param int $profile_id Profile (user_profile) post ID.
+	 * @return string
+	 */
 	public static function full_name( $profile_id ) {
 		return trim( get_post_meta( $profile_id, 'first_name', true ) . ' ' . get_post_meta( $profile_id, 'last_name', true ) );
 	}
 
+	/**
+	 * URL of a profile's image, or the default image.
+	 *
+	 * @param int $profile_id Profile post ID.
+	 * @return string
+	 */
 	public static function get_profile_image( $profile_id ) {
 
 		$image_id = get_post_meta( $profile_id, 'profile_image', true );

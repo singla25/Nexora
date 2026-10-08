@@ -11,12 +11,26 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Menu {
 
-	/** @var Settings */
+	/**
+	 * The settings page.
+	 *
+	 * @var Settings
+	 */
 	private $settings;
 
-	/** @var Pages */
+	/**
+	 * The overview pages.
+	 *
+	 * @var Pages
+	 */
 	private $pages;
 
+	/**
+	 * Hooks the menu and admin script.
+	 *
+	 * @param Settings $settings The settings page.
+	 * @param Pages    $pages Admin overview pages.
+	 */
 	public function __construct( Settings $settings, Pages $pages ) {
 
 		$this->settings = $settings;
@@ -26,6 +40,9 @@ class Menu {
 		add_action( 'admin_menu', array( $this, 'register_main_menu' ) );
 	}
 
+	/**
+	 * Loads the media library and the admin upload/remove script on admin screens.
+	 */
 	public function enqueue_admin_scripts() {
 		wp_enqueue_media();
 		wp_enqueue_script(
@@ -37,6 +54,9 @@ class Menu {
 		);
 	}
 
+	/**
+	 * Registers the "Nexora System" menu with Settings, Notifications and Chat.
+	 */
 	public function register_main_menu() {
 
 		add_menu_page(

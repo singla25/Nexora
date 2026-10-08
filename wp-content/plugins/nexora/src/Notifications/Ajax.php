@@ -13,10 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Ajax {
 
+	/**
+	 * Registers the notification AJAX action.
+	 */
 	public function __construct() {
 		Http::register( 'mark_notification_read', array( $this, 'mark_notification_read' ) );
 	}
 
+	/**
+	 * Marks one of the member's own notifications as read.
+	 */
 	public function mark_notification_read() {
 
 		$user_id = Http::member( 'profile_nonce', false, 'Not logged in' )['user_id'];

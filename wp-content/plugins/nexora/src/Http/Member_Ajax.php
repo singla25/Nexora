@@ -15,19 +15,28 @@ abstract class Member_Ajax {
 	/**
 	 * Nonce + login + capability + linked profile. Ends the request on failure.
 	 *
-	 * @return array{user_id:int,profile_id:int}
+	 * @return array user_id and profile_id.
 	 */
 	protected function member() {
 		return Ajax::member( 'profile_nonce', true, 'Unauthorized access' );
 	}
 
-	/** A sanitised single-line value from $_POST ('' when absent). */
+	/**
+	 * A sanitised single-line value from $_POST ('' when absent).
+	 *
+	 * @param string $key Field name in $_POST.
+	 * @return string
+	 */
 	protected function post_value( $key ) {
 		return isset( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
 	}
 
 	/**
 	 * An attachment may only be linked by the user who uploaded it (or an administrator).
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 * @param int $user_id User ID.
+	 * @return bool
 	 */
 	protected function owns_attachment( $attachment_id, $user_id ) {
 

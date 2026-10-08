@@ -16,16 +16,32 @@ class Urls {
 	const REGISTRATION_SLUG = 'registration-page';
 	const PROFILE_SLUG      = 'profile-page';
 
+	/**
+	 * URL of the login page.
+	 *
+	 * @param bool $trailing_slash End the URL with a slash.
+	 * @return string
+	 */
 	public static function login( $trailing_slash = false ) {
 		return home_url( '/' . self::LOGIN_SLUG . ( $trailing_slash ? '/' : '' ) );
 	}
 
+	/**
+	 * URL of the registration page.
+	 *
+	 * @param bool $trailing_slash End the URL with a slash.
+	 * @return string
+	 */
 	public static function registration( $trailing_slash = false ) {
 		return home_url( '/' . self::REGISTRATION_SLUG . ( $trailing_slash ? '/' : '' ) );
 	}
 
 	/**
 	 * Profile page of a member, or the bare profile page when no username is given.
+	 *
+	 * @param string $username Username, or an empty string for the bare profile page.
+	 * @param bool   $trailing_slash End the URL with a slash.
+	 * @return string
 	 */
 	public static function profile( $username = '', $trailing_slash = false ) {
 
@@ -39,7 +55,9 @@ class Urls {
 	/**
 	 * Where a user lands: administrators use the bare profile page, members their own.
 	 *
-	 * @param \WP_User|int $user
+	 * @param \WP_User|int $user The user.
+	 * @param bool         $trailing_slash End the URL with a slash.
+	 * @return string
 	 */
 	public static function profile_for( $user, $trailing_slash = false ) {
 

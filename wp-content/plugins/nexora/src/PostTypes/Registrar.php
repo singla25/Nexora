@@ -12,10 +12,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Registrar {
 
+	/**
+	 * Hooks the post type registration.
+	 */
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_cpt' ) );
 	}
 
+	/**
+	 * Registers user_profile, user_connections and user_content (private, admin-only).
+	 */
 	public function register_cpt() {
 
 		register_post_type(

@@ -12,10 +12,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Assets {
 
+	/**
+	 * Hooks the global stylesheet.
+	 */
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
+	/**
+	 * Loads the design tokens and global stylesheet on every page.
+	 */
 	public function enqueue_assets() {
 
 		self::enqueue_tokens();
@@ -75,6 +81,10 @@ class Assets {
 	 * True when the current front-end page is the given page slug, or contains the
 	 * shortcode (in the post content or in Elementor data, where a Shortcode widget
 	 * stores it).
+	 *
+	 * @param string $slug Page slug.
+	 * @param string $shortcode Shortcode tag that also marks the page.
+	 * @return bool
 	 */
 	public static function is_page_for( $slug, $shortcode ) {
 

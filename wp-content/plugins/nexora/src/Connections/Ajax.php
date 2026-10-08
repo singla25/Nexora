@@ -18,9 +18,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Ajax extends Member_Ajax {
 
-	/** @var Service */
+	/**
+	 * Connection rules.
+	 *
+	 * @var Service
+	 */
 	private $service;
 
+	/**
+	 * Registers the connections AJAX actions.
+	 *
+	 * @param Service|null $service Connection rules (a default one is created when omitted).
+	 */
 	public function __construct( Service $service = null ) {
 
 		$this->service = null !== $service ? $service : new Service();
@@ -34,7 +43,9 @@ class Ajax extends Member_Ajax {
 		Http::register( 'view_mutual_connection', array( $this, 'view_mutual_connection' ) );
 	}
 
-	// GET NEW USER
+	/**
+	 * Lists members the user can still send a request to.
+	 */
 	public function get_add_new_users() {
 
 		$auth = $this->member();
@@ -64,7 +75,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success( $data );
 	}
 
-	// SEND CONNECTION REQUEST
+	/**
+	 * Sends a connection request to another member (rate limited).
+	 */
 	public function send_connection_request() {
 
 		$auth = $this->member();
@@ -88,7 +101,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success( 'Request sent' );
 	}
 
-	// GET REQUESTS
+	/**
+	 * Lists pending requests addressed to the member.
+	 */
 	public function get_requests() {
 
 		$auth = $this->member();
@@ -111,7 +126,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success( $data );
 	}
 
-	// REQUEST ACCEPTED / REJECT / REMOVED
+	/**
+	 * Accepts, rejects or removes a connection.
+	 */
 	public function update_connection_status() {
 
 		$auth = $this->member();
@@ -136,7 +153,9 @@ class Ajax extends Member_Ajax {
 		wp_send_json_success();
 	}
 
-	// HISTORY
+	/**
+	 * Renders the received / sent request history.
+	 */
 	public function get_history() {
 
 		$auth = $this->member();
@@ -154,6 +173,10 @@ class Ajax extends Member_Ajax {
 
 	/**
 	 * Rows for the history cards: the other person on each connection post.
+	 *
+	 * @param \WP_Post[] $connections Connection posts.
+	 * @param string     $other_side_meta_key Meta key holding the other person's profile ID.
+	 * @return array[] Rows for the history template.
 	 */
 	private function history_rows( array $connections, $other_side_meta_key ) {
 
@@ -178,7 +201,9 @@ class Ajax extends Member_Ajax {
 		return $rows;
 	}
 
-	// VIEW ALL CONNECTIONS
+	/**
+	 * Renders all accepted connections of a profile.
+	 */
 	public function view_all_connection() {
 
 		$this->member();
@@ -201,7 +226,9 @@ class Ajax extends Member_Ajax {
 		);
 	}
 
-	// VIEW MUTUAL CONNECTIONS
+	/**
+	 * Renders the connections the member shares with another profile.
+	 */
 	public function view_mutual_connection() {
 
 		$auth             = $this->member();
@@ -230,6 +257,9 @@ class Ajax extends Member_Ajax {
 
 	/**
 	 * Cards for a list of profile ids.
+	 *
+	 * @param int[] $profile_ids Profile post IDs.
+	 * @return array[] Rows for the connection-cards template.
 	 */
 	private function card_rows( array $profile_ids ) {
 

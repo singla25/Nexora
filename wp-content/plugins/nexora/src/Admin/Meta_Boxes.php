@@ -18,11 +18,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Meta_Boxes {
 
+	/**
+	 * Hooks the meta boxes and the save handler.
+	 */
 	public function __construct() {
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'save_meta_boxes' ) );
 	}
 
+	/**
+	 * Registers the panels on the profile, connection and content edit screens.
+	 */
 	public function add_meta_boxes() {
 
 		add_meta_box( 'user_personal_details', 'User Personal Details', array( $this, 'user_personal_details' ), 'user_profile' );
@@ -39,7 +45,13 @@ class Meta_Boxes {
 		add_meta_box( 'user_content_meta_box', 'User Content Info', array( $this, 'render_user_content_meta_box' ), 'user_content' );
 	}
 
-	/** Meta values of a post for the given keys. */
+	/**
+	 * Meta values of a post for the given keys.
+	 *
+	 * @param int      $post_id Post ID.
+	 * @param string[] $keys Meta keys to read.
+	 * @return array Meta values keyed by meta key.
+	 */
 	private function meta_of( $post_id, array $keys ) {
 
 		$meta = array();
@@ -51,23 +63,38 @@ class Meta_Boxes {
 		return $meta;
 	}
 
-	/*
-	===============================
-		USER PROFILE
-	=============================== */
+	/**
+	 * Personal details panel of a profile.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_personal_details( $post ) {
 		View::output( 'admin/metabox-personal', array( 'meta' => $this->meta_of( $post->ID, array( 'user_name', 'first_name', 'last_name', 'email', 'phone', 'linkedin_id', 'gender', 'birthdate', 'bio' ) ) ) );
 	}
 
+	/**
+	 * Permanent and correspondence address panel of a profile.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_address_details( $post ) {
 		View::output( 'admin/metabox-address', array( 'meta' => $this->meta_of( $post->ID, Fields::ADDRESS ) ) );
 	}
 
+	/**
+	 * Work details panel of a profile.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_work_details( $post ) {
 		View::output( 'admin/metabox-work', array( 'meta' => $this->meta_of( $post->ID, Fields::WORK ) ) );
 	}
 
-	/* DOCUMENTS (MEDIA UPLOAD) */
+	/**
+	 * Documents panel of a profile (media upload for each file).
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_document_details( $post ) {
 
 		$labels = array(
@@ -95,7 +122,11 @@ class Meta_Boxes {
 		View::output( 'admin/metabox-documents', array( 'docs' => $docs ) );
 	}
 
-	/* USER CONNECTIONS */
+	/**
+	 * Received and sent connection requests of a profile.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_connection_details( $post ) {
 
 		$profile_id = $post->ID;
@@ -109,7 +140,13 @@ class Meta_Boxes {
 		);
 	}
 
-	/** Rows for a connection list: the other side's profile id and user name, and the status. */
+	/**
+	 * Rows for a connection list: the other side's profile id and user name, and the status.
+	 *
+	 * @param \WP_Post[] $connections Connection posts.
+	 * @param string     $other_side Which side is the "other" person: sender or receiver.
+	 * @return array[] Rows with profile_id, user_name and status.
+	 */
 	private function connection_rows( array $connections, $other_side ) {
 
 		$rows = array();
@@ -125,7 +162,11 @@ class Meta_Boxes {
 		return $rows;
 	}
 
-	/* USER CONTENT */
+	/**
+	 * Posts written by a profile.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_content_details( $post ) {
 
 		$contents = array();
@@ -141,7 +182,11 @@ class Meta_Boxes {
 		View::output( 'admin/metabox-contents', array( 'contents' => $contents ) );
 	}
 
-	/* USER CHAT OVERVIEW */
+	/**
+	 * Chat overview of a profile: each connection and its conversations.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_chat_details( $post ) {
 
 		$user_id = get_post_meta( $post->ID, '_wp_user_id', true );
@@ -219,10 +264,11 @@ class Meta_Boxes {
 		);
 	}
 
-	/*
-	===============================
-		USER CONNECTIONS
-	=============================== */
+	/**
+	 * Sender, receiver and status fields of a connection.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_connection_meta_box( $post ) {
 
 		View::output(
@@ -244,6 +290,11 @@ class Meta_Boxes {
 		);
 	}
 
+	/**
+	 * Conversations that belong to a connection.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function user_connection_chat_box( $post ) {
 
 		$threads = array();
@@ -281,19 +332,21 @@ class Meta_Boxes {
 		View::output( 'admin/metabox-connection-chat', array( 'threads' => $threads ) );
 	}
 
-	/*
-	===============================
-		USER CONTENT
-	=============================== */
+	/**
+	 * Author fields of a content post.
+	 *
+	 * @param \WP_Post $post The post being edited.
+	 */
 	public function render_user_content_meta_box( $post ) {
 
 		View::output( 'admin/metabox-content', array( 'm' => $this->meta_of( $post->ID, array( 'user_id', 'user_profile_id', 'user_name' ) ) ) );
 	}
 
-	/*
-	===============================
-		SAVE DATA
-	=============================== */
+	/**
+	 * Saves the fields of the three edit screens. Administrators only; ignored for autosaves, revisions, AJAX and bad nonces.
+	 *
+	 * @param int $post_id Post ID.
+	 */
 	public function save_meta_boxes( $post_id ) {
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {

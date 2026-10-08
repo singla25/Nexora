@@ -10,8 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * The [profile_registration] page: creates a member (WP user + linked profile) from the sign-up form.
+ */
 class Registration {
 
+	/**
+	 * Registers the [profile_registration] shortcode and the sign-up AJAX action.
+	 */
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_shortcode( 'profile_registration', array( $this, 'registration_form' ) );
@@ -19,6 +25,9 @@ class Registration {
 		\Nexora\Http\Ajax::register( 'profile_register', array( $this, 'registration_form_handle' ), true );
 	}
 
+	/**
+	 * Loads the registration scripts, styles and captcha on the registration page only.
+	 */
 	public function enqueue_assets() {
 
 		// Only the registration page needs these scripts (and the guest nonce)
@@ -53,6 +62,11 @@ class Registration {
 		$captcha->enqueue_script();
 	}
 
+	/**
+	 * Renders the sign-up form, or an "already logged in" card.
+	 *
+	 * @return string HTML.
+	 */
 	public function registration_form() {
 
 		// Already logged in
@@ -80,6 +94,9 @@ class Registration {
 		);
 	}
 
+	/**
+	 * Creates a member account from the sign-up form (captcha, rate limit, validation, profile, auto login).
+	 */
 	public function registration_form_handle() {
 
 		check_ajax_referer( 'profile_nonce', 'nonce' );
@@ -115,6 +132,8 @@ class Registration {
 
 	/**
 	 * Sanitised copy of the submitted form.
+	 *
+	 * @return array Sanitised form fields.
 	 */
 	private function read_input() {
 
@@ -137,6 +156,8 @@ class Registration {
 	/**
 	 * Ends the request with a JSON error for the first problem found.
 	 * An unknown gender is not an error: it is dropped.
+	 *
+	 * @param array $input Sanitised sign-up fields.
 	 */
 	private function validate( array &$input ) {
 
@@ -181,6 +202,8 @@ class Registration {
 	/**
 	 * Creates the WP user and the linked user_profile post, notifies the admin and logs the
 	 * new member in. Rolls the user back (and ends the request) if the profile cannot be created.
+	 *
+	 * @param array $input Sanitised sign-up fields.
 	 */
 	private function create_member( array $input ) {
 
@@ -239,6 +262,13 @@ class Registration {
 		wp_set_auth_cookie( $wp_user_id );
 	}
 
+	/**
+	 * Emails the site admin that a new member signed up.
+	 *
+	 * @param string $user_name Username.
+	 * @param string $email Email address.
+	 * @param string $full_name First and last name.
+	 */
 	private function send_admin_notification( $user_name, $email, $full_name ) {
 
 		$admin_email = get_option( 'default_admin_mail' );

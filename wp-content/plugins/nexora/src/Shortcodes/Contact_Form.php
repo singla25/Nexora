@@ -20,6 +20,9 @@ class Contact_Form {
 
 	const ACTION = 'nexora_contact';
 
+	/**
+	 * Registers the shortcode and the form handler.
+	 */
 	public function __construct() {
 		add_shortcode( 'nexora_contact_form', array( $this, 'render' ) );
 
@@ -35,6 +38,11 @@ class Contact_Form {
 		'error'   => array( 'error', 'alert', 'Sorry, the message could not be sent. Please try again later.' ),
 	);
 
+	/**
+	 * Renders the contact form with the result of the last submission.
+	 *
+	 * @return string HTML.
+	 */
 	public function render() {
 
 		// Display-only status flag set by our own redirect; nothing is changed by it.
@@ -67,6 +75,9 @@ class Contact_Form {
 		);
 	}
 
+	/**
+	 * Validates the form and emails the site admin (nonce, honeypot, rate limit).
+	 */
 	public function handle() {
 
 		$redirect = isset( $_POST['redirect_to'] )

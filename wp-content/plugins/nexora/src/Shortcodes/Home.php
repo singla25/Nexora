@@ -22,6 +22,9 @@ class Home {
 
 	const STATS_TRANSIENT = 'nexora_home_stats';
 
+	/**
+	 * Registers [nexora_home] and keeps its numbers fresh.
+	 */
 	public function __construct() {
 		add_shortcode( 'nexora_home', array( $this, 'render_home_page' ) );
 
@@ -33,6 +36,9 @@ class Home {
 		add_action( 'save_post_user_profile', array( $this, 'flush_stats' ) );
 	}
 
+	/**
+	 * Drops the cached platform numbers.
+	 */
 	public function flush_stats() {
 		delete_transient( self::STATS_TRANSIENT );
 	}
@@ -44,6 +50,8 @@ class Home {
 
 	/**
 	 * Live platform numbers (cached for an hour).
+	 *
+	 * @return array members, connections, posts, chats.
 	 */
 	public static function get_stats() {
 
@@ -96,6 +104,9 @@ class Home {
 
 	/**
 	 * Compact number: 1,250 -> 1.2K
+	 *
+	 * @param int|string $n The number.
+	 * @return string
 	 */
 	public static function short_number( $n ) {
 
@@ -113,6 +124,10 @@ class Home {
 
 	/**
 	 * Parse "a | b | c" lines from a settings textarea.
+	 *
+	 * @param string $option Option holding the textarea.
+	 * @param int    $columns Number of "|"-separated cells per line.
+	 * @return array[]
 	 */
 	private function parse_lines( $option, $columns ) {
 
@@ -136,6 +151,11 @@ class Home {
 		return $rows;
 	}
 
+	/**
+	 * Feature cards shown when none are set in Settings.
+	 *
+	 * @return array[] Pairs of title and description.
+	 */
 	public static function default_features() {
 		return array(
 			array( 'Real-time chat', 'Instant conversations with subject-based threads.' ),
@@ -146,14 +166,10 @@ class Home {
 		);
 	}
 
-	/*
-	===============================
-		RENDER
-	=============================== */
 	/**
-	 * An option's value, or the default when it is empty.
+	 * Option or.
 	 *
-	 * @param string $name    Option name.
+	 * @param string $name Rate-limit bucket name.
 	 * @param string $fallback Text used when the option is empty.
 	 * @return string
 	 */
@@ -164,6 +180,11 @@ class Home {
 		return $value ? $value : $fallback;
 	}
 
+	/**
+	 * Renders the landing page.
+	 *
+	 * @return string HTML.
+	 */
 	public function render_home_page() {
 
 		$logged_in = is_user_logged_in();

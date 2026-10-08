@@ -22,12 +22,20 @@ class Fields {
 	/** Attachment-id fields. */
 	const DOCUMENTS = array( 'profile_image', 'cover_image', 'aadhaar_card', 'driving_license', 'company_id_card' );
 
-	/** Details only the owner may see (sent to the browser for the owner and nobody else). */
+	/**
+	 * Details only the owner may see (sent to the browser for the owner and nobody else).
+	 *
+	 * @return string[]
+	 */
 	public static function owner_only() {
 		return array_merge( array( 'email', 'phone', 'gender', 'birthdate', 'linkedin_id' ), array( 'perm_address', 'perm_city', 'perm_state', 'perm_pincode', 'corr_address', 'corr_city', 'corr_state', 'corr_pincode' ), self::WORK );
 	}
 
-	/** Everything an administrator can edit on a user_profile post. */
+	/**
+	 * Everything an administrator can edit on a user_profile post.
+	 *
+	 * @return string[]
+	 */
 	public static function admin_editable() {
 		return array_merge( array( 'user_name', 'first_name', 'last_name', 'email', 'phone', 'linkedin_id', 'bio', 'gender', 'birthdate' ), self::ADDRESS, self::WORK, self::DOCUMENTS );
 	}

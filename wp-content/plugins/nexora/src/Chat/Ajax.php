@@ -6,8 +6,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Chat AJAX actions: search connections, list conversations, read and send messages.
+ */
 class Ajax {
 
+	/**
+	 * Registers the chat AJAX actions.
+	 */
 	public function __construct() {
 
 		add_action( 'wp_ajax_nexora_search_users', array( $this, 'search_users' ) );
@@ -22,10 +28,11 @@ class Ajax {
 		add_action( 'wp_ajax_nexora_get_latest_thread_between_users', array( $this, 'get_latest_thread_between_users' ) );
 	}
 
-	/*
-	===============================
-		HELPERS
-	=============================== */
+	/**
+	 * Nonce and login check shared by every chat action.
+	 *
+	 * @return int ID of the logged-in user.
+	 */
 	private function authorize() {
 
 		return \Nexora\Http\Ajax::member( 'nexora_chat_nonce', false, 'Unauthorized' )['user_id'];
@@ -33,6 +40,10 @@ class Ajax {
 
 	/**
 	 * Stops the request unless the user is a participant of the thread.
+	 *
+	 * @param int $thread_id Chat thread ID.
+	 * @param int $user_id User ID.
+	 * @return \Nexora\Chat\Repository Chat data access, once the user is confirmed a participant.
 	 */
 	private function require_participant( $thread_id, $user_id ) {
 
@@ -49,10 +60,9 @@ class Ajax {
 		return $chat_db;
 	}
 
-	/*
-	===============================
-		SEARCH USERS
-	=============================== */
+	/**
+	 * Searches the member's accepted connections by username.
+	 */
 	public function search_users() {
 
 		$user_id = $this->authorize();
@@ -114,10 +124,9 @@ class Ajax {
 		wp_send_json_success( $results );
 	}
 
-	/*
-	===============================
-		GET LATEST THREAD
-	=============================== */
+	/**
+	 * Returns the latest conversation of a connection.
+	 */
 	public function get_latest_thread_between_users() {
 
 		$user_id       = $this->authorize();
@@ -140,6 +149,10 @@ class Ajax {
 
 	/**
 	 * True when the user is the sender or receiver of the connection post.
+	 *
+	 * @param int $connection_id Connection (user_connections) post ID.
+	 * @param int $user_id User ID.
+	 * @return bool
 	 */
 	private function user_in_connection( $connection_id, $user_id ) {
 
@@ -151,10 +164,9 @@ class Ajax {
 			|| (int) get_post_meta( $connection_id, 'receiver_user_id', true ) === (int) $user_id;
 	}
 
-	/*
-	===============================
-		GET MESSAGES
-	=============================== */
+	/**
+	 * Returns the latest messages of a conversation and marks it read.
+	 */
 	public function get_messages() {
 
 		$user_id   = $this->authorize();
@@ -173,10 +185,9 @@ class Ajax {
 		wp_send_json_success( $messages );
 	}
 
-	/*
-	===============================
-		GET USER THREADS
-	=============================== */
+	/**
+	 * Returns the member's conversations.
+	 */
 	public function get_user_threads() {
 
 		$user_id = $this->authorize();
@@ -186,10 +197,9 @@ class Ajax {
 		wp_send_json_success( $chat_db->get_user_threads( $user_id ) );
 	}
 
-	/*
-	===============================
-		SEND MESSAGE
-	=============================== */
+	/**
+	 * Sends a message into a conversation the member belongs to (rate limited).
+	 */
 	public function send_message() {
 
 		$user_id = $this->authorize();
@@ -230,10 +240,9 @@ class Ajax {
 		);
 	}
 
-	/*
-	===============================
-		GET OR CREATE THREAD
-	=============================== */
+	/**
+	 * Starts a conversation with an accepted connection.
+	 */
 	public function create_thread_with_subject() {
 
 		$user1 = $this->authorize();
@@ -277,10 +286,9 @@ class Ajax {
 		);
 	}
 
-	/*
-	===============================
-		GET THREAD SUBJECT
-	=============================== */
+	/**
+	 * Returns the subject of a conversation.
+	 */
 	public function get_thread_subject() {
 
 		$user_id   = $this->authorize();
@@ -295,10 +303,9 @@ class Ajax {
 		);
 	}
 
-	/*
-	===============================
-		UPDATE THREAD SUBJECT
-	=============================== */
+	/**
+	 * Renames a conversation.
+	 */
 	public function update_subject() {
 
 		$user_id   = $this->authorize();

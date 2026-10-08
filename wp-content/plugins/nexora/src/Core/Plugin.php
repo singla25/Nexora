@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Plugin {
 
+	/**
+	 * Creates every module so each can register its hooks.
+	 */
 	public static function boot() {
 
 		// Same order the modules have always registered their hooks in
