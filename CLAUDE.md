@@ -25,9 +25,18 @@ There is no build step or linter — it's plain PHP/CSS/JS, with a small WP-CLI 
 - `nexora.php` bootstraps: it `require`s every `includes/class-*.php` and `chat/class-chat-core.php`, then `NEXORA_System::__construct` instantiates each module class. A new module needs both a `require_once` and a `new` there. It also owns global asset enqueueing, access control (non-admins are bounced from `wp-admin`/`wp-login.php` to their profile; logged-out visitors go to `/login-page`; AJAX/REST/cron/`admin-post.php` are exempt), and table creation on activation.
 - Each feature is a class registering its own shortcode(s) and `wp_ajax_*` handlers. `class-profile-ajax.php` holds most AJAX (profile edit, connections, notifications, content). Keep nonce and capability checks on every handler.
 - Data model: custom post types `user_profile`, `user_connections`, `user_content` (`class-cpt.php`, which also builds the "Nexora System" admin menu/settings) plus custom tables for notifications and chat (threads, participants, messages, message_meta). Tables are created only on plugin **activation** — schema changes require deactivate/reactivate or a manual migration.
-- `/profile-page/<username>` is a rewrite rule; after changing rewrites, re-save *Settings → Permalinks*. Pages with slugs `login-page` and `profile-page` must exist.
+- `/profile-page/<username>` is a rewrite rule; after changing rewrites, re-save *Settings → Permalinks*. Pages with slugs `login-page`, `registration-page` and `profile-page` must exist (Appearance → Sample Content creates them if missing).
 - `chat/` is a self-contained module (core, ajax, db, templates). `class-better-message-chat.php` only adds filters for the third-party Better Messages plugin.
 - Theme: Header/footer/404 can be overridden by Elementor Pro Theme Builder templates; theme markup is the fallback. Elementor sections are styled via `nxe-*` classes in `assets/css/elementor.css`. Dynamic values in templates come from the plugin shortcodes `[nexora_stat]`, `[nexora_auth_buttons]` and theme shortcodes `[nxt_logo]`, `[nxt_setting]` (settings under Appearance → Nexora Settings). Sample pages are installed from Appearance → Sample Content and are idempotent.
+
+## Gotchas
+
+- **Profile privacy:** `class-profile-page.php` localizes private fields (email, phone, address, ID documents) into `profilePageData.userData` only for the profile owner, and the server-rendered cards are owner-only too. Don't add private fields for non-owners. Guests get a "log in" prompt instead of any profile.
+- **reCAPTCHA is skipped only when `wp_get_environment_type()` is `local`** (`Nexora_ReCaptcha::is_local`), never by host name. Set `WP_ENVIRONMENT_TYPE` to `local` in a dev `wp-config.php`.
+- **`.gitignore` has a blanket `vendor/` rule**, so Composer `vendor/` folders of the committed plugins (Elementor, ACF) are not in git; those plugins fatal on activation from a fresh clone. Install/update third-party plugins through wp-admin rather than relying on the repo copy. Elementor Pro is a licensed product, committed to a public repo.
+- The Header/Footer Theme Builder templates use Elementor Pro Nav Menu widgets bound to the menu slugs `nexora-main`, `nexora-footer-company` and `nexora-footer-legal`; those menus exist only after the sample-content installer has run.
+- The home-page numbers (`[nexora_home]`, `[nexora_stat]`) come from `Nexora_Home_Page::get_stats()`, cached in the `nexora_home_stats` transient and flushed by `save_post_user_*` hooks.
+- CSS prefixes: plugin `nx-*` (tokens in `assets/css/tokens.css`), theme chrome `nxt-*` (`NXT_VERSION` in `nexora-theme/functions.php` busts theme asset caches), Elementor sections `nxe-*`.
 
 ## Conventions
 
