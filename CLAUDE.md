@@ -11,6 +11,8 @@ A WordPress site (full WP core is committed) with project-specific code in two p
 
 Everything else (WP core, Elementor, Elementor Pro, ACF, other plugins, stock themes, Hostinger mu-plugins) is third-party; don't edit it. See [README.md](README.md) for the shortcode table, setup steps and feature list.
 
+Deeper references live in `docs/` (`ARCHITECTURE.md`, `AJAX-API.md`, `AUTHENTICATION.md`, `DATABASE.md`, `THEME.md`, `DEVELOPMENT-WORKFLOW.md`, `TROUBLESHOOTING.md`, `CODE-REFERENCE.md`, `NEXORA-DEVELOPER-GUIDE.md`); consult them before re-deriving how a subsystem works.
+
 There is no build step or linter — it's plain PHP/CSS/JS, with a small WP-CLI test harness in `tests/`. Run and verify changes in the browser (site is served under `/nexora/`; `.htaccess` `RewriteBase` assumes that). `wp-config.php`, uploads, and DB dumps are git-ignored.
 
 ## Commands
@@ -30,7 +32,7 @@ There is no build step or linter — it's plain PHP/CSS/JS, with a small WP-CLI 
 - AJAX: register with `Http\Ajax::register('name', $callback, $guest = false)` which creates `wp_ajax_nexora_name` and keeps the old un-prefixed `wp_ajax_name` as a deprecated alias (fires `nexora_deprecated_ajax_action`). Member handlers extend `Http\Member_Ajax` and start with `$this->member()` (nonce + login + profile). Rate-limit abusable actions with `Http\Rate_Limiter::hit()`.
 - Data model: custom post types `user_profile`, `user_connections`, `user_content` (`PostTypes\Registrar`; the "Nexora System" admin menu/settings are `Admin\Menu`/`Admin\Settings`) plus custom tables for notifications and chat (threads, participants, messages, message_meta). Tables are synced by `Database\Migrations` (`nexora_db_version` vs `Migrations::DB_VERSION`, checked on `plugins_loaded`, also run on activation): to change a schema edit the repository's `create_table()` `dbDelta` SQL and bump `DB_VERSION`. Deactivation only drops rewrite rules and the stats cache; `uninstall.php` deletes data only if the "Delete data on uninstall" setting is on (`Database\Uninstaller`). Connection and thread lists are object-cached and invalidated on change (`Connections\Cache`, `Chat\Repository`).
 - `/profile-page/<username>` is a rewrite rule; after changing rewrites, re-save *Settings → Permalinks*. Pages with slugs `login-page`, `registration-page` and `profile-page` must exist (Appearance → Sample Content creates them if missing).
-- Chat is `src/Chat/` (Module = assets + popup, Ajax, Repository = the tables); `Integrations\Better_Messages` only adds a filter for the third-party Better Messages plugin.
+- Chat is `src/Chat/` (Module = assets + popup, Ajax, Repository = the tables); the third-party Better Messages plugin has been removed — chat is fully custom. `Integrations\Better_Messages` (and its `Plugin::boot()` line, alias and `tests/php/test-better-messages.php`) is leftover dead code.
 - Theme: Header/footer/404 can be overridden by Elementor Pro Theme Builder templates; theme markup is the fallback. Elementor sections are styled via `nxe-*` classes in `assets/css/elementor.css`. Dynamic values in templates come from the plugin shortcodes `[nexora_stat]`, `[nexora_auth_buttons]` and theme shortcodes `[nxt_logo]`, `[nxt_setting]` (settings under Appearance → Nexora Settings). Sample pages are installed from Appearance → Sample Content and are idempotent.
 
 ## Gotchas
