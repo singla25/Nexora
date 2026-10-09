@@ -3,6 +3,7 @@
 # With no args runs every tests/php/test-*.php. Exits non-zero if any file fails.
 set -u
 cd "$(dirname "$0")/.."
+wp eval-file tests/purge.php --path=. || true
 files=("$@"); [ ${#files[@]} -eq 0 ] && files=(tests/php/test-*.php)
 rc=0
 for f in "${files[@]}"; do

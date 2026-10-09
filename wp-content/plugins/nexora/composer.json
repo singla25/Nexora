@@ -1,0 +1,30 @@
+{
+    "name": "nexora/nexora",
+    "description": "Nexora WordPress plugin. Composer is for development tooling only: the plugin ships its own PSR-4 autoloader and needs no vendor/ folder in production.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nexora\\": "src/"
+        }
+    },
+    "scripts": {
+        "lint": "phpcs",
+        "lint:fix": "phpcbf",
+        "test": "../../../../tests/run.sh"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

@@ -10,7 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$GLOBALS['nx_test'] = array( 'pass' => 0, 'fail' => 0, 'users' => array(), 'posts' => array() );
+// CLI has no headers to send; keep auth-cookie calls from emitting warnings.
+add_filter( 'send_auth_cookies', '__return_false' );
+
+$GLOBALS['nx_test'] = array( 'pass' => 0, 'fail' => 0, 'users' => array(), 'posts' => array(), 'threads' => array(), 'mail' => array() );
 
 function nx_assert( $cond, $label ) {
 	$GLOBALS['nx_test'][ $cond ? 'pass' : 'fail' ]++;
@@ -44,9 +47,10 @@ function nx_test_track_post( $post_id ) {
 /**
  * Invoke a wp_ajax_* handler in-process as the current user and return the decoded JSON reply.
  * wp_send_json_* ends with wp_die(); the filter below turns that into an exception.
+ * $guest = true fires the wp_ajax_nopriv_* hook (call wp_set_current_user(0) first).
  * Returns array( 'success' => bool, 'data' => mixed ) or array( 'died' => message ).
  */
-function nx_call_ajax( $action, array $post = array() ) {
+function nx_call_ajax( $action, array $post = array(), $guest = false ) {
 	$_POST = $_REQUEST = array_merge( array( 'action' => $action ), $post );
 	add_filter( 'wp_doing_ajax', '__return_true' );
 	$handler = function () {
@@ -59,20 +63,116 @@ function nx_call_ajax( $action, array $post = array() ) {
 	ob_start();
 	$died = null;
 	try {
-		do_action( 'wp_ajax_' . $action );
+		do_action( ( $guest ? 'wp_ajax_nopriv_' : 'wp_ajax_' ) . $action );
 	} catch ( RuntimeException $e ) {
 		$died = $e->getMessage();
 	}
 	$raw = ob_get_clean();
 	remove_filter( 'wp_die_ajax_handler', $handler, 99 );
 	remove_filter( 'wp_die_handler', $handler, 99 );
+	remove_filter( 'wp_doing_ajax', '__return_true' );
 	$json = json_decode( $raw, true );
 	return is_array( $json ) ? $json : array( 'died' => $died, 'raw' => $raw );
 }
 
+/** Create a user_connections post between two nx_test_user() fixtures. */
+function nx_test_connection( array $from, array $to, $status = 'accepted' ) {
+	$id = nx_test_track_post( wp_insert_post( array( 'post_type' => 'user_connections', 'post_status' => 'publish', 'post_title' => $from['login'] . '->' . $to['login'] ) ) );
+	update_post_meta( $id, 'sender_user_id', $from['user_id'] );
+	update_post_meta( $id, 'sender_profile_id', $from['profile_id'] );
+	update_post_meta( $id, 'sender_user_name', $from['login'] );
+	update_post_meta( $id, 'receiver_user_id', $to['user_id'] );
+	update_post_meta( $id, 'receiver_profile_id', $to['profile_id'] );
+	update_post_meta( $id, 'receiver_user_name', $to['login'] );
+	update_post_meta( $id, 'status', $status );
+	return $id;
+}
+
+/** Create a real 1x1 PNG attachment (file + metadata) authored by $user_id; tracked for cleanup. */
+function nx_test_attachment( $user_id, $title = 'nx-test-image' ) {
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+	$upload = wp_upload_dir();
+	$file   = trailingslashit( $upload['path'] ) . 'nxtest-' . wp_generate_password( 8, false ) . '.png';
+	file_put_contents( $file, base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' ) );
+	$id = wp_insert_attachment( array( 'post_title' => $title, 'post_mime_type' => 'image/png', 'post_status' => 'inherit', 'post_author' => $user_id ), $file );
+	wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
+	return nx_test_track_post( $id );
+}
+
+/** Create a chat thread for two fixtures; tracked for cleanup. */
+function nx_test_thread( array $a, array $b, $connection_id, $status = 'active', $subject = 'Test subject' ) {
+	$db  = new NEXORA_CHAT_DB();
+	$tid = $db->create_thread( array( $a['user_id'], $b['user_id'] ), $connection_id, $status, 'private', $subject );
+	$GLOBALS['nx_test']['threads'][] = $tid;
+	return $tid;
+}
+
+/** Clear every rate-limit transient the plugin sets (nx_rl_*, nx_reg_*, nx_contact_*). */
+function nx_test_reset_limits() {
+	global $wpdb;
+	foreach ( array( '\\_transient\\_nx\\_%', '\\_transient\\_timeout\\_nx\\_%', 'nexora\\_rl\\_%' ) as $like ) {
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+	}
+	wp_cache_flush();
+}
+
+/** Capture wp_mail() instead of sending. Returns a reference to the captured list. */
+function &nx_test_capture_mail() {
+	$GLOBALS['nx_test']['mail'] = array();
+	add_filter( 'pre_wp_mail', function ( $null, $atts ) {
+		$GLOBALS['nx_test']['mail'][] = $atts;
+		return true;
+	}, 10, 2 );
+	return $GLOBALS['nx_test']['mail'];
+}
+
+/** Standard nonce payloads. */
+function nx_profile_nonce() {
+	return array( 'nonce' => wp_create_nonce( 'profile_nonce' ) );
+}
+
+function nx_chat_nonce() {
+	return array( 'nonce' => wp_create_nonce( 'nexora_chat_nonce' ) );
+}
+
+/** True when an nx_call_ajax() reply is a rejection (died, or success=false). */
+function nx_rejected( $reply ) {
+	return isset( $reply['died'] ) || ( isset( $reply['success'] ) && false === $reply['success'] );
+}
+
+/**
+ * Standard "who may call this" matrix: no nonce, wrong nonce, logged-out, valid.
+ * $valid_post must be a complete valid payload WITHOUT the nonce.
+ */
+function nx_assert_guard_matrix( $action, array $valid_post, array $member, $nonce_fn = 'nx_profile_nonce' ) {
+	wp_set_current_user( $member['user_id'] );
+	nx_assert( nx_rejected( nx_call_ajax( $action, $valid_post ) ), "$action: no nonce rejected" );
+	nx_assert( nx_rejected( nx_call_ajax( $action, $valid_post + array( 'nonce' => 'bad' ) ) ), "$action: wrong nonce rejected" );
+	$nonce = $nonce_fn();
+	wp_set_current_user( 0 );
+	nx_assert( nx_rejected( nx_call_ajax( $action, $valid_post + $nonce ) ), "$action: logged-out rejected" );
+	wp_set_current_user( $member['user_id'] );
+}
+
+/** Drop OTP reference transients (kept separate: resetting rate limits must not break a flow in progress). */
+function nx_test_reset_otp_refs() {
+	global $wpdb;
+	foreach ( array( '\\_transient\\_nexora\\_otp%', '\\_transient\\_timeout\\_nexora\\_otp%' ) as $like ) {
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+	}
+}
+
 function nx_test_cleanup() {
 	global $wpdb;
+	nx_test_reset_otp_refs();
 	require_once ABSPATH . 'wp-admin/includes/user.php';
+	foreach ( $GLOBALS['nx_test']['threads'] ?? array() as $tid ) {
+		foreach ( array( 'nexora_message_meta' => 'message_id IN (SELECT id FROM %1$snexora_messages WHERE thread_id=%2$d)', 'nexora_messages' => 'thread_id=%2$d', 'nexora_thread_participants' => 'thread_id=%2$d', 'nexora_threads' => 'id=%2$d' ) as $t => $where ) {
+			$wpdb->query( sprintf( "DELETE FROM {$wpdb->prefix}$t WHERE " . $where, $wpdb->prefix, (int) $tid ) );
+		}
+	}
+	nx_test_reset_limits();
+	wp_set_current_user( 0 );
 	foreach ( $GLOBALS['nx_test']['posts'] as $id ) {
 		wp_delete_post( $id, true );
 	}
@@ -90,4 +190,40 @@ function nx_test_finish() {
 	if ( $t['fail'] ) {
 		WP_CLI::halt( 1 );
 	}
+}
+
+
+/* ------------------------------------------------------------------
+ * Golden-output snapshots: pin the exact HTML a refactor must keep producing.
+ * Run with NX_UPDATE_GOLDEN=1 to (re)write tests/golden/<name>.html.
+ * Whitespace between tags and nonces are normalised; nothing else is.
+ * ---------------------------------------------------------------- */
+function nx_golden_normalize( $html ) {
+	$html = (string) $html;
+	$html = preg_replace( '/(name="[\w-]*nonce[\w-]*"[^>]*value=")[a-f0-9]{10}/', '$1{NONCE}', $html );
+	$html = preg_replace( '/(id="[\w-]*nonce[\w-]*"[^>]*value=")[a-f0-9]{10}/', '$1{NONCE}', $html );
+	$html = preg_replace( '/\s+/', ' ', $html );
+	$html = preg_replace( '/>\s+</', '><', $html );
+	return trim( $html );
+}
+
+function nx_assert_golden( $name, $html ) {
+	$file = dirname( __DIR__ ) . '/tests/golden/' . $name . '.html';
+	$norm = nx_golden_normalize( $html );
+	if ( getenv( 'NX_UPDATE_GOLDEN' ) || ! file_exists( $file ) ) {
+		if ( ! is_dir( dirname( $file ) ) ) { mkdir( dirname( $file ), 0775, true ); }
+		file_put_contents( $file, $norm . "\n" );
+		echo "  wrote golden: $name (" . strlen( $norm ) . " bytes)\n";
+		nx_assert( strlen( $norm ) > 0, "golden $name is not empty" );
+		return;
+	}
+	$expected = rtrim( file_get_contents( $file ), "\n" );
+	$ok = ( $expected === $norm );
+	if ( ! $ok ) {
+		$i = 0; $n = min( strlen( $expected ), strlen( $norm ) );
+		while ( $i < $n && $expected[ $i ] === $norm[ $i ] ) { $i++; }
+		$detail = ' first difference at byte ' . $i . ': expected "' . substr( $expected, max( 0, $i - 40 ), 120 ) . '" got "' . substr( $norm, max( 0, $i - 40 ), 120 ) . '"';
+		file_put_contents( sys_get_temp_dir() . '/nx-golden-' . $name . '.actual.html', $norm );
+	}
+	nx_assert( $ok, "golden output: $name" . ( $ok ? '' : $detail ) );
 }

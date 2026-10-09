@@ -6,8 +6,8 @@ description: Add or change a configurable setting, either a plugin option (Nexor
 # Add a setting
 
 ## Plugin option (Nexora System > Settings)
-1. Register in `register_settings()` in `includes/class-cpt.php` under group `profile_settings_group`, always with a `sanitize_callback` (`sanitize_text_field`, `sanitize_email`, `sanitize_textarea_field`; image options store an attachment ID).
-2. Add the input to `settings_page()` in the same file (inside the existing `<form action="options.php">` / `settings_fields('profile_settings_group')`). Images use the `.upload-btn` / `.remove-btn` pattern with a hidden input, wired by `assets/js/profile-admin.js`.
+1. Register in `Admin\Settings::register_settings()` (`src/Admin/Settings.php`) under group `profile_settings_group`, always with a `sanitize_callback` (`sanitize_text_field`, `sanitize_email`, `sanitize_textarea_field`; image options store an attachment ID).
+2. Add the input to `templates/admin/settings.php` (the form posts to `options.php` with `settings_fields('profile_settings_group')`; pass the value in `Admin\Settings::settings_page()`). A default-image option is one more row in `Admin\Settings::IMAGES`. Images use the `.upload-btn` / `.remove-btn` pattern with a hidden input, wired by `assets/js/profile-admin.js`.
 3. Read it with `get_option('<key>', <default>)` and escape on output. Secrets (reCAPTCHA secret) must never be echoed into front-end markup or localized JS.
 4. Existing keys use unprefixed names (`default_profile_image`, `recaptcha_*`) plus `nexora_home_*`; new keys should use the `nexora_` prefix.
 

@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<ruleset name="Nexora" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
+	<description>WordPress Coding Standards for the Nexora plugin.</description>
+
+	<file>nexora.php</file>
+	<file>src</file>
+	<file>templates</file>
+
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/assets/lib/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="basepath" value="."/>
+	<arg name="parallel" value="8"/>
+	<arg value="ps"/>
+
+	<!-- Runs on PHP 8.0+ -->
+	<config name="testVersion" value="8.0-"/>
+	<config name="minimum_wp_version" value="6.4"/>
+	<rule ref="PHPCompatibilityWP"/>
+
+	<rule ref="WordPress">
+		<!-- Classes are PSR-4 (src/Auth/Login.php), not class-login.php -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+
+	<!-- ===== Deliberate, documented exclusions ===== -->
+
+	<!-- One class per file with a class docblock; per-file headers add noise, not information. -->
+	<rule ref="Squiz.Commenting.FileComment">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
+	<!-- Section banners use block comments; inline comments are free prose. -->
+	<rule ref="Squiz.Commenting.BlockComment.CloserSameLine">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.InlineComment.InvalidEndChar">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
+	<!-- The data model is custom post types + meta by design (see CLAUDE.md); lookups are scoped by profile id. -->
+	<rule ref="WordPress.DB.SlowDBQuery">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
+	<!-- `/** @var ... */` blocks at the top of a template annotate its variables; they are not API docs. -->
+	<rule ref="Generic.Commenting.DocComment.MissingShort">
+		<exclude-pattern>*/templates/*</exclude-pattern>
+	</rule>
+
+	<!-- Template files are included inside View::render(), so their variables are function-local, not global. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
+		<exclude-pattern>*/templates/*</exclude-pattern>
+	</rule>
+
+	<!-- The plugin's own tables: table names come from $wpdb->prefix plus constants, never user input,
+	     and every value goes through $wpdb->prepare(). Caching of the hot queries is planned (Phase 4). -->
+	<rule ref="WordPress.DB.DirectDatabaseQuery">
+		<exclude-pattern>*/src/Chat/Repository.php</exclude-pattern>
+		<exclude-pattern>*/src/Notifications/Repository.php</exclude-pattern>
+		<exclude-pattern>*/src/Http/Rate_Limiter.php</exclude-pattern>
+		<exclude-pattern>*/src/Profile/Private_Documents.php</exclude-pattern>
+		<exclude-pattern>*/src/Profile/Documents_Migration.php</exclude-pattern>
+		<exclude-pattern>*/src/Shortcodes/Home.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQL.InterpolatedNotPrepared">
+		<exclude-pattern>*/src/Chat/Repository.php</exclude-pattern>
+		<exclude-pattern>*/src/Notifications/Repository.php</exclude-pattern>
+		<exclude-pattern>*/src/Http/Rate_Limiter.php</exclude-pattern>
+		<exclude-pattern>*/src/Profile/Private_Documents.php</exclude-pattern>
+		<exclude-pattern>*/src/Profile/Documents_Migration.php</exclude-pattern>
+		<exclude-pattern>*/src/Shortcodes/Home.php</exclude-pattern>
+	</rule>
+
+	<!-- The nonce is verified once, centrally, before any handler body runs: Http\Ajax::member() for member
+	     actions, Chat\Ajax::authorize() for chat, check_ajax_referer() in the guest handlers. PHPCS cannot
+	     follow that call, so the per-file warnings are excluded here and the guard is covered by the
+	     "no nonce / wrong nonce / logged out" cases in tests/php/test-*-ajax.php. -->
+	<rule ref="WordPress.Security.NonceVerification">
+		<exclude-pattern>*/src/Profile/Ajax.php</exclude-pattern>
+		<exclude-pattern>*/src/Connections/Ajax.php</exclude-pattern>
+		<exclude-pattern>*/src/Content/Ajax.php</exclude-pattern>
+		<exclude-pattern>*/src/Notifications/Ajax.php</exclude-pattern>
+		<exclude-pattern>*/src/Chat/Ajax.php</exclude-pattern>
+		<exclude-pattern>*/src/Http/Member_Ajax.php</exclude-pattern>
+		<exclude-pattern>*/src/Http/Ajax.php</exclude-pattern>
+		<exclude-pattern>*/src/Auth/Registration.php</exclude-pattern>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="nexora"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Everything global is prefixed nexora_ / Nexora. Option, meta and AJAX-alias names that already exist
+	     on the live site are part of the compatibility contract and are kept as they are. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="nexora"/>
+				<element value="Nexora"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

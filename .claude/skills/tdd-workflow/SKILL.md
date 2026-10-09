@@ -14,7 +14,14 @@ tests/run.sh                          # all tests/php/test-*.php
 tests/run.sh tests/php/test-foo.php   # one file
 ```
 
-Helpers live in `tests/bootstrap.php`: `nx_assert`, `nx_assert_same`, `nx_test_user($name)` (throwaway user + linked profile), `nx_test_track_post($id)`, `nx_call_ajax($action, $post)` (runs a `wp_ajax_*` handler in-process as the current user), `nx_test_finish()` (cleans up, prints totals, exits non-zero on failure). Copy `tests/php/test-ajax-guard.php` as a template.
+Helpers live in `tests/bootstrap.php`:
+- Fixtures (all self-cleaning via `nx_test_finish()`): `nx_test_user($name)`, `nx_test_connection($from, $to, $status)`, `nx_test_thread($a, $b, $conn_id)`, `nx_test_attachment($user_id)` (real 1x1 PNG), `nx_test_track_post($id)`.
+- Calling code: `nx_call_ajax($action, $post, $guest = false)` runs a `wp_ajax_*` (or `wp_ajax_nopriv_*` with `$guest`) handler in-process as the current user; `nx_profile_nonce()` / `nx_chat_nonce()` give nonce payloads.
+- Assertions: `nx_assert`, `nx_assert_same`, `nx_rejected($reply)`, and `nx_assert_guard_matrix($action, $valid_post, $member, $nonce_fn)` (no nonce / wrong nonce / logged out).
+- Environment: `nx_test_capture_mail()` (stops real mail), `nx_test_reset_limits()` (clears rate-limit transients).
+- Code that ends in `exit` (redirects, `admin_post_*`) cannot run in-process: run it in a child via `shell_exec('wp eval-file tests/child/<x>.php')` with inputs in env vars (see `tests/child/contact.php`, `tests/child/redirect.php`).
+
+Existing suites double as the **compatibility contract** for the restructure: `test-compat-contract.php` (action/shortcode/CPT/table/option/rewrite names), `test-profile-ajax.php`, `test-chat-ajax.php`, `test-auth-ajax.php`, `test-shortcodes-privacy.php`, `test-access-control.php`. Assertions tagged `[PHASE1]` or `[DECISION]` describe known weaknesses or open product decisions; change them deliberately, in the same commit as the fix, and list the change as user-visible.
 
 ## The loop
 1. **Pin the behaviour** in one sentence ("a user cannot send a request to someone already connected"). Ask the user if it is ambiguous; don't invent requirements.
@@ -29,7 +36,7 @@ Helpers live in `tests/bootstrap.php`: `nx_assert`, `nx_assert_same`, `nx_test_u
 | Change | Test with |
 | --- | --- |
 | AJAX handler (guards, validation, ownership, state change) | `nx_call_ajax()` as different users: owner, other member, logged out, bad nonce. Assert `success`, the stored meta/rows, and that foreign IDs are rejected. |
-| Data/model helpers (`NEXORA_PROFILE_HELPER`, connections, notifications, chat DB class) | Call the method with `nx_test_user()` fixtures; assert returned IDs/rows. Chat/notification tables must already exist (created on activation). |
+| Data/model helpers (`Connections\Repository`/`Service`, `Notifications\Repository`, `Chat\Repository`) | Call the method with `nx_test_user()` fixtures; assert returned IDs/rows. Chat/notification tables must already exist (created on activation). |
 | Settings, shortcodes | `do_shortcode()` output contains/omits expected text; `get_option` after `update_option` + sanitizer. |
 | Pure JS logic (formatting, validation) | Put it in a function with no DOM, test with `node` (`node tests/js/<file>.test.js`, `assert` module). |
 | Layout, CSS, DOM interaction | Not unit-testable here: write the acceptance check first as a short list ("at 400px the Send button is inside the viewport"), then verify it in the browser per `verify-like-a-user`. Say it was a manual check. |
