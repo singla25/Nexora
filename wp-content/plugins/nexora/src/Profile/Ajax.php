@@ -1,0 +1,214 @@
+<?php
+
+namespace Nexora\Profile;
+
+use Nexora\Http\Ajax as Http;
+use Nexora\Http\Member_Ajax;
+use Nexora\Http\Rate_Limiter;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Profile editing for the logged-in member: personal, address, work, documents, password.
+ * (Connections, notifications and content have their own classes.)
+ */
+class Ajax extends Member_Ajax {
+
+	/**
+	 * Registers the profile editing AJAX actions.
+	 */
+	public function __construct() {
+
+		Http::register( 'update_personal_info', array( $this, 'update_personal_info' ) );
+		Http::register( 'update_address_info', array( $this, 'update_address_info' ) );
+		Http::register( 'update_work_info', array( $this, 'update_work_info' ) );
+		Http::register( 'update_documents_info', array( $this, 'update_documents_info' ) );
+		Http::register( 'update_profile_password', array( $this, 'update_profile_password' ) );
+	}
+
+	/**
+	 * Saves the member's personal details.
+	 */
+	public function update_personal_info() {
+
+		$auth = $this->member();
+		$id   = $auth['profile_id'];
+
+		$fields = Fields::PERSONAL;
+
+		foreach ( $fields as $field ) {
+			if ( ! isset( $_POST[ $field ] ) ) {
+				continue;
+			}
+
+			$value = ( 'bio' === $field )
+				? sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) )
+				: $this->post_value( $field );
+
+			if ( 'gender' === $field && ! in_array( $value, array( 'male', 'female', 'other', '' ), true ) ) {
+				continue;
+			}
+
+			if ( 'birthdate' === $field && '' !== $value ) {
+				$dt = \DateTime::createFromFormat( 'Y-m-d', $value );
+				if ( ! $dt || $dt->format( 'Y-m-d' ) !== $value || $dt > new \DateTime( 'today' ) ) {
+					wp_send_json_error( __( 'Invalid date of birth', 'nexora' ) );
+				}
+			}
+
+			if ( 'linkedin_id' === $field ) {
+				$value = sanitize_text_field( $value );
+			}
+
+			update_post_meta( $id, $field, $value );
+		}
+
+		wp_send_json_success( __( 'Personal Info Updated', 'nexora' ) );
+	}
+
+	/**
+	 * Saves the member's addresses.
+	 */
+	public function update_address_info() {
+
+		$auth = $this->member();
+		$id   = $auth['profile_id'];
+
+		$fields = Fields::ADDRESS;
+
+		foreach ( $fields as $field ) {
+			if ( isset( $_POST[ $field ] ) ) {
+				update_post_meta( $id, $field, $this->post_value( $field ) );
+			}
+		}
+
+		wp_send_json_success( __( 'Address Info Updated', 'nexora' ) );
+	}
+
+	/**
+	 * Saves the member's work details.
+	 */
+	public function update_work_info() {
+
+		$auth = $this->member();
+		$id   = $auth['profile_id'];
+
+		$fields = Fields::WORK;
+
+		foreach ( $fields as $field ) {
+			if ( ! isset( $_POST[ $field ] ) ) {
+				continue;
+			}
+
+			$value = $this->post_value( $field );
+
+			if ( 'company_email' === $field && '' !== $value ) {
+				$value = sanitize_email( $value );
+				if ( ! is_email( $value ) ) {
+					wp_send_json_error( __( 'Invalid company email', 'nexora' ) );
+				}
+			}
+
+			update_post_meta( $id, $field, $value );
+		}
+
+		wp_send_json_success( __( 'Work Info Updated', 'nexora' ) );
+	}
+
+	/**
+	 * Links (or unlinks) the member's images and ID documents.
+	 */
+	public function update_documents_info() {
+
+		$auth = $this->member();
+		$id   = $auth['profile_id'];
+
+		$fields = Fields::DOCUMENTS;
+
+		foreach ( $fields as $field ) {
+
+			if ( ! isset( $_POST[ $field ] ) ) {
+				continue;
+			}
+
+			$value = trim( $this->post_value( $field ) );
+
+			// An empty value means the member removed the file.
+			if ( '' === $value ) {
+				delete_post_meta( $id, $field );
+				continue;
+			}
+
+			$attachment_id = absint( $value );
+
+			// Only attachments uploaded by this user can be linked
+			if ( ! $attachment_id || ! $this->owns_attachment( $attachment_id, $auth['user_id'] ) ) {
+				wp_send_json_error( __( 'Invalid file selected', 'nexora' ) );
+			}
+
+			// ID documents are private files; profile / cover images are shown to other members
+			$is_private_file = Private_Documents::is_private( $attachment_id );
+
+			if ( in_array( $field, Private_Documents::PUBLIC_KEYS, true ) && $is_private_file ) {
+				wp_send_json_error( __( 'This file is a private document and cannot be used as a public image', 'nexora' ) );
+			}
+
+			if ( in_array( $field, Private_Documents::DOC_KEYS, true )
+				&& ! $is_private_file
+				&& Private_Documents::in_public_use( $attachment_id ) ) {
+				wp_send_json_error( __( 'This file is already used as a public image. Please upload a separate file for your document', 'nexora' ) );
+			}
+
+			update_post_meta( $id, $field, $attachment_id );
+		}
+
+		wp_send_json_success( __( 'Documents updated', 'nexora' ) );
+	}
+
+	/**
+	 * Changes the member's password (rate limited).
+	 */
+	public function update_profile_password() {
+
+		$user_id = Http::member( 'profile_nonce', false, __( 'Not logged in', 'nexora' ) )['user_id'];
+
+		if ( Rate_Limiter::hit( 'password_change', 'u' . $user_id ) ) {
+			wp_send_json_error( Rate_Limiter::message() );
+		}
+
+		// Passwords are compared and hashed as typed: sanitizing would alter them.
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$current_password = wp_unslash( $_POST['current_password'] ?? '' );
+		$new_password     = wp_unslash( $_POST['new_password'] ?? '' );
+		$confirm_password = wp_unslash( $_POST['confirm_password'] ?? '' );
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+		$user = get_user_by( 'id', $user_id );
+
+		if ( ! $user || ! wp_check_password( $current_password, $user->user_pass, $user_id ) ) {
+			wp_send_json_error( __( 'Current password is incorrect', 'nexora' ) );
+		}
+
+		if ( strlen( $new_password ) < 8 ) {
+			wp_send_json_error( __( 'Password must be at least 8 characters', 'nexora' ) );
+		}
+
+		if ( $new_password !== $confirm_password ) {
+			wp_send_json_error( __( 'Passwords do not match', 'nexora' ) );
+		}
+
+		if ( $current_password === $new_password ) {
+			wp_send_json_error( __( 'New password must be different', 'nexora' ) );
+		}
+
+		wp_set_password( $new_password, $user_id );
+
+		// wp_set_password() destroys the session; keep this user logged in
+		wp_set_current_user( $user_id );
+		wp_set_auth_cookie( $user_id, true );
+
+		wp_send_json_success( __( 'Password updated successfully', 'nexora' ) );
+	}
+}

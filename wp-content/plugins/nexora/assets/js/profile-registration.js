@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const formData = new FormData(form);
-            formData.append('action', 'profile_register');
+            formData.append('action', 'nexora_profile_register');
             formData.append('nonce', profileData.nonce);
             formData.append('g-recaptcha-response', captcha);
 

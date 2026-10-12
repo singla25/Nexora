@@ -8,7 +8,7 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
 
         let formData = new FormData(this);
-        formData.append('action', 'profile_login');
+        formData.append('action', 'nexora_profile_login');
         formData.append('nonce', profileData.nonce); // 🔥 ADD THIS
 
         // 🔥 Add captcha
@@ -97,7 +97,7 @@ jQuery(document).ready(function ($) {
                 url: profileData.ajaxUrl,
                 type: 'POST',
                 data: {
-                    action: 'send_otp',
+                    action: 'nexora_send_otp',
                     username: result.value.username,
                     email: result.value.email,
                     nonce: profileData.nonce
@@ -173,7 +173,7 @@ jQuery(document).ready(function ($) {
                 url: profileData.ajaxUrl,
                 type: 'POST',
                 data: {
-                    action: 'verify_otp',
+                    action: 'nexora_verify_otp',
                     otp: result.value,
                     user_id: forgotUserId,
                     nonce: profileData.nonce
@@ -259,7 +259,7 @@ jQuery(document).ready(function ($) {
                 url: profileData.ajaxUrl,
                 type: 'POST',
                 data: {
-                    action: 'reset_password',
+                    action: 'nexora_reset_password',
                     password: result.value,
                     user_id: forgotUserId,
                     token: forgotToken,
