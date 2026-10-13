@@ -21,21 +21,22 @@ Everything else is WordPress core.
 nexora/
 ├── nexora.php                       # Constants, PSR-4 autoloader, activation hook, Plugin::boot()
 ├── src/                             # Namespace Nexora\ (one class per file)
-│   ├── Core/                        # Plugin, Assets, Access_Control, Urls, View, Autoloader
+│   ├── Core/                        # Plugin, Assets, Access_Control, Urls, View, I18n, Autoloader, legacy-aliases
 │   ├── Http/                        # Ajax registrar + guard, Member_Ajax, Rate_Limiter
 │   ├── Auth/                        # Login ([profile_login]), Registration, Otp, Recaptcha
 │   ├── Profile/                     # Page ([profile_dashboard], /profile-page/<username>), Privacy, Ajax, Fields,
 │   │                                #   Repository, Private_Documents, Upload_Policy, Documents_Migration
-│   ├── Connections/                 # Ajax, Service, Repository
+│   ├── Connections/                 # Ajax, Service, Repository, Cache
 │   ├── Notifications/               # Repository (table), Ajax
 │   ├── Content/                     # Ajax, Repository
 │   ├── Chat/                        # Module (popup + assets), Ajax, Repository (tables)
 │   ├── Admin/                       # Menu, Settings, Pages, Meta_Boxes, List_Columns ("Nexora System")
 │   ├── PostTypes/                   # Registrar (user_profile, user_connections, user_content)
 │   ├── Shortcodes/                  # Home, Stats, Contact_Form
-│   ├── Integrations/                # Better_Messages
+│   ├── Integrations/                # Better_Messages (dead code, slated for removal; chat is fully custom)
 │   └── Database/                    # Installer, Migrations, Uninstaller
 ├── templates/                       # HTML only (auth, profile, chat, admin, mail, shortcodes)
+├── languages/                       # nexora.pot (text domain `nexora`)
 └── assets/                          # css/, js/ (incl. chat), lib/ (SweetAlert2)
 ```
 
@@ -100,16 +101,26 @@ Sections are styled by CSS classes (`nxe-*`, `assets/css/elementor.css`), so lay
 1. Place the project in your web root (for example `/var/www/html/83/nexora`).
 2. Create a database, then copy `wp-config-sample.php` to `wp-config.php` and fill in the DB credentials and salts.
 3. Run the WordPress installer at `/nexora/wp-admin/install.php`, or import a backup (see below).
-4. Activate the **Nexora** plugin. Activation creates the notification and chat tables.
-5. Create pages with slugs `login-page` and `profile-page` and the matching shortcodes, plus pages for registration and home. Then go to *Settings → Permalinks* and click Save to flush the rewrite rules.
+4. Activate the **Nexora** plugin. Activation creates the notification and chat tables (`Database\Migrations` keeps them current afterwards).
+5. Create pages with slugs `login-page`, `registration-page` and `profile-page` and the matching shortcodes, plus a home page (or use *Appearance → Sample Content*, which creates missing ones). Then go to *Settings → Permalinks* and click Save to flush the rewrite rules.
 6. Under *Nexora System → Settings*, set the default images, admin email, and (optionally) reCAPTCHA keys.
 7. Make sure outgoing email works (the repo includes WP Mail SMTP). OTP and password reset depend on it.
 
 ## Development notes
 
 - Bump `NEXORA_VERSION` in `nexora.php` when changing CSS or JS, because it is used for cache busting.
-- Plugin AJAX handlers are registered with `wp_ajax_*` hooks. Keep nonce and capability checks in place when adding new ones.
+- Register AJAX handlers with `Http\Ajax::register()` (creates `wp_ajax_nexora_<name>`; the old un-prefixed action is a deprecated alias). Member handlers extend `Http\Member_Ajax`; keep nonce and login checks in place and rate-limit abusable actions.
 - Set `WP_DEBUG` to `true` in `wp-config.php` locally to surface PHP notices.
+- Wrap user-facing strings in `__()` with the `nexora` text domain and regenerate `languages/nexora.pot` (see the plugin README).
+
+### Tests and coding standards
+
+- Tests (WP-CLI, self-cleaning fixtures): `tests/run.sh` for all, or `tests/run.sh tests/php/test-foo.php` for one. Golden markup snapshots live in `tests/golden/`; regenerate on purpose with `NX_UPDATE_GOLDEN=1 tests/run.sh tests/php/test-golden-output.php`.
+- Coding standards: `cd wp-content/plugins/nexora && composer install && vendor/bin/phpcs` (auto-fix with `vendor/bin/phpcbf`).
+
+### Further documentation
+
+Deeper references are in [`docs/`](docs/): `ARCHITECTURE.md`, `AJAX-API.md`, `AUTHENTICATION.md`, `DATABASE.md`, `THEME.md`, `DEVELOPMENT-WORKFLOW.md`, `TROUBLESHOOTING.md`, `CODE-REFERENCE.md` and `NEXORA-DEVELOPER-GUIDE.md`.
 
 ## What is not in git
 
