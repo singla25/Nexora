@@ -18,7 +18,7 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - `tabs_for()` matches the map for each state.
 - **Regression:** golden snapshots unchanged (after the nonce normalisation), `test-endpoint-matrix` and `test-compat-contract` unchanged.
 
-## Phase 2: Vendor application (`test-vendor-application.php`, `test-vendor-validator.php`)
+## Phase 2: Vendor application (DONE: `test-vendor-validator.php`, `test-vendor-application.php`, `test-vendor-admin.php`, `test-vendor-assets.php`, extended `test-vendor-self-approval.php`)
 - Valid application creates the `nexora_vendor` post, user meta and `pending` status.
 - Missing, over-long and invalid fields (email, phone, pincode, GSTIN format).
 - Duplicate GSTIN (case-insensitive) is rejected; a second application by the same user is rejected.

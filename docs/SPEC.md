@@ -55,6 +55,18 @@ Hiding a tab is never the security; every endpoint re-checks on the server.
 - **Order-item snapshot** (Woo order item meta, CRUD API only): `_nx_product_id`, `_nx_vendor_id`, `_nx_source`, `_nx_name`, `_nx_unit_price`, `_nx_qty`, `_nx_sku`, `_nx_commission_rate`, `_nx_commission_amount`, `_nx_stock_reduced` (idempotency flag).
 - **Settings** (Nexora System > Settings): commission % (default 10), category list, import limits.
 
+### 3b. Vendor application (built in Phase 2)
+
+- **Classes** (`src/Vendors/`): `Fields` (nine business fields, fixed business types, labels), `Validator` (pure), `Repository` (the `nexora_vendor` posts), `Service` (apply / update / admin decisions; the only caller of `Account_Types::set_status()`), `Notifier` (mails), `Ajax` (`nexora_vendor_apply`, `nexora_vendor_update`), `Admin` (list columns, details box, decision links), `Assets` (script and style only on the registration page and a logged-in member's profile page).
+- **Application**: always creates `pending`. Sign-up "Seller" validates the business details and the GSTIN BEFORE creating the account; if saving the application fails afterwards the new user and profile are deleted (rollback).
+- **Duplicate GSTIN**: unique across live applications (trashed ones do not count); a short lock (`add_option`) closes the race between two simultaneous applications. The error never says who has it.
+- **Rate limit** `vendor_apply`: 3 well-formed attempts a day per member (only attempts that reach the GSTIN lookup count, so typos are free but enumeration is not).
+- **Reject**: pending to none; the application moves to the trash (kept for the record), the link is removed and the GSTIN is free; the member may apply again.
+- **Locked after a decision**: business name, type and GSTIN; contact and address fields stay editable. A pending applicant may correct everything.
+- **Deleting a member** deletes their application (`delete_with_user`) and frees the GSTIN.
+- **Admin**: decisions are `admin-post` links with a per-vendor, per-action nonce, `manage_options`, and a second `manage_options` check inside `Service::change_status()`. Idempotent. The edit form cannot change a status. List columns for products and earnings arrive with Phases 4 and 7.
+- **Privacy**: business data is rendered on the server for the owner only; it is not in `Privacy::script_data()`, in any AJAX reply for others, or in another member's profile page (tested against every member AJAX action).
+
 ## 4. WooCommerce bridge
 
 **Decision: the hidden "Marketplace Item" is a PHYSICAL product (`virtual = no`).**
@@ -140,6 +152,10 @@ A product with an invalid field is skipped and reported with its `id`; the rest 
 
 - **Categories**: Electronics, Fashion, Home & Kitchen, Beauty, Groceries, Books, Toys, Sports, Other.
 - **Business types**: Sole proprietorship, Partnership, LLP, Private limited, Other.
+
+## 8d. Known issues (existing behaviour, deliberately not changed)
+
+- **`user_profile` posts are orphaned when a user is deleted.** The `user_profile` post type does not support `author`, so `wp_delete_user()` leaves the profile post behind (and its `_wp_user_id` points at a user that no longer exists). This predates the marketplace. The vendor post type does not have the problem (`delete_with_user` is set and tested). It is why the seller sign-up rollback deletes the profile post explicitly before deleting the user. Fixing it for `user_profile` (and later `nexora_product`) is a separate decision: it changes what an admin deleting a user destroys.
 
 ## 9. Out of scope
 
