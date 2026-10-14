@@ -41,6 +41,7 @@ class Plugin {
 		new \Nexora\Shortcodes\Contact_Form();
 
 		new \Nexora\Database\Migrations();
+		new \Nexora\Accounts\Account_Types();
 		new \Nexora\Connections\Cache();
 
 		new I18n();

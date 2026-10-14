@@ -101,6 +101,7 @@ $config = array(
 	'tables'     => array( $scratch_table ),
 	'options'    => array( 'nxtest_option' ),
 	'user_meta'  => array( 'nxtest_meta' ),
+	'roles'      => array(),
 	'post_types' => array( 'nxtest_cpt' ),
 	'dirs'       => array( $scratch_dir ),
 );
