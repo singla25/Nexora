@@ -4,6 +4,8 @@ require_once __DIR__ . '/../bootstrap.php';
 
 use Nexora\Accounts\Account_Types;
 
+global $wpdb;
+
 /* ---------- role registration: idempotent, self-upgrading ---------- */
 remove_role( Account_Types::ROLE );
 delete_option( 'nexora_accounts_version' );
@@ -82,11 +84,11 @@ nx_assert( true === Account_Types::set_status( $uid, 'approved' ), 'suspended > 
 nx_assert( Account_Types::can_sell( $uid ), 're-approved: can sell again' );
 
 // A status written straight into user meta without the role cannot sell.
-update_user_meta( $uid, Account_Types::STATUS_META, 'approved' );
 get_userdata( $uid )->remove_role( Account_Types::ROLE );
 clean_user_cache( $uid );
 nx_assert( ! Account_Types::can_sell( $uid ), 'approved status without the role cannot sell (both are required)' );
-update_user_meta( $uid, Account_Types::STATUS_META, 'garbage' );
+$wpdb->update( $wpdb->usermeta, array( 'meta_value' => 'garbage' ), array( 'user_id' => $uid, 'meta_key' => Account_Types::STATUS_META ) ); // phpcs:ignore
+clean_user_cache( $uid ); wp_cache_delete( $uid, 'user_meta' );
 nx_assert_same( 'none', Account_Types::vendor_status( $uid ), 'a corrupt stored status reads as none' );
 
 /* ---------- the client never chooses the account type ---------- */
@@ -134,6 +136,34 @@ $customer_tab_role = nx_test_user( 'atshop' );
 ( new WP_User( $customer_tab_role['user_id'] ) )->set_role( 'customer' );
 nx_assert_same( $base, Account_Types::tabs_for( $customer_tab_role['user_id'] ), 'a customer is any non-vendor member, whatever the WordPress role' );
 nx_assert( Account_Types::can_view_earnings( $a['user_id'] ) && Account_Types::can_view_earnings( $s['user_id'] ) && ! Account_Types::can_view_earnings( $p['user_id'] ) && ! Account_Types::can_view_earnings( $plain['user_id'] ), 'earnings are visible to approved and suspended vendors only' );
+
+/* ---------- earnings follow the STATUS, not the role (suspended = read-only history) ---------- */
+$e = nx_test_user( 'atearn' );
+nx_assert( ! Account_Types::can_view_earnings( $e['user_id'] ), 'earnings: a customer has none' );
+Account_Types::set_status( $e['user_id'], 'pending' );
+nx_assert( ! Account_Types::can_view_earnings( $e['user_id'] ), 'earnings: a pending applicant has none' );
+Account_Types::set_status( $e['user_id'], 'approved' );
+nx_assert( Account_Types::can_view_earnings( $e['user_id'] ) && Account_Types::can_sell( $e['user_id'] ), 'earnings: approved can view and sell' );
+Account_Types::set_status( $e['user_id'], 'suspended' );
+$eu = get_userdata( $e['user_id'] );
+nx_assert( ! in_array( Account_Types::ROLE, (array) $eu->roles, true ), 'earnings: suspension removes the vendor role' );
+nx_assert( Account_Types::can_view_earnings( $e['user_id'] ), 'earnings: a suspended vendor keeps read-only access to history even without the role' );
+nx_assert( Account_Types::can_view_earnings( new WP_User( $e['user_id'] ) ), 'earnings: works with a WP_User object too' );
+nx_assert( ! Account_Types::can_sell( $e['user_id'] ) && ! user_can( $e['user_id'], Account_Types::CAP_PRODUCTS ), 'earnings: a suspended vendor still cannot sell or list' );
+nx_assert( in_array( 'sales', Account_Types::tabs_for( $e['user_id'] ), true ) && ! in_array( 'my-products', Account_Types::tabs_for( $e['user_id'] ), true ), 'earnings: suspended sees Sales but not My Products' );
+Account_Types::set_status( $e['user_id'], 'approved' );
+nx_assert( Account_Types::can_view_earnings( $e['user_id'] ), 'earnings: re-approved vendor views earnings' );
+
+/* ---------- the status can only change through set_status() ---------- */
+$g = nx_test_user( 'atguard' );
+nx_assert( false === update_user_meta( $g['user_id'], Account_Types::STATUS_META, 'approved' ), 'guard: a direct meta write of the status is refused' );
+nx_assert( false === add_user_meta( $g['user_id'], Account_Types::STATUS_META, 'approved', true ), 'guard: add_user_meta of the status is refused' );
+nx_assert_same( 'none', Account_Types::vendor_status( $g['user_id'] ), 'guard: nothing was stored' );
+Account_Types::set_status( $g['user_id'], 'pending' );
+nx_assert( false === update_user_meta( $g['user_id'], Account_Types::STATUS_META, 'approved' ), 'guard: a pending applicant cannot meta-write approved' );
+nx_assert( ! Account_Types::can_sell( $g['user_id'] ) && 'pending' === Account_Types::vendor_status( $g['user_id'] ), 'guard: still pending' );
+delete_user_meta( $g['user_id'], Account_Types::STATUS_META );
+nx_assert_same( 'pending', Account_Types::vendor_status( $g['user_id'] ), 'guard: a plain delete_user_meta cannot reset the status either' );
 
 /* ---------- wiring: no markup change, no new hooks on the customer path ---------- */
 nx_assert( class_exists( 'Nexora\\Accounts\\Account_Types' ), 'class autoloads' );

@@ -33,10 +33,62 @@ class Account_Types {
 	const CAP_ANALYTICS = 'nexora_view_own_analytics';
 
 	/**
+	 * True only while set_status() is writing the status meta.
+	 *
+	 * @var bool
+	 */
+	private static $writing = false;
+
+	/**
 	 * Registers the self-upgrade, like Database\Migrations: uploading new plugin files is enough.
 	 */
 	public function __construct() {
 		add_action( 'plugins_loaded', array( __CLASS__, 'maybe_register' ) );
+
+		// The status is a permission: nothing but set_status() may write it (not a form, a hook or another plugin).
+		add_filter( 'add_user_metadata', array( __CLASS__, 'guard_status_meta' ), 10, 3 );
+		add_filter( 'update_user_metadata', array( __CLASS__, 'guard_status_meta' ), 10, 3 );
+		add_filter( 'delete_user_metadata', array( __CLASS__, 'guard_status_meta_delete' ), 10, 5 );
+	}
+
+	/**
+	 * Refuses any write of the vendor status that does not come from set_status().
+	 *
+	 * @param null|bool $check    Short-circuit value (null lets the write continue).
+	 * @param int       $user_id  User ID (unused).
+	 * @param string    $meta_key Meta key being written.
+	 * @return null|bool
+	 */
+	public static function guard_status_meta( $check, $user_id, $meta_key ) {
+
+		unset( $user_id );
+
+		if ( self::STATUS_META === $meta_key && ! self::$writing ) {
+			return false;
+		}
+
+		return $check;
+	}
+
+	/**
+	 * Refuses a delete of the vendor status unless set_status() or the uninstaller (delete for all users) does it.
+	 *
+	 * @param null|bool $check      Short-circuit value.
+	 * @param int       $user_id    User ID (unused).
+	 * @param string    $meta_key   Meta key being deleted.
+	 * @param mixed     $meta_value Meta value (unused).
+	 * @param bool      $delete_all Whether the key is deleted for every user.
+	 * @return null|bool
+	 */
+	public static function guard_status_meta_delete( $check, $user_id, $meta_key, $meta_value = '', $delete_all = false ) {
+
+		unset( $user_id, $meta_value );
+
+		if ( self::STATUS_META === $meta_key && ! self::$writing && ! $delete_all ) {
+			return false;
+		}
+
+		return $check;
 	}
 
 	/**
@@ -194,11 +246,15 @@ class Account_Types {
 			return new \WP_Error( 'nexora_bad_transition', 'That status change is not allowed.' );
 		}
 
+		self::$writing = true;
+
 		if ( self::NONE === $to ) {
 			delete_user_meta( $id, self::STATUS_META );
 		} else {
 			update_user_meta( $id, self::STATUS_META, $to );
 		}
+
+		self::$writing = false;
 
 		$account = get_userdata( $id );
 

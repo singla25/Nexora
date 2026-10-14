@@ -27,6 +27,8 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - Privacy: business data is absent for guests, viewers and `Privacy::script_data()` of non-owners; present for the owner.
 - Admin: list columns, meta box, approve and suspend (nonce + `manage_options`), emails sent to admin and applicant.
 - Rate limit `vendor_apply`; nonce missing; guest rejected.
+- Self-approval: the applicant's own form can only create `pending` (a posted `status=approved`, `role`, `account_type` is ignored); a pending applicant re-posting the form stays pending; only the admin approve action (nonce + `manage_options`) reaches `approved`. `test-vendor-self-approval.php` (exists since Phase 1) must keep passing, and Phase 2 adds each new allowed caller to its file whitelist deliberately.
+- Earnings by status: suspended vendor keeps read-only history without the role (`test-account-types.php`).
 
 ## Phase 3: Gating and UI (`test-vendor-gating.php`)
 - Matrix: each vendor AJAX action × (guest, customer, pending, approved, suspended, other vendor's object). Expect a JSON error for every cell except the allowed one.
