@@ -45,6 +45,7 @@ class Plugin {
 		new \Nexora\Vendors\Ajax();
 		new \Nexora\Vendors\Admin();
 		new \Nexora\Vendors\Guard();
+		new \Nexora\Integrations\Woo_Routes();
 		new \Nexora\Vendors\Assets();
 		new \Nexora\Connections\Cache();
 

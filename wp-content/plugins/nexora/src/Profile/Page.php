@@ -20,6 +20,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Page {
 
 	/**
+	 * The tabs that exist on the profile page today. Account_Types::tabs_for() decides who sees which; a tab
+	 * that is in the map but not built yet (Marketplace, My Orders, My Products, Sales) is simply not rendered.
+	 * Add a slug here in the phase that builds its content.
+	 */
+	const BUILT_TABS = array( 'user-info', 'connections', 'content', 'notifications' );
+
+	/**
 	 * Registers the shortcode, assets and the /profile-page/<username> rewrite.
 	 */
 	public function __construct() {
@@ -216,6 +223,7 @@ class Page {
 		$feed = $this->content_feed( $current_user_id );
 
 		return array(
+			'tabs'              => $this->visible_tabs( $is_owner, $current_user_id ),
 			'profile_id'        => $profile_id,
 			'is_owner'          => $is_owner,
 			'is_logged_in'      => $is_logged_in,
@@ -246,6 +254,24 @@ class Page {
 			// The owner's seller card; business details are never prepared for anyone else.
 			'vendor'            => $is_owner ? \Nexora\Vendors\Service::card_data( $current_user_id ) : null,
 		);
+	}
+
+	/**
+	 * The tab buttons to show, in order. The owner's come from Account_Types::tabs_for() (limited to the tabs
+	 * that exist); everyone else sees the two public ones. Hiding a tab is not the security: the owner-only
+	 * content is only ever prepared for the owner.
+	 *
+	 * @param bool $is_owner        Whether the visitor owns the profile.
+	 * @param int  $current_user_id Visitor's user ID.
+	 * @return string[] Tab slugs.
+	 */
+	private function visible_tabs( $is_owner, $current_user_id ) {
+
+		$tabs = $is_owner
+			? array_values( array_intersect( \Nexora\Accounts\Account_Types::tabs_for( $current_user_id ), self::BUILT_TABS ) )
+			: array( 'user-info', 'connections' );
+
+		return array_values( (array) apply_filters( 'nexora_profile_tabs', $tabs, $current_user_id, $is_owner ) );
 	}
 
 	/**

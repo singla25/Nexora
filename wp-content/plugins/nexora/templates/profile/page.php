@@ -17,19 +17,24 @@
 
 				<!-- TABS -->
 				<div class="profile-tabs">
-					<button class="tab-btn active" data-tab="user-info"><?php esc_html_e( 'User Information', 'nexora' ); ?></button>
-					<button class="tab-btn" data-tab="connections"><?php esc_html_e( 'Connections', 'nexora' ); ?></button>
-					<?php if ( $is_owner ) : ?>
-						<button class="tab-btn" data-tab="content"><?php esc_html_e( 'Content', 'nexora' ); ?></button>
-						<button class="tab-btn" data-tab="notifications">
-							<?php esc_html_e( 'Notifications', 'nexora' ); ?>
-							<?php if ( $unread_count > 0 ) : ?>
-								<span class="noti-badge">
-									<?php echo (int) $unread_count; ?>
-								</span>
-							<?php endif; ?>
-						</button>
-					<?php endif; ?>
+					<?php foreach ( $tabs as $nx_tab ) : ?>
+						<?php if ( 'user-info' === $nx_tab ) : ?>
+							<button class="tab-btn active" data-tab="user-info"><?php esc_html_e( 'User Information', 'nexora' ); ?></button>
+						<?php elseif ( 'connections' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="connections"><?php esc_html_e( 'Connections', 'nexora' ); ?></button>
+						<?php elseif ( 'content' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="content"><?php esc_html_e( 'Content', 'nexora' ); ?></button>
+						<?php elseif ( 'notifications' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="notifications">
+								<?php esc_html_e( 'Notifications', 'nexora' ); ?>
+								<?php if ( $unread_count > 0 ) : ?>
+									<span class="noti-badge">
+										<?php echo (int) $unread_count; ?>
+									</span>
+								<?php endif; ?>
+							</button>
+						<?php endif; ?>
+					<?php endforeach; ?>
 				</div>
 
 				<!-- MAIN CONTENT -->
