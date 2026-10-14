@@ -27,6 +27,7 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - Privacy: business data is absent for guests, viewers and `Privacy::script_data()` of non-owners; present for the owner.
 - Admin: list columns, meta box, approve and suspend (nonce + `manage_options`), emails sent to admin and applicant.
 - Rate limit `vendor_apply`; nonce missing; guest rejected.
+- UI fix round: decision box (side/high, admins only, buttons per status, confirm on Reject, no links for others, details box read-only) in `test-vendor-admin.php`; profile popups and the Business sub-tab in `test-vendor-profile-ui.php`; suspended>none transition in `test-account-types.php`.
 - Self-approval: the applicant's own form can only create `pending` (a posted `status=approved`, `role`, `account_type` is ignored); a pending applicant re-posting the form stays pending; only the admin approve action (nonce + `manage_options`) reaches `approved`. `test-vendor-self-approval.php` (exists since Phase 1) must keep passing, and Phase 2 adds each new allowed caller to its file whitelist deliberately.
 - Earnings by status: suspended vendor keeps read-only history without the role (`test-account-types.php`).
 
