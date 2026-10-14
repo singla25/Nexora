@@ -44,6 +44,7 @@ class Plugin {
 		new \Nexora\Accounts\Account_Types();
 		new \Nexora\Vendors\Ajax();
 		new \Nexora\Vendors\Admin();
+		new \Nexora\Vendors\Guard();
 		new \Nexora\Vendors\Assets();
 		new \Nexora\Connections\Cache();
 

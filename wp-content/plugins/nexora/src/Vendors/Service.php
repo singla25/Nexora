@@ -26,7 +26,7 @@ class Service {
 			'approve'    => array( array( Account_Types::PENDING ), Account_Types::APPROVED ),
 			'suspend'    => array( array( Account_Types::APPROVED ), Account_Types::SUSPENDED ),
 			'reactivate' => array( array( Account_Types::SUSPENDED ), Account_Types::APPROVED ),
-			'reject'     => array( array( Account_Types::PENDING, Account_Types::SUSPENDED ), Account_Types::NONE ),
+			'reject'     => array( array( Account_Types::PENDING ), Account_Types::NONE ),
 		);
 	}
 

@@ -160,23 +160,28 @@ nx_assert( 'approved' === $status( $u0 ) && 0 === strpos( $run( $admin_id, $v0, 
 $out = $run( $admin_id, $v0, 'suspend' );
 nx_assert_same( 'suspended', $status( $u0 ), 'suspend: approved becomes suspended' );
 nx_assert( ! Account_Types::can_sell( $u0['user_id'] ) && Account_Types::can_view_earnings( $u0['user_id'] ), 'suspend: cannot sell, may still read earnings' );
-nx_assert_same( array( 'reactivate', 'reject' ), $buttons( $decide( $v0 ) ), 'suspended: Reactivate and Reject are offered' );
+nx_assert_same( array( 'reactivate' ), $buttons( $decide( $v0 ) ), 'suspended: only Reactivate is offered (a suspended vendor cannot be rejected)' );
 nx_assert( 1 === preg_match( '/<a[^>]*button-primary[^>]*do=reactivate|<a[^>]*do=reactivate[^>]*button-primary/', $decide( $v0 ) ), 'suspended: Reactivate is the primary button' );
 $out = $run( $admin_id, $v0, 'reactivate' );
 nx_assert( 'approved' === $status( $u0 ) && Account_Types::can_sell( $u0['user_id'] ), 'reactivate: suspended becomes approved and can sell again' );
 
-// A suspended vendor can be rejected (the box offers it): back to a customer, application trashed, GSTIN free.
+// A suspended vendor cannot be rejected: only reactivated. The GSTIN stays locked, so they cannot re-apply.
 list( $u2, $v2 ) = $applicant( 2 );
 $run( $admin_id, $v2, 'approve' );
 $run( $admin_id, $v2, 'suspend' );
 nx_assert_same( 'suspended', $status( $u2 ), 'setup: a suspended vendor' );
 $sent = count( $mail );
 $run( $admin_id, $v2, 'reject' );
-nx_assert_same( 'none', $status( $u2 ), 'reject: a suspended vendor goes back to a plain customer' );
-nx_assert( 'trash' === get_post_status( $v2 ) && 0 === Repository::id_for_user( $u2['user_id'] ) && 0 === Repository::find_by_gstin( '07AAACR5055K1Z8' ), 'reject: the application is trashed, unlinked, and the GSTIN is free' );
-nx_assert( ! in_array( Account_Types::ROLE, (array) get_userdata( $u2['user_id'] )->roles, true ) && ! Account_Types::can_sell( $u2['user_id'] ), 'reject: no vendor role, cannot sell' );
-nx_assert( count( $mail ) === $sent + 1, 'reject: the former vendor is told by mail' );
-nx_assert_same( '', trim( $decide( $v2 ) ) === '' ? '' : ( 0 === count( $buttons( $decide( $v2 ) ) ) ? '' : 'links' ), 'a trashed application offers no decision links' );
+nx_assert_same( 'suspended', $status( $u2 ), 'reject: refused for a suspended vendor, still suspended' );
+nx_assert( 'publish' === get_post_status( $v2 ) && $v2 === Repository::id_for_user( $u2['user_id'] ), 'reject: the application is not trashed and stays linked' );
+nx_assert_same( $v2, Repository::find_by_gstin( '07AAACR5055K1Z8' ), 'reject: the GSTIN stays locked to the suspended vendor' );
+nx_assert( Account_Types::can_view_earnings( $u2['user_id'] ) && ! Account_Types::can_sell( $u2['user_id'] ), 'reject: read-only earnings access is kept, selling stays off' );
+nx_assert( count( $mail ) === $sent, 'reject: no mail is sent for a refused change' );
+nx_assert( is_wp_error( ( function () use ( $admin_id, $v2 ) { wp_set_current_user( $admin_id ); $r = Service::change_status( $v2, 'reject' ); wp_set_current_user( 0 ); return $r; } )() ), 'Service::change_status refuses reject for a suspended vendor' );
+$again = Service::apply( $u2['user_id'], array( 'business_name' => 'Second Try', 'business_type' => 'other', 'gstin' => '19AAACI1681G1ZB', 'business_email' => 'x@example.test', 'business_phone' => '9811111112', 'business_address' => '2 New Road', 'business_city' => 'Delhi', 'business_state' => 'Delhi', 'business_pincode' => '110001' ) );
+nx_assert( is_wp_error( $again ) && 'nexora_already_applied' === $again->get_error_code(), 'a suspended vendor cannot re-apply with another GSTIN' );
+nx_assert_same( array( 'reactivate' ), $buttons( $decide( $v2 ) ), 'the suspended box offers Reactivate only' );
+nx_assert( 1 === preg_match( '/<a[^>]*button-primary[^>]*do=reactivate|<a[^>]*do=reactivate[^>]*button-primary/', $decide( $v2 ) ), 'Reactivate is the primary button' );
 
 nx_assert( 0 === strpos( $run( $admin_id, $v1, 'suspend' ), 'redirect:' ) && 'pending' === $status( $u1 ), 'a pending application cannot be suspended' );
 nx_assert( 0 === strpos( $run( $admin_id, $v1, 'reactivate' ), 'redirect:' ) && 'pending' === $status( $u1 ), 'a pending application cannot be reactivated' );
@@ -185,6 +190,7 @@ $run( $admin_id, $v1, 'reject' );
 nx_assert_same( 'none', $status( $u1 ), 'reject: pending goes back to none' );
 nx_assert( count( $mail ) === $sent + 1, 'reject: the applicant is told by mail' );
 nx_assert( 'trash' === get_post_status( $v1 ), 'reject: the application moves to the trash' );
+nx_assert_same( array(), $buttons( $decide( $v1 ) ), 'a rejected (trashed) application offers no decision links' );
 nx_assert( 0 === strpos( $run( $admin_id, $v1, 'approve' ), 'die:' ) || 'none' === $status( $u1 ), 'a trashed application cannot be approved' );
 
 /* ---------- the edit screen cannot be used to change a status ---------- */

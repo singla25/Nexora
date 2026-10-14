@@ -17,6 +17,41 @@ class Repository {
 	const USER_META = '_vendor_id';
 
 	/**
+	 * True while the Repository itself is writing (Service calls). Vendors\Guard refuses every other
+	 * trash, delete, restore or status/title change of a vendor post.
+	 *
+	 * @var bool
+	 */
+	private static $internal = false;
+
+	/**
+	 * Whether the current write comes from the Repository (and so from Service).
+	 *
+	 * @return bool
+	 */
+	public static function is_internal() {
+		return self::$internal;
+	}
+
+	/**
+	 * Runs a write as the Repository, so the Guard lets it through.
+	 *
+	 * @param callable $write What to do.
+	 * @return mixed What the callable returns.
+	 */
+	private static function internally( callable $write ) {
+
+		$before         = self::$internal;
+		self::$internal = true;
+
+		try {
+			return $write();
+		} finally {
+			self::$internal = $before;
+		}
+	}
+
+	/**
 	 * The live vendor post of a user (0 when none, trashed, or not pointing back at that user).
 	 *
 	 * @param int $user_id User ID.
@@ -105,14 +140,18 @@ class Repository {
 	 */
 	public static function create( $user_id, array $data ) {
 
-		$id = wp_insert_post(
-			array(
-				'post_type'   => self::POST_TYPE,
-				'post_status' => 'publish',
-				'post_title'  => $data['business_name'],
-				'post_author' => (int) $user_id,
-			),
-			true
+		$id = self::internally(
+			function () use ( $user_id, $data ) {
+				return wp_insert_post(
+					array(
+						'post_type'   => self::POST_TYPE,
+						'post_status' => 'publish',
+						'post_title'  => $data['business_name'],
+						'post_author' => (int) $user_id,
+					),
+					true
+				);
+			}
 		);
 
 		if ( is_wp_error( $id ) || ! $id ) {
@@ -144,11 +183,15 @@ class Repository {
 		}
 
 		if ( isset( $data['business_name'] ) ) {
-			wp_update_post(
-				array(
-					'ID'         => $vendor_id,
-					'post_title' => $data['business_name'],
-				)
+			self::internally(
+				function () use ( $vendor_id, $data ) {
+					wp_update_post(
+						array(
+							'ID'         => $vendor_id,
+							'post_title' => $data['business_name'],
+						)
+					);
+				}
 			);
 		}
 	}
@@ -162,7 +205,11 @@ class Repository {
 
 		$user_id = self::user_for( $vendor_id );
 
-		wp_delete_post( $vendor_id, true );
+		self::internally(
+			function () use ( $vendor_id ) {
+				wp_delete_post( $vendor_id, true );
+			}
+		);
 
 		if ( $user_id && (int) get_user_meta( $user_id, self::USER_META, true ) === (int) $vendor_id ) {
 			delete_user_meta( $user_id, self::USER_META );
@@ -178,7 +225,11 @@ class Repository {
 
 		$user_id = self::user_for( $vendor_id );
 
-		wp_trash_post( $vendor_id );
+		self::internally(
+			function () use ( $vendor_id ) {
+				wp_trash_post( $vendor_id );
+			}
+		);
 
 		if ( $user_id ) {
 			delete_user_meta( $user_id, self::USER_META );

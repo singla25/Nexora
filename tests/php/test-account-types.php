@@ -48,7 +48,7 @@ nx_assert( ! Account_Types::is_vendor( 0 ) && 'none' === Account_Types::vendor_s
 nx_assert( array() === Account_Types::tabs_for( 0 ), 'a guest has no owner tabs' );
 
 /* ---------- status transitions ---------- */
-$allowed = array( 'none>pending', 'pending>approved', 'pending>none', 'approved>suspended', 'suspended>approved', 'suspended>none' );
+$allowed = array( 'none>pending', 'pending>approved', 'pending>none', 'approved>suspended', 'suspended>approved');
 foreach ( array( 'none', 'pending', 'approved', 'suspended' ) as $from ) {
 	foreach ( array( 'none', 'pending', 'approved', 'suspended' ) as $to ) {
 		nx_assert_same( in_array( "$from>$to", $allowed, true ), Account_Types::transition_allowed( $from, $to ), "transition $from > $to" );

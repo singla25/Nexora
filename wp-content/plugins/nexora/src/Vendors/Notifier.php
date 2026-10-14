@@ -74,7 +74,7 @@ class Notifier {
 			'approve'    => __( 'Your seller application was approved', 'nexora' ),
 			'reactivate' => __( 'Your seller account is active again', 'nexora' ),
 			'suspend'    => __( 'Your seller account was suspended', 'nexora' ),
-			'reject'     => __( 'Your seller application was closed', 'nexora' ),
+			'reject'     => __( 'Your seller application was not approved', 'nexora' ),
 		);
 
 		if ( ! isset( $subjects[ $action ] ) ) {

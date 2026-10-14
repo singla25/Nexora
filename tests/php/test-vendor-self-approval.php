@@ -79,6 +79,7 @@ $allowed_cpt = array(
 	'src/Vendors/Repository.php'  => 'reads and writes the vendor posts',
 	'src/Vendors/Service.php'     => 'reads the post type through Repository only to validate IDs',
 	'src/Vendors/Admin.php'       => 'list columns and the admin-post decision handler (calls Service, never Account_Types)',
+	'src/Vendors/Guard.php'       => 'refuses every trash/delete/restore/edit of a vendor post that does not come from the Repository',
 );
 $src   = NEXORA_PATH . 'src';
 $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $src, FilesystemIterator::SKIP_DOTS ) );

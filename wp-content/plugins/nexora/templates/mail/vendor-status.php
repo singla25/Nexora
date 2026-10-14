@@ -24,7 +24,7 @@
 		echo esc_html( sprintf( __( 'Your seller account "%s" has been suspended. Your products are hidden and you cannot list or sell until it is reactivated. You can still see your earnings history.', 'nexora' ), $business ) );
 	} else {
 		/* translators: %s: the business name. */
-		echo esc_html( sprintf( __( 'Your seller application for "%s" has been closed and your account is a regular member account again. You are welcome to apply again with corrected details.', 'nexora' ), $business ) );
+		echo esc_html( sprintf( __( 'We could not approve your application for "%s". You are welcome to apply again with corrected details.', 'nexora' ), $business ) );
 	}
 	?>
 </p>
