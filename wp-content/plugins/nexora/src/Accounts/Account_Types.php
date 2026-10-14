@@ -218,7 +218,7 @@ class Account_Types {
 			self::NONE      => array( self::PENDING ),
 			self::PENDING   => array( self::APPROVED, self::NONE ),
 			self::APPROVED  => array( self::SUSPENDED ),
-			self::SUSPENDED => array( self::APPROVED ),
+			self::SUSPENDED => array( self::APPROVED, self::NONE ),
 		);
 
 		return isset( $map[ $from ] ) && in_array( $to, $map[ $from ], true );

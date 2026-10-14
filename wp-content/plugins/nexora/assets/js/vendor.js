@@ -36,16 +36,27 @@
         $box.find('input, select').prop('required', seller);
     });
 
-    // Profile: reveal the application form.
+    // Profile: open the application / edit form in a SweetAlert2 popup (same pattern as the other sections).
+    // The form markup is rendered for the owner on the server inside a <template>; the browser only clones it.
     $(document).on('click', '.nx-vendor-open', function () {
-        var $form = $('#' + $(this).attr('aria-controls'));
-        var open = $form.prop('hidden');
-        $form.prop('hidden', !open);
-        $(this).attr('aria-expanded', open ? 'true' : 'false');
-        if (open) { $form.find('input, select').filter(':visible').first().trigger('focus'); }
+        if (typeof Swal === 'undefined') { return; }
+
+        var html = $('#' + $(this).data('template')).html();
+        if (!html) { return; }
+
+        Swal.fire({
+            title: $(this).data('title') || '',
+            html: html,
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: '600px',
+            didOpen: function (popup) {
+                $(popup).find('.nx-vendor-form input:not(:disabled), .nx-vendor-form select:not(:disabled)').first().trigger('focus');
+            }
+        });
     });
 
-    // Profile: send the application / save details.
+    // Send the application / save the details (works on the form inside the popup).
     $(document).on('submit', '.nx-vendor-form', function (e) {
         e.preventDefault();
 
@@ -63,20 +74,21 @@
         $.post(cfg.ajaxUrl, data)
             .done(function (res) {
                 if (res && res.success) {
-                    message($form, res.data.message, true);
-                    if (data.action === 'nexora_vendor_apply') {
-                        window.setTimeout(function () { window.location.reload(); }, 1200);
-                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: res.data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(function () { location.reload(); });
                     return;
                 }
                 var info = (res && res.data) || {};
                 showErrors($form, info.fields);
                 message($form, info.message || 'Something went wrong.', false);
+                $button.prop('disabled', false);
             })
             .fail(function () {
                 message($form, 'Server error. Please try again.', false);
-            })
-            .always(function () {
                 $button.prop('disabled', false);
             });
     });

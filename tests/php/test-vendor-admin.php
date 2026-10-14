@@ -56,8 +56,49 @@ $html = $box( $v0 );
 foreach ( array( 'Admin Test Shop 0', '27AAPFU0939F1ZV', 'adm0@example.test', '5 Park Street', 'Kolkata', '700016' ) as $s ) {
 	nx_assert( false !== strpos( $html, $s ), "details box shows $s" );
 }
-nx_assert( false !== strpos( $html, 'do=approve' ) && false !== strpos( $html, 'do=reject' ) && false === strpos( $html, 'do=suspend' ), 'pending: Approve and Reject, not Suspend' );
-nx_assert( 1 === preg_match( '/_wpnonce=[a-f0-9]{10}/', $html ), 'action links carry a nonce' );
+nx_assert( false === strpos( $html, 'do=approve' ) && false === strpos( $html, 'admin-post.php' ) && false === strpos( $html, 'nx-vendor-decisions' ), 'the details box is read-only: no decision links at the bottom any more' );
+
+/* ---------- the "Application decision" box (side column, top right) ---------- */
+global $wp_meta_boxes;
+$register = function ( $uid ) use ( $admin ) {
+	global $wp_meta_boxes;
+	$wp_meta_boxes = array();
+	wp_set_current_user( $uid );
+	$admin->add_meta_boxes();
+	wp_set_current_user( 0 );
+	return $wp_meta_boxes['nexora_vendor'] ?? array();
+};
+$boxes = $register( $admin_id );
+nx_assert( isset( $boxes['side']['high']['nexora_vendor_decision'] ), 'admin: the decision box is in the side column at high priority (top right)' );
+nx_assert_same( 'Application decision', $boxes['side']['high']['nexora_vendor_decision']['title'] ?? '', 'admin: the box is titled "Application decision"' );
+nx_assert( isset( $boxes['normal']['high']['nexora_vendor_details'] ), 'admin: the read-only details box is still in the main column' );
+$boxes = $register( $member['user_id'] );
+nx_assert( ! isset( $boxes['side']['high']['nexora_vendor_decision'] ), 'member: the decision box is not registered' );
+$boxes = $register( 0 );
+nx_assert( ! isset( $boxes['side']['high']['nexora_vendor_decision'] ), 'guest: the decision box is not registered' );
+
+$decide = function ( $vid, $uid = null ) use ( $admin, $admin_id ) {
+	wp_set_current_user( null === $uid ? $admin_id : $uid );
+	ob_start();
+	$admin->render_decision_box( get_post( $vid ) );
+	$out = ob_get_clean();
+	wp_set_current_user( 0 );
+	return $out;
+};
+$buttons = function ( $html ) { preg_match_all( '/do=([a-z]+)/', $html, $m ); return array_values( array_unique( $m[1] ) ); };
+$html = $decide( $v0 );
+nx_assert_same( array( 'approve', 'reject' ), $buttons( $html ), 'pending: Approve and Reject' );
+nx_assert( 1 === preg_match( '/<a[^>]*button-primary[^>]*do=approve|<a[^>]*do=approve[^>]*button-primary/', $html ), 'pending: Approve is the primary button' );
+nx_assert( 1 === preg_match( '/<a(?![^>]*button-primary)[^>]*do=reject/', $html ), 'pending: Reject is a secondary button' );
+nx_assert( 1 === preg_match( '/<a[^>]*do=reject[^>]*onclick="return confirm\(/', $html ), 'pending: Reject asks "Are you sure?" first' );
+nx_assert( false === strpos( $html, 'do=approve" onclick' ) && 1 !== preg_match( '/<a[^>]*do=approve[^>]*confirm\(/', $html ), 'pending: Approve does not nag' );
+nx_assert( 2 === preg_match_all( '/_wpnonce=[a-f0-9]{10}/', $html ), 'every decision link carries its own nonce' );
+nx_assert( false !== strpos( $html, 'Pending' ) && false !== strpos( $html, $u0['login'] ), 'the box shows the current status and the applicant' );
+nx_assert( false !== strpos( $html, 'Admin Test Shop 0' ), 'the box names the business' );
+
+nx_assert_same( '', trim( $decide( $v0, $member['user_id'] ) ), 'a member rendering the box gets nothing (no links)' );
+nx_assert_same( '', trim( $decide( $v0, 0 ) ), 'a guest rendering the box gets nothing (no links)' );
+nx_assert_same( '', trim( $decide( $v0, $u0['user_id'] ) ), 'the applicant rendering the box gets nothing (no links)' );
 
 /* ---------- who may press the buttons ---------- */
 $run = function ( $uid, $vid, $do, array $over = array() ) use ( $admin ) {
@@ -110,7 +151,8 @@ $m = array_slice( $mail, $sent );
 nx_assert( 1 === count( $m ) && get_userdata( $u0['user_id'] )->user_email === ( is_array( $m[0]['to'] ) ? $m[0]['to'][0] : $m[0]['to'] ), 'approve: the applicant is told by mail' );
 nx_assert( false === strpbrk( $m[0]['subject'] ?? "\n", "\r\n" ), 'approve: mail subject is one line' );
 
-nx_assert( false !== strpos( $box( $v0 ), 'do=suspend' ) && false === strpos( $box( $v0 ), 'do=approve' ), 'approved: only Suspend is offered' );
+nx_assert_same( array( 'suspend' ), $buttons( $decide( $v0 ) ), 'approved: only Suspend is offered' );
+nx_assert( false !== strpos( $decide( $v0 ), 'Approved' ), 'approved: the box shows the status' );
 $sent = count( $mail );
 nx_assert( 0 === strpos( $run( $admin_id, $v0, 'approve' ), 'redirect:' ) && 'approved' === $status( $u0 ) && count( $mail ) === $sent, 'approving twice is harmless: no change, no second mail' );
 nx_assert( 'approved' === $status( $u0 ) && 0 === strpos( $run( $admin_id, $v0, 'reject' ), 'redirect:' ) && 'approved' === $status( $u0 ), 'an approved vendor cannot be "rejected" (suspend instead)' );
@@ -118,9 +160,23 @@ nx_assert( 'approved' === $status( $u0 ) && 0 === strpos( $run( $admin_id, $v0, 
 $out = $run( $admin_id, $v0, 'suspend' );
 nx_assert_same( 'suspended', $status( $u0 ), 'suspend: approved becomes suspended' );
 nx_assert( ! Account_Types::can_sell( $u0['user_id'] ) && Account_Types::can_view_earnings( $u0['user_id'] ), 'suspend: cannot sell, may still read earnings' );
-nx_assert( false !== strpos( $box( $v0 ), 'do=reactivate' ), 'suspended: Reactivate is offered' );
+nx_assert_same( array( 'reactivate', 'reject' ), $buttons( $decide( $v0 ) ), 'suspended: Reactivate and Reject are offered' );
+nx_assert( 1 === preg_match( '/<a[^>]*button-primary[^>]*do=reactivate|<a[^>]*do=reactivate[^>]*button-primary/', $decide( $v0 ) ), 'suspended: Reactivate is the primary button' );
 $out = $run( $admin_id, $v0, 'reactivate' );
 nx_assert( 'approved' === $status( $u0 ) && Account_Types::can_sell( $u0['user_id'] ), 'reactivate: suspended becomes approved and can sell again' );
+
+// A suspended vendor can be rejected (the box offers it): back to a customer, application trashed, GSTIN free.
+list( $u2, $v2 ) = $applicant( 2 );
+$run( $admin_id, $v2, 'approve' );
+$run( $admin_id, $v2, 'suspend' );
+nx_assert_same( 'suspended', $status( $u2 ), 'setup: a suspended vendor' );
+$sent = count( $mail );
+$run( $admin_id, $v2, 'reject' );
+nx_assert_same( 'none', $status( $u2 ), 'reject: a suspended vendor goes back to a plain customer' );
+nx_assert( 'trash' === get_post_status( $v2 ) && 0 === Repository::id_for_user( $u2['user_id'] ) && 0 === Repository::find_by_gstin( '07AAACR5055K1Z8' ), 'reject: the application is trashed, unlinked, and the GSTIN is free' );
+nx_assert( ! in_array( Account_Types::ROLE, (array) get_userdata( $u2['user_id'] )->roles, true ) && ! Account_Types::can_sell( $u2['user_id'] ), 'reject: no vendor role, cannot sell' );
+nx_assert( count( $mail ) === $sent + 1, 'reject: the former vendor is told by mail' );
+nx_assert_same( '', trim( $decide( $v2 ) ) === '' ? '' : ( 0 === count( $buttons( $decide( $v2 ) ) ) ? '' : 'links' ), 'a trashed application offers no decision links' );
 
 nx_assert( 0 === strpos( $run( $admin_id, $v1, 'suspend' ), 'redirect:' ) && 'pending' === $status( $u1 ), 'a pending application cannot be suspended' );
 nx_assert( 0 === strpos( $run( $admin_id, $v1, 'reactivate' ), 'redirect:' ) && 'pending' === $status( $u1 ), 'a pending application cannot be reactivated' );

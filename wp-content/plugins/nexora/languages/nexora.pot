@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.0.7\n"
+"Project-Id-Version: Nexora 1.0.8\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-14T12:24:43+00:00\n"
+"POT-Creation-Date: 2026-10-14T13:10:22+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -43,7 +43,7 @@ msgstr ""
 #: templates/admin/metabox-connections.php:10
 #: templates/admin/metabox-connections.php:45
 #: templates/admin/metabox-user-chat.php:18
-#: templates/admin/metabox-vendor.php:14
+#: templates/admin/metabox-vendor.php:13
 #: templates/admin/notifications.php:13
 msgid "Status"
 msgstr ""
@@ -638,6 +638,7 @@ msgid "Nexora helps you connect, share, and grow your network in real-time."
 msgstr ""
 
 #: src/Vendors/Admin.php:42
+#: templates/profile/tab-info.php:18
 msgid "Business"
 msgstr ""
 
@@ -647,7 +648,7 @@ msgid "GSTIN"
 msgstr ""
 
 #: src/Vendors/Admin.php:44
-#: templates/admin/metabox-vendor.php:15
+#: templates/admin/metabox-vendor.php:14
 msgid "Account"
 msgstr ""
 
@@ -659,53 +660,67 @@ msgstr ""
 msgid "Seller application"
 msgstr ""
 
-#: src/Vendors/Admin.php:142
+#: src/Vendors/Admin.php:101
+msgid "Application decision"
+msgstr ""
+
+#: src/Vendors/Admin.php:124
+#: templates/admin/metabox-connection.php:41
+#: templates/admin/metabox-vendor.php:13
+msgid "Rejected"
+msgstr ""
+
+#: src/Vendors/Admin.php:175
 msgid "Approve"
 msgstr ""
 
-#: src/Vendors/Admin.php:143
+#: src/Vendors/Admin.php:176
 msgid "Reject"
 msgstr ""
 
-#: src/Vendors/Admin.php:144
+#: src/Vendors/Admin.php:177
 msgid "Suspend"
 msgstr ""
 
-#: src/Vendors/Admin.php:145
+#: src/Vendors/Admin.php:178
 msgid "Reactivate"
 msgstr ""
 
-#: src/Vendors/Admin.php:189
+#: src/Vendors/Admin.php:190
+msgid "Are you sure? The application moves to the trash and the applicant goes back to being a regular member."
+msgstr ""
+
+#: src/Vendors/Admin.php:227
 #: src/Vendors/Service.php:163
 msgid "You are not allowed to do that."
 msgstr ""
 
-#: src/Vendors/Admin.php:199
+#: src/Vendors/Admin.php:237
 msgid "Invalid request."
 msgstr ""
 
-#: src/Vendors/Admin.php:228
+#: src/Vendors/Admin.php:266
 msgid "Vendor status updated."
 msgstr ""
 
-#: src/Vendors/Admin.php:230
+#: src/Vendors/Admin.php:268
 msgid "That change was not possible for this vendor's current status."
 msgstr ""
 
-#: src/Vendors/Admin.php:243
+#: src/Vendors/Admin.php:281
 #: templates/admin/metabox-connection.php:39
 msgid "Pending"
 msgstr ""
 
-#: src/Vendors/Admin.php:244
+#: src/Vendors/Admin.php:282
 msgid "Approved"
 msgstr ""
 
-#: src/Vendors/Admin.php:245
+#: src/Vendors/Admin.php:283
 msgid "Suspended"
 msgstr ""
 
-#: src/Vendors/Admin.php:246
+#: src/Vendors/Admin.php:284
 msgid "Not a vendor"
 msgstr ""
 
@@ -742,32 +757,32 @@ msgstr ""
 #: templates/admin/metabox-address.php:4
 #: templates/admin/metabox-address.php:11
 #: templates/profile/tab-info.php:14
-#: templates/profile/tab-info.php:100
-#: templates/profile/tab-info.php:127
+#: templates/profile/tab-info.php:103
+#: templates/profile/tab-info.php:130
 msgid "Address"
 msgstr ""
 
 #: src/Vendors/Fields.php:48
 #: templates/admin/metabox-address.php:5
 #: templates/admin/metabox-address.php:12
-#: templates/profile/tab-info.php:105
-#: templates/profile/tab-info.php:132
+#: templates/profile/tab-info.php:108
+#: templates/profile/tab-info.php:135
 msgid "City"
 msgstr ""
 
 #: src/Vendors/Fields.php:49
 #: templates/admin/metabox-address.php:6
 #: templates/admin/metabox-address.php:13
-#: templates/profile/tab-info.php:110
-#: templates/profile/tab-info.php:137
+#: templates/profile/tab-info.php:113
+#: templates/profile/tab-info.php:140
 msgid "State"
 msgstr ""
 
 #: src/Vendors/Fields.php:50
 #: templates/admin/metabox-address.php:7
 #: templates/admin/metabox-address.php:14
-#: templates/profile/tab-info.php:115
-#: templates/profile/tab-info.php:142
+#: templates/profile/tab-info.php:118
+#: templates/profile/tab-info.php:145
 msgid "Pincode"
 msgstr ""
 
@@ -814,7 +829,7 @@ msgid "Your seller account was suspended"
 msgstr ""
 
 #: src/Vendors/Notifier.php:77
-msgid "Your seller application was not approved"
+msgid "Your seller application was closed"
 msgstr ""
 
 #: src/Vendors/Service.php:45
@@ -952,12 +967,12 @@ msgid "No chats found"
 msgstr ""
 
 #: templates/admin/metabox-address.php:2
-#: templates/profile/tab-info.php:96
+#: templates/profile/tab-info.php:99
 msgid "Permanent Address"
 msgstr ""
 
 #: templates/admin/metabox-address.php:9
-#: templates/profile/tab-info.php:123
+#: templates/profile/tab-info.php:126
 msgid "Correspondence Address"
 msgstr ""
 
@@ -1001,11 +1016,6 @@ msgstr ""
 
 #: templates/admin/metabox-connection.php:40
 msgid "Accepted"
-msgstr ""
-
-#: templates/admin/metabox-connection.php:41
-#: templates/admin/metabox-vendor.php:14
-msgid "Rejected"
 msgstr ""
 
 #: templates/admin/metabox-connection.php:42
@@ -1087,33 +1097,33 @@ msgid "Remove"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:3
-#: templates/profile/tab-info.php:48
+#: templates/profile/tab-info.php:51
 msgid "First Name"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:4
-#: templates/profile/tab-info.php:53
+#: templates/profile/tab-info.php:56
 msgid "Last Name"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:5
-#: templates/profile/tab-info.php:42
+#: templates/profile/tab-info.php:45
 #: templates/shortcodes/contact-form.php:36
 msgid "Email"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:6
-#: templates/profile/tab-info.php:71
+#: templates/profile/tab-info.php:74
 msgid "Phone"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:7
-#: templates/profile/tab-info.php:77
+#: templates/profile/tab-info.php:80
 msgid "LinkedIn"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:9
-#: templates/profile/tab-info.php:58
+#: templates/profile/tab-info.php:61
 msgid "Gender"
 msgstr ""
 
@@ -1132,12 +1142,12 @@ msgid "Female"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:17
-#: templates/profile/tab-info.php:64
+#: templates/profile/tab-info.php:67
 msgid "Birthdate"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:22
-#: templates/profile/tab-info.php:84
+#: templates/profile/tab-info.php:87
 msgid "Bio"
 msgstr ""
 
@@ -1165,28 +1175,45 @@ msgstr ""
 msgid "No conversations"
 msgstr ""
 
+#: templates/admin/metabox-vendor-decision.php:13
+msgid "Status:"
+msgstr ""
+
+#: templates/admin/metabox-vendor-decision.php:14
+msgid "Applicant:"
+msgstr ""
+
+#: templates/admin/metabox-vendor-decision.php:15
+#: templates/mail/vendor-application-admin.php:11
+msgid "Business:"
+msgstr ""
+
+#: templates/admin/metabox-vendor-decision.php:21
+msgid "No decision is available for this application."
+msgstr ""
+
 #: templates/admin/metabox-work.php:2
-#: templates/profile/tab-info.php:157
+#: templates/profile/tab-info.php:160
 msgid "Company Name"
 msgstr ""
 
 #: templates/admin/metabox-work.php:3
-#: templates/profile/tab-info.php:162
+#: templates/profile/tab-info.php:165
 msgid "Designation"
 msgstr ""
 
 #: templates/admin/metabox-work.php:4
-#: templates/profile/tab-info.php:167
+#: templates/profile/tab-info.php:170
 msgid "Company Email"
 msgstr ""
 
 #: templates/admin/metabox-work.php:5
-#: templates/profile/tab-info.php:172
+#: templates/profile/tab-info.php:175
 msgid "Company Phone"
 msgstr ""
 
 #: templates/admin/metabox-work.php:6
-#: templates/profile/tab-info.php:177
+#: templates/profile/tab-info.php:180
 msgid "Company Address"
 msgstr ""
 
@@ -1552,10 +1579,6 @@ msgstr ""
 msgid "Account:"
 msgstr ""
 
-#: templates/mail/vendor-application-admin.php:11
-msgid "Business:"
-msgstr ""
-
 #: templates/mail/vendor-application-admin.php:12
 msgid "Type:"
 msgstr ""
@@ -1614,7 +1637,7 @@ msgstr ""
 #. translators: %s: the business name.
 #: templates/mail/vendor-status.php:27
 #, php-format
-msgid "We could not approve your application for \"%s\". You are welcome to apply again with corrected details."
+msgid "Your seller application for \"%s\" has been closed and your account is a regular member account again. You are welcome to apply again with corrected details."
 msgstr ""
 
 #: templates/profile/admin-mode.php:19
@@ -1659,7 +1682,7 @@ msgid "Go to Home →"
 msgstr ""
 
 #: templates/profile/page.php:20
-#: templates/profile/tab-info.php:22
+#: templates/profile/tab-info.php:25
 msgid "User Information"
 msgstr ""
 
@@ -1768,35 +1791,40 @@ msgid "Work"
 msgstr ""
 
 #: templates/profile/tab-info.php:16
-#: templates/profile/tab-info.php:185
+#: templates/profile/tab-info.php:188
 msgid "Documents"
 msgstr ""
 
-#: templates/profile/tab-info.php:17
+#: templates/profile/tab-info.php:18
+#: templates/profile/vendor-card.php:57
+msgid "Edit business details"
+msgstr ""
+
+#: templates/profile/tab-info.php:20
 msgid "Security"
 msgstr ""
 
-#: templates/profile/tab-info.php:23
+#: templates/profile/tab-info.php:26
 msgid "Login to explore more"
 msgstr ""
 
-#: templates/profile/tab-info.php:31
+#: templates/profile/tab-info.php:34
 msgid "Personal Information"
 msgstr ""
 
-#: templates/profile/tab-info.php:36
+#: templates/profile/tab-info.php:39
 msgid "Username"
 msgstr ""
 
-#: templates/profile/tab-info.php:92
+#: templates/profile/tab-info.php:95
 msgid "Address Information"
 msgstr ""
 
-#: templates/profile/tab-info.php:152
+#: templates/profile/tab-info.php:155
 msgid "Work Information"
 msgstr ""
 
-#: templates/profile/tab-info.php:199
+#: templates/profile/tab-info.php:202
 msgid "No File"
 msgstr ""
 
@@ -1820,36 +1848,44 @@ msgstr ""
 msgid "Access restricted"
 msgstr ""
 
-#: templates/profile/vendor-card.php:12
 #: templates/profile/vendor-card.php:14
+#: templates/profile/vendor-card.php:16
 msgid "Become a seller"
 msgstr ""
 
-#: templates/profile/vendor-card.php:13
+#: templates/profile/vendor-card.php:15
 msgid "Sell your products on the Nexora marketplace. Tell us about your business; we review every application."
 msgstr ""
 
-#: templates/profile/vendor-card.php:27
+#: templates/profile/vendor-card.php:31
 msgid "Send application"
 msgstr ""
 
-#: templates/profile/vendor-card.php:30
-msgid "Seller account"
+#: templates/profile/vendor-card.php:35
+msgid "Business Details"
 msgstr ""
 
-#: templates/profile/vendor-card.php:34
+#: templates/profile/vendor-card.php:39
 msgid "Your application is under review. Your account works as before in the meantime."
 msgstr ""
 
-#: templates/profile/vendor-card.php:36
+#: templates/profile/vendor-card.php:41
 msgid "You are an approved seller."
 msgstr ""
 
-#: templates/profile/vendor-card.php:38
+#: templates/profile/vendor-card.php:43
 msgid "Your seller account is suspended. You cannot list or sell until it is reactivated."
 msgstr ""
 
-#: templates/profile/vendor-card.php:54
+#: templates/profile/vendor-card.php:57
+msgid "Edit"
+msgstr ""
+
+#: templates/profile/vendor-card.php:62
+msgid "Business name, business type and GSTIN cannot be changed once your application has been decided. Contact the site administrator if they need correcting."
+msgstr ""
+
+#: templates/profile/vendor-card.php:75
 msgid "Save details"
 msgstr ""
 

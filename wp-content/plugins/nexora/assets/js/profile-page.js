@@ -45,6 +45,11 @@ jQuery(document).ready(function ($) {
     let data = profilePageData.userData;
     $(document).on('click', '.user-edit-info', function () {
 
+        // The Business sub-tab is opened by vendor.js (its form is rendered on the server)
+        if ($(this).hasClass('nx-vendor-open')) {
+            return;
+        }
+
         let type = $(this).data('type');
         let html = '';
 

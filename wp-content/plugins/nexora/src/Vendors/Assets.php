@@ -35,7 +35,16 @@ class Assets {
 
 		Core_Assets::enqueue_tokens();
 		wp_enqueue_style( 'nexora-vendor', NEXORA_URL . 'assets/css/vendor.css', array( 'nexora-tokens' ), NEXORA_VERSION );
-		wp_enqueue_script( 'nexora-vendor', NEXORA_URL . 'assets/js/vendor.js', array( 'jquery' ), NEXORA_VERSION, true );
+
+		// The profile popups use SweetAlert2 (the same copy the profile page loads).
+		$deps = array( 'jquery' );
+
+		if ( $on_profile ) {
+			Core_Assets::enqueue_sweetalert();
+			$deps[] = 'sweetalert2';
+		}
+
+		wp_enqueue_script( 'nexora-vendor', NEXORA_URL . 'assets/js/vendor.js', $deps, NEXORA_VERSION, true );
 
 		wp_localize_script(
 			'nexora-vendor',

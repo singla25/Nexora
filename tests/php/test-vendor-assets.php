@@ -44,7 +44,7 @@ nx_assert( ! $r['js'] && ! $r['css'], 'profile page (guest): nothing loaded (log
 nx_assert( file_exists( NEXORA_PATH . 'assets/js/vendor.js' ) && file_exists( NEXORA_PATH . 'assets/css/vendor.css' ), 'the asset files exist' );
 $js = file_get_contents( NEXORA_PATH . 'assets/js/vendor.js' );
 nx_assert( false === strpos( $js, 'innerHTML' ) && false === strpos( $js, 'document.write' ) && false === strpos( $js, 'eval(' ), 'vendor.js writes no raw HTML and uses no eval' );
-nx_assert( false !== strpos( $js, 'nexora_vendor_apply' ) || false !== strpos( $js, 'data-action' ), 'vendor.js posts to the vendor actions' );
+nx_assert( false !== strpos( $js, "data('action')" ), 'vendor.js posts to the vendor actions' );
 nx_assert( 1 !== preg_match( '/data\.(role|roles|status|vendor_status|account_type)\b|[\'"](roles?|vendor_status|account_type)[\'"]\s*:/', $js ), 'vendor.js never sends a role or a status' );
 
 // The repo's blanket `vendor/` ignore rule once swallowed templates/vendor/: no plugin source file may be git-ignored.

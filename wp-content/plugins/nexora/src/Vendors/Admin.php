@@ -95,6 +95,39 @@ class Admin {
 	 */
 	public function add_meta_boxes() {
 		add_meta_box( 'nexora_vendor_details', __( 'Seller application', 'nexora' ), array( $this, 'render_details_box' ), Repository::POST_TYPE, 'normal', 'high' );
+
+		// The decision buttons: administrators only, top of the side column where the Publish box sits.
+		if ( current_user_can( 'manage_options' ) ) {
+			add_meta_box( 'nexora_vendor_decision', __( 'Application decision', 'nexora' ), array( $this, 'render_decision_box' ), Repository::POST_TYPE, 'side', 'high' );
+		}
+	}
+
+	/**
+	 * Prints the decision box: who applied, the current status and the buttons that are valid now.
+	 * Prints nothing for anyone who may not decide.
+	 *
+	 * @param \WP_Post $post Vendor post.
+	 */
+	public function render_decision_box( $post ) {
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$user_id = Repository::user_for( $post->ID );
+		$user    = get_userdata( $user_id );
+		$trashed = 'trash' === $post->post_status;
+
+		View::output(
+			'admin/metabox-vendor-decision',
+			array(
+				'status'   => $trashed ? __( 'Rejected', 'nexora' ) : self::status_label( $user ? Account_Types::vendor_status( $user_id ) : Account_Types::NONE ),
+				'name'     => $user ? $user->display_name : '',
+				'account'  => $user ? $user->user_login : '',
+				'business' => (string) get_post_meta( $post->ID, 'business_name', true ),
+				'links'    => $this->decision_links( $post->ID, true ),
+			)
+		);
 	}
 
 	/**
@@ -118,7 +151,6 @@ class Admin {
 				'email'   => $user ? $user->user_email : '',
 				'status'  => self::status_label( $status ),
 				'trashed' => 'trash' === $post->post_status,
-				'links'   => $this->decision_links( $post->ID ),
 			)
 		);
 	}
@@ -126,10 +158,11 @@ class Admin {
 	/**
 	 * The decision links that are valid for the vendor's current status (each carries its own nonce).
 	 *
-	 * @param int $vendor_id Vendor post ID.
+	 * @param int  $vendor_id Vendor post ID.
+	 * @param bool $buttons   Style the links as buttons (the decision box) instead of plain row links.
 	 * @return array Label-bearing anchors keyed by action.
 	 */
-	private function decision_links( $vendor_id ) {
+	private function decision_links( $vendor_id, $buttons = false ) {
 
 		$user_id = Repository::user_for( $vendor_id );
 
@@ -148,11 +181,16 @@ class Admin {
 
 		foreach ( Service::actions() as $action => $path ) {
 
-			if ( $path[0] !== $status ) {
+			if ( ! in_array( $status, $path[0], true ) ) {
 				continue;
 			}
 
-			$out[ $action ] = '<a href="' . esc_url( self::action_url( $vendor_id, $action ) ) . '">' . esc_html( $labels[ $action ] ) . '</a>';
+			$class   = $buttons ? ' class="button' . ( in_array( $action, array( 'approve', 'reactivate' ), true ) ? ' button-primary' : '' ) . '"' : '';
+			$confirm = 'reject' === $action
+				? ' onclick="return confirm(' . esc_attr( wp_json_encode( __( 'Are you sure? The application moves to the trash and the applicant goes back to being a regular member.', 'nexora' ) ) ) . ');"'
+				: '';
+
+			$out[ $action ] = '<a' . $class . ' href="' . esc_url( self::action_url( $vendor_id, $action ) ) . '"' . $confirm . '>' . esc_html( $labels[ $action ] ) . '</a>';
 		}
 
 		return $out;

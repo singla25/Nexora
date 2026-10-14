@@ -7,7 +7,6 @@
  * @var string $email   Applicant's account email.
  * @var string $status  Status label.
  * @var bool   $trashed Whether the application was rejected (trashed).
- * @var array  $links   Decision links (already-escaped anchors).
  */
 ?>
 <table class="form-table" role="presentation">
@@ -20,8 +19,3 @@
 		</tr>
 	<?php endforeach; ?>
 </table>
-<?php if ( $links ) : ?>
-	<p class="nx-vendor-decisions">
-		<?php echo implode( ' &nbsp;|&nbsp; ', $links ); // phpcs:ignore WordPress.Security.EscapeOutput -- anchors are built and escaped in Vendors\Admin::decision_links(). ?>
-	</p>
-<?php endif; ?>

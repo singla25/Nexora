@@ -70,12 +70,6 @@
     background: var(--nx-white);
 }
 
-.nx-vendor-field input[readonly],
-.nx-vendor-field select:disabled {
-    background: var(--nx-bg-tint);
-    color: var(--nx-text-muted);
-}
-
 .nx-vendor-field input:focus-visible,
 .nx-vendor-field select:focus-visible,
 .nx-vendor-open:focus-visible,
@@ -141,4 +135,38 @@
     .nx-vendor-fields {
         grid-template-columns: 1fr;
     }
+}
+
+/* Business Details card and its popup */
+.nx-vendor-card .info-grid {
+    margin: 12px 0 16px;
+}
+
+.nx-vendor-card .nx-vendor-open {
+    margin-top: 4px;
+}
+
+.swal2-popup .nx-vendor-form {
+    text-align: left;
+}
+
+.swal2-popup .nx-vendor-submit {
+    margin-top: 8px;
+}
+
+.nx-vendor-locked-note {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border-radius: var(--nx-radius-sm);
+    background: var(--nx-bg-tint);
+    color: var(--nx-navy);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.nx-vendor-field input:disabled,
+.nx-vendor-field select:disabled {
+    background: var(--nx-bg-tint);
+    color: var(--nx-text-muted);
+    cursor: not-allowed;
 }

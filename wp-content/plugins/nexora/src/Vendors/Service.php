@@ -17,16 +17,16 @@ class Service {
 	const LOCK_PREFIX = 'nexora_vendor_lock_';
 
 	/**
-	 * Admin actions: action => [ required current status, new status ].
+	 * Admin actions: action => [ statuses it may start from, new status ].
 	 *
 	 * @return array
 	 */
 	public static function actions() {
 		return array(
-			'approve'    => array( Account_Types::PENDING, Account_Types::APPROVED ),
-			'suspend'    => array( Account_Types::APPROVED, Account_Types::SUSPENDED ),
-			'reactivate' => array( Account_Types::SUSPENDED, Account_Types::APPROVED ),
-			'reject'     => array( Account_Types::PENDING, Account_Types::NONE ),
+			'approve'    => array( array( Account_Types::PENDING ), Account_Types::APPROVED ),
+			'suspend'    => array( array( Account_Types::APPROVED ), Account_Types::SUSPENDED ),
+			'reactivate' => array( array( Account_Types::SUSPENDED ), Account_Types::APPROVED ),
+			'reject'     => array( array( Account_Types::PENDING, Account_Types::SUSPENDED ), Account_Types::NONE ),
 		);
 	}
 
@@ -183,7 +183,7 @@ class Service {
 			return true;
 		}
 
-		if ( $current !== $from ) {
+		if ( ! in_array( $current, $from, true ) ) {
 			return new \WP_Error( 'nexora_bad_transition', __( 'That status change is not allowed.', 'nexora' ) );
 		}
 
