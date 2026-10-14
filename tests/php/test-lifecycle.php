@@ -14,6 +14,16 @@ $tables = array( 'nexora_notifications', 'nexora_threads', 'nexora_thread_partic
 
 $original_version = get_option( 'nexora_db_version' );
 
+// Sentinels for the isolation check at the end: this suite must never change the live dev site.
+$real_chat_table    = $wpdb->prefix . 'nexora_message_meta';
+$table_created      = static function ( $table ) use ( $wpdb ) {
+	return $wpdb->get_var( $wpdb->prepare( 'SELECT CREATE_TIME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s', $table ) );
+};
+$real_table_created = $table_created( $real_chat_table );
+$real_setting       = get_option( 'nexora_delete_data_on_uninstall', '__unset__' );
+set_transient( 'nexora_nxtest_sentinel', 1, HOUR_IN_SECONDS );
+set_transient( 'nx_rl_nxtest_sentinel', 1, HOUR_IN_SECONDS );
+
 delete_option( 'nexora_db_version' );
 Migrations::maybe_upgrade();
 nx_assert_same( Migrations::DB_VERSION, get_option( 'nexora_db_version' ), 'maybe_upgrade stores the db version' );
@@ -48,10 +58,17 @@ nx_assert( in_array( 'idx_receiver_read', nx_index_names( 'nexora_notifications'
 $changes = Migrations::sync_schema();
 nx_assert_same( array(), $changes, 'schema sync is idempotent (dbDelta reports nothing to change)' );
 
-// A dropped table is recreated.
+// A dropped table is recreated. Runs on scratch copies of the tables (prefix swap), never on the real ones.
+$real_prefix    = $wpdb->prefix;
+$wpdb->prefix   = 'nxtest_';
+Migrations::sync_schema();
 $wpdb->query( "DROP TABLE {$wpdb->prefix}nexora_message_meta" );
 Migrations::sync_schema();
 nx_assert( (bool) $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->prefix . 'nexora_message_meta' ) ), 'a missing table is recreated' );
+foreach ( $tables as $t ) {
+	$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}$t" );
+}
+$wpdb->prefix = $real_prefix;
 
 // Existing rows survive a re-run.
 $a  = nx_test_user( 'mig_a' );
@@ -104,9 +121,10 @@ $config = array(
 	'roles'      => array(),
 	'post_types' => array( 'nxtest_cpt' ),
 	'dirs'       => array( $scratch_dir ),
+	'transient_prefixes' => array( 'nxtest_scratch_' ),
 );
 
-delete_option( 'nexora_delete_data_on_uninstall' );
+update_option( 'nexora_delete_data_on_uninstall', 0 );
 nx_assert_same( false, ( new Uninstaller( $config ) )->run(), 'uninstall does nothing while the setting is off' );
 nx_assert( (bool) get_option( 'nxtest_option' ) && get_post( $post_id ) && file_exists( $scratch_dir . '/doc.pdf' ), 'nothing is deleted while the setting is off' );
 nx_assert( (bool) $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $scratch_table ) ), 'tables are kept while the setting is off' );
@@ -118,7 +136,7 @@ nx_assert_same( '', get_user_meta( $a['user_id'], 'nxtest_meta', true ), 'user m
 nx_assert_same( null, get_post( $post_id ), 'custom post type posts are removed' );
 nx_assert_same( false, file_exists( $scratch_dir ), 'private files are removed' );
 nx_assert_same( null, $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $scratch_table ) ), 'tables are dropped' );
-delete_option( 'nexora_delete_data_on_uninstall' );
+if ( '__unset__' === $real_setting ) { delete_option( 'nexora_delete_data_on_uninstall' ); } else { update_option( 'nexora_delete_data_on_uninstall', $real_setting ); }
 
 // The real lists must cover what the plugin stores.
 $real = Uninstaller::defaults();
@@ -191,5 +209,16 @@ nx_assert_same( 0, (int) $list[0]->unread_count, 'reading a thread invalidates t
 $chat->update_thread_subject( $tid, 'New subject' );
 $list = $chat->get_user_threads( $a['user_id'] );
 nx_assert_same( 'New subject', $list[0]->subject, 'renaming a thread invalidates the cached thread list' );
+
+/* ---------- isolation: the live dev site is untouched ---------- */
+nx_assert_same( $real_table_created, $table_created( $real_chat_table ), 'the real chat table was not dropped or recreated by this suite' );
+nx_assert_same( false, (bool) $table_created( 'nxtest_nexora_message_meta' ), 'no scratch chat table is left behind' );
+nx_assert_same( $real_setting, get_option( 'nexora_delete_data_on_uninstall', '__unset__' ), 'the real delete-on-uninstall option is exactly as it was' );
+// Read the database, not the object cache: the uninstaller deletes with SQL.
+$sentinels = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name IN ('_transient_nexora_nxtest_sentinel','_transient_nx_rl_nxtest_sentinel')" );
+nx_assert_same( 2, $sentinels, 'real nexora_/nx_rl_ transients survived the uninstall run' );
+nx_assert( null !== get_role( 'nexora_vendor' ), 'the real vendor role survived' );
+delete_transient( 'nexora_nxtest_sentinel' );
+delete_transient( 'nx_rl_nxtest_sentinel' );
 
 nx_test_finish();
