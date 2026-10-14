@@ -42,6 +42,8 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - Woo checkout signup and login options stay off even if the option is set to yes (filter test).
 - A "customer" is any non-vendor member whatever the WP role (test with roles subscriber, customer, shop_manager).
 
+**Phase 3 (DONE)**: `test-profile-tabs.php`, `test-login-redirect.php`, `test-vendor-gating.php`, `test-woo-routes.php`.
+
 ## Phase 4: Products and marketplace (`test-products.php`, `test-marketplace-list.php`)
 - Own-only edit and delete; another vendor's ID gives an error.
 - Price and stock bounds, SKU unique per vendor, XSS in title and description is stripped or escaped, category whitelist.

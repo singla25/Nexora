@@ -132,6 +132,13 @@ Resolved decisions: Woo checkout account creation and checkout login are disable
 | Members viewing their orders (`view-order`, `orders`) | Decided: a Nexora "My Orders" tab on the profile; Woo's endpoints redirect there | 6 |
 | Shop/product pages, Woo REST `wc/v3` | Out of scope (not a purchase path; `wc/v3` is admin-auth only). Re-checked in Phase 8. | 8 |
 
+### 8a. Phase 3 (built)
+
+- **Tabs**: `Profile\Page::BUILT_TABS` (user-info, connections, content, notifications) intersected with `Account_Types::tabs_for()` for the owner; others see the two public tabs; the `nexora_profile_tabs` filter can adjust. Tabs in the map that are not built yet render nothing, so a customer's page is byte-identical. Each later phase adds its slug to `BUILT_TABS`.
+- **Return URL after login**: `Urls::safe_return()` accepts only this site, http(s), no userinfo/backslashes/control characters, and a first path segment in `profile-page, cart, checkout, shop, marketplace` (filter `nexora_return_url_paths`); the login form passes `redirect_to`; everyone else lands on their own profile (admins on the bare profile page), whatever their vendor status.
+- **Gating**: `Vendors\Vendor_Ajax` (`seller()`, `earnings_viewer()`, `require_owner()`): forbidden JSON error for guests, customers, pending, suspended (selling), admins, a role without the status or the status without the role, and other vendors' objects. Phase 4+ endpoints extend it.
+- **Woo**: `Integrations\Woo_Routes` forces `woocommerce_enable_signup_and_login_from_checkout`, `..._checkout_login_reminder` and `..._myaccount_registration` to 'no' (via `pre_option_`), and sends `/my-account/` (all endpoints) to the Nexora login (guests) or the member's profile (admins left alone). Cart and checkout routes follow in Phase 6.
+
 ## 8b. DummyJSON field mapping (for your review)
 
 Source: `GET https://dummyjson.com/products?limit=100&skip=N` (paged up to the row limit), response `{products:[...], total, skip, limit}`. No auth.
