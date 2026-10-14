@@ -165,6 +165,26 @@ nx_assert( ! Account_Types::can_sell( $g['user_id'] ) && 'pending' === Account_T
 delete_user_meta( $g['user_id'], Account_Types::STATUS_META );
 nx_assert_same( 'pending', Account_Types::vendor_status( $g['user_id'] ), 'guard: a plain delete_user_meta cannot reset the status either' );
 
+/* ---------- deleting a user (sign-up rollback relies on wp_delete_user) ---------- */
+require_once ABSPATH . 'wp-admin/includes/user.php';
+foreach ( array( 'approved', 'pending' ) as $state ) {
+	$d = nx_test_user( 'atdel' . $state );
+	Account_Types::set_status( $d['user_id'], 'pending' );
+	if ( 'approved' === $state ) { Account_Types::set_status( $d['user_id'], 'approved' ); }
+	nx_assert_same( $state, Account_Types::vendor_status( $d['user_id'] ), "delete: setup $state" );
+	nx_assert( true === wp_delete_user( $d['user_id'] ), "delete: wp_delete_user succeeds for a $state vendor" );
+	nx_assert( false === get_userdata( $d['user_id'] ), "delete: the $state vendor is gone" );
+	$left = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s", $d['user_id'], Account_Types::STATUS_META ) );
+	nx_assert_same( 0, $left, "delete: no orphaned status meta for a $state vendor" );
+	$left = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE user_id = %d", $d['user_id'] ) );
+	nx_assert_same( 0, $left, "delete: no usermeta rows of any kind remain for a $state vendor" );
+}
+// Same through WordPress' own multisite-free delete helper used by tools.
+$d = nx_test_user( 'atdelraw' );
+Account_Types::set_status( $d['user_id'], 'pending' );
+nx_assert( true === wp_delete_user( $d['user_id'], 0 ), 'delete: wp_delete_user with no reassign works' );
+nx_assert( 0 === (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s", $d['user_id'], Account_Types::STATUS_META ) ), 'delete: still no orphaned status meta' );
+
 /* ---------- wiring: no markup change, no new hooks on the customer path ---------- */
 nx_assert( class_exists( 'Nexora\\Accounts\\Account_Types' ), 'class autoloads' );
 nx_assert( false !== has_action( 'plugins_loaded', array( 'Nexora\\Accounts\\Account_Types', 'maybe_register' ) ), 'Plugin::boot() wires the self-upgrade' );
