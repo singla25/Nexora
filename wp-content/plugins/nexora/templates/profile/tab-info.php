@@ -203,5 +203,8 @@
 								</div>
 							</div>
 						</div>
+						<?php if ( ! empty( $vendor ) ) : ?>
+							<?php \Nexora\Core\View::output( 'profile/vendor-card', array( 'vendor' => $vendor ) ); ?>
+						<?php endif; ?>
 					</div>
 

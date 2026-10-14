@@ -213,7 +213,8 @@ nx_assert_same( 'New subject', $list[0]->subject, 'renaming a thread invalidates
 /* ---------- isolation: the live dev site is untouched ---------- */
 nx_assert_same( $real_table_created, $table_created( $real_chat_table ), 'the real chat table was not dropped or recreated by this suite' );
 nx_assert_same( false, (bool) $table_created( 'nxtest_nexora_message_meta' ), 'no scratch chat table is left behind' );
-nx_assert_same( $real_setting, get_option( 'nexora_delete_data_on_uninstall', '__unset__' ), 'the real delete-on-uninstall option is exactly as it was' );
+// The setting is a boolean: its sanitiser turns '' into 0, so compare meaning, not spelling.
+nx_assert_same( (bool) ( '__unset__' === $real_setting ? 0 : $real_setting ), (bool) get_option( 'nexora_delete_data_on_uninstall', 0 ), 'the real delete-on-uninstall option is exactly as it was' );
 // Read the database, not the object cache: the uninstaller deletes with SQL.
 $sentinels = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name IN ('_transient_nexora_nxtest_sentinel','_transient_nx_rl_nxtest_sentinel')" );
 nx_assert_same( 2, $sentinels, 'real nexora_/nx_rl_ transients survived the uninstall run' );

@@ -1,0 +1,251 @@
+<?php
+
+namespace Nexora\Vendors;
+
+use Nexora\Accounts\Account_Types;
+use Nexora\Core\View;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * The administrator's screens for vendor applications: list columns, a details box with the decision
+ * buttons, and the admin-post action behind them (nonce + manage_options, then Service::change_status()).
+ */
+class Admin {
+
+	const ACTION = 'nexora_vendor_status';
+
+	/**
+	 * Hooks the list columns, the details box, the decision action and its notice.
+	 */
+	public function __construct() {
+		add_filter( 'manage_nexora_vendor_posts_columns', array( $this, 'columns' ) );
+		add_action( 'manage_nexora_vendor_posts_custom_column', array( $this, 'column' ), 10, 2 );
+		add_filter( 'post_row_actions', array( $this, 'row_actions' ), 10, 2 );
+		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
+		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_status_request' ) );
+		add_action( 'admin_notices', array( $this, 'notice' ) );
+	}
+
+	/**
+	 * The list-table columns.
+	 *
+	 * @param array $columns Existing columns.
+	 * @return array
+	 */
+	public function columns( $columns ) {
+
+		return array(
+			'cb'            => isset( $columns['cb'] ) ? $columns['cb'] : '',
+			'title'         => __( 'Business', 'nexora' ),
+			'gstin'         => __( 'GSTIN', 'nexora' ),
+			'owner'         => __( 'Account', 'nexora' ),
+			'vendor_status' => __( 'Status', 'nexora' ),
+			'date'          => __( 'Applied', 'nexora' ),
+		);
+	}
+
+	/**
+	 * Prints one custom column cell.
+	 *
+	 * @param string $column  Column key.
+	 * @param int    $post_id Vendor post ID.
+	 */
+	public function column( $column, $post_id ) {
+
+		if ( 'gstin' === $column ) {
+			echo esc_html( (string) get_post_meta( $post_id, 'gstin', true ) );
+			return;
+		}
+
+		$user = get_userdata( Repository::user_for( $post_id ) );
+
+		if ( 'owner' === $column ) {
+			echo $user ? esc_html( $user->user_login ) : '&mdash;';
+			return;
+		}
+
+		if ( 'vendor_status' === $column ) {
+			echo $user ? esc_html( self::status_label( Account_Types::vendor_status( $user->ID ) ) ) : '&mdash;';
+		}
+	}
+
+	/**
+	 * Replaces the row links with the decision links that apply.
+	 *
+	 * @param array    $actions Row actions.
+	 * @param \WP_Post $post    The row's post.
+	 * @return array
+	 */
+	public function row_actions( $actions, $post ) {
+
+		if ( Repository::POST_TYPE !== $post->post_type ) {
+			return $actions;
+		}
+
+		$edit = isset( $actions['edit'] ) ? array( 'edit' => $actions['edit'] ) : array();
+
+		return $edit + $this->decision_links( $post->ID );
+	}
+
+	/**
+	 * Registers the details box on the vendor edit screen.
+	 */
+	public function add_meta_boxes() {
+		add_meta_box( 'nexora_vendor_details', __( 'Seller application', 'nexora' ), array( $this, 'render_details_box' ), Repository::POST_TYPE, 'normal', 'high' );
+	}
+
+	/**
+	 * Prints the details box (read-only; the decision is made with the buttons).
+	 *
+	 * @param \WP_Post $post Vendor post.
+	 */
+	public function render_details_box( $post ) {
+
+		$user_id = Repository::user_for( $post->ID );
+		$user    = get_userdata( $user_id );
+		$status  = $user ? Account_Types::vendor_status( $user_id ) : Account_Types::NONE;
+
+		View::output(
+			'admin/metabox-vendor',
+			array(
+				'data'    => Repository::data( $post->ID ),
+				'labels'  => Fields::labels(),
+				'types'   => Fields::business_types(),
+				'account' => $user ? $user->user_login : '',
+				'email'   => $user ? $user->user_email : '',
+				'status'  => self::status_label( $status ),
+				'trashed' => 'trash' === $post->post_status,
+				'links'   => $this->decision_links( $post->ID ),
+			)
+		);
+	}
+
+	/**
+	 * The decision links that are valid for the vendor's current status (each carries its own nonce).
+	 *
+	 * @param int $vendor_id Vendor post ID.
+	 * @return array Label-bearing anchors keyed by action.
+	 */
+	private function decision_links( $vendor_id ) {
+
+		$user_id = Repository::user_for( $vendor_id );
+
+		if ( ! $user_id || 'trash' === get_post_status( $vendor_id ) ) {
+			return array();
+		}
+
+		$status = Account_Types::vendor_status( $user_id );
+		$labels = array(
+			'approve'    => __( 'Approve', 'nexora' ),
+			'reject'     => __( 'Reject', 'nexora' ),
+			'suspend'    => __( 'Suspend', 'nexora' ),
+			'reactivate' => __( 'Reactivate', 'nexora' ),
+		);
+		$out    = array();
+
+		foreach ( Service::actions() as $action => $path ) {
+
+			if ( $path[0] !== $status ) {
+				continue;
+			}
+
+			$out[ $action ] = '<a href="' . esc_url( self::action_url( $vendor_id, $action ) ) . '">' . esc_html( $labels[ $action ] ) . '</a>';
+		}
+
+		return $out;
+	}
+
+	/**
+	 * A signed link that asks for one decision.
+	 *
+	 * @param int    $vendor_id Vendor post ID.
+	 * @param string $action    approve | suspend | reactivate | reject.
+	 * @return string
+	 */
+	public static function action_url( $vendor_id, $action ) {
+
+		return wp_nonce_url(
+			add_query_arg(
+				array(
+					'action'    => self::ACTION,
+					'vendor_id' => (int) $vendor_id,
+					'do'        => $action,
+				),
+				admin_url( 'admin-post.php' )
+			),
+			self::ACTION . '_' . (int) $vendor_id . '_' . $action
+		);
+	}
+
+	/**
+	 * Handles a decision link: administrators only, signed, then back to the list with a notice.
+	 */
+	public function handle_status_request() {
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to do that.', 'nexora' ), '', array( 'response' => 403 ) );
+		}
+
+		// Reading a routing value; the nonce below is bound to this exact vendor and action.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$vendor_id = isset( $_GET['vendor_id'] ) ? absint( $_GET['vendor_id'] ) : 0;
+		$action    = isset( $_GET['do'] ) ? sanitize_key( wp_unslash( $_GET['do'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( ! $vendor_id || get_post_type( $vendor_id ) !== Repository::POST_TYPE || ! isset( Service::actions()[ $action ] ) ) {
+			wp_die( esc_html__( 'Invalid request.', 'nexora' ), '', array( 'response' => 400 ) );
+		}
+
+		check_admin_referer( self::ACTION . '_' . $vendor_id . '_' . $action );
+
+		$result = Service::change_status( $vendor_id, $action );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'post_type'            => Repository::POST_TYPE,
+					'nexora_vendor_notice' => is_wp_error( $result ) ? 'error' : 'ok',
+				),
+				admin_url( 'edit.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Shows the outcome of a decision on the list screen.
+	 */
+	public function notice() {
+
+		// Display only; nothing is changed by this parameter.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$state = isset( $_GET['nexora_vendor_notice'] ) ? sanitize_key( wp_unslash( $_GET['nexora_vendor_notice'] ) ) : '';
+
+		if ( 'ok' === $state ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Vendor status updated.', 'nexora' ) . '</p></div>';
+		} elseif ( 'error' === $state ) {
+			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'That change was not possible for this vendor\'s current status.', 'nexora' ) . '</p></div>';
+		}
+	}
+
+	/**
+	 * Display label of a vendor status.
+	 *
+	 * @param string $status Status slug.
+	 * @return string
+	 */
+	public static function status_label( $status ) {
+
+		$labels = array(
+			Account_Types::PENDING   => __( 'Pending', 'nexora' ),
+			Account_Types::APPROVED  => __( 'Approved', 'nexora' ),
+			Account_Types::SUSPENDED => __( 'Suspended', 'nexora' ),
+			Account_Types::NONE      => __( 'Not a vendor', 'nexora' ),
+		);
+
+		return isset( $labels[ $status ] ) ? $labels[ $status ] : $labels[ Account_Types::NONE ];
+	}
+}

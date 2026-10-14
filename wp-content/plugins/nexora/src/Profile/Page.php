@@ -242,6 +242,9 @@ class Page {
 
 			'feed'              => $feed['rows'],
 			'any_posts'         => $feed['any_exist'],
+
+			// The owner's seller card; business details are never prepared for anyone else.
+			'vendor'            => $is_owner ? \Nexora\Vendors\Service::card_data( $current_user_id ) : null,
 		);
 	}
 

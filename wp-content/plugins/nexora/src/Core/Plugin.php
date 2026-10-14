@@ -42,6 +42,9 @@ class Plugin {
 
 		new \Nexora\Database\Migrations();
 		new \Nexora\Accounts\Account_Types();
+		new \Nexora\Vendors\Ajax();
+		new \Nexora\Vendors\Admin();
+		new \Nexora\Vendors\Assets();
 		new \Nexora\Connections\Cache();
 
 		new I18n();

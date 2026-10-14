@@ -38,6 +38,16 @@ function nx_test_user( $name ) {
 	return array( 'user_id' => $uid, 'profile_id' => $pid, 'login' => $login );
 }
 
+/** A throwaway administrator (cleaned up with the rest). Returns its user ID. */
+function nx_test_admin() {
+	static $id = 0;
+	if ( $id && get_userdata( $id ) ) { return $id; }
+	$login = 'nxtest_adm_' . wp_generate_password( 5, false );
+	$id = wp_insert_user( array( 'user_login' => $login, 'user_pass' => wp_generate_password(), 'user_email' => $login . '@example.test', 'role' => 'administrator' ) );
+	$GLOBALS['nx_test']['users'][] = $id;
+	return $id;
+}
+
 /** Track any extra post (connection, content) for cleanup. */
 function nx_test_track_post( $post_id ) {
 	$GLOBALS['nx_test']['posts'][] = $post_id;

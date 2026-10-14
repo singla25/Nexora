@@ -9,6 +9,7 @@ $member = array(
 	'get_add_new_users', 'send_connection_request', 'get_requests', 'update_connection_status', 'get_history',
 	'view_all_connection', 'view_mutual_connection', 'mark_notification_read', 'save_user_content', 'get_user_content_history',
 	'update_personal_info', 'update_address_info', 'update_work_info', 'update_documents_info', 'update_profile_password',
+	'vendor_apply', 'vendor_update',
 );
 $chat = array(
 	'search_users', 'get_messages', 'get_user_threads', 'send_message', 'create_thread_with_subject',

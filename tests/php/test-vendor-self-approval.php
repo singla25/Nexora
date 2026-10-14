@@ -65,14 +65,25 @@ $legacy->add_role( 'subscriber' );
 nx_assert( ! user_can( $member['user_id'], Account_Types::CAP_PRODUCTS ), 'no vendor capability without the role' );
 
 /* ---------- 3. no other code path in the plugin can change a status or a role ---------- */
-$allowed = array(
-	'src/Accounts/Account_Types.php'  => 'owns the status and the role',
-	'src/Database/Uninstaller.php'    => 'removes them on a data-deleting uninstall',
-	'src/Profile/Upload_Policy.php'   => 'strips the old upload_files cap from the subscriber role (reviewed: removal only)',
+// Rule A: who may write the vendor status / role or add or remove capabilities. Each entry says WHY it is allowed.
+$allowed_writers = array(
+	'src/Accounts/Account_Types.php' => 'owns the status and the role',
+	'src/Database/Uninstaller.php'   => 'removes them on a data-deleting uninstall',
+	'src/Profile/Upload_Policy.php'  => 'strips the old upload_files cap from the subscriber role (reviewed: removal only)',
+	'src/Vendors/Service.php'        => 'the ONLY caller of Account_Types::set_status(): applicant -> pending in apply(); approve/suspend/reactivate/reject in change_status(), which requires manage_options',
+);
+// Rule B: who may mention the vendor post type slug. It is a post type, not a permission, so this is only
+// about keeping the vendor code in one place. Each entry says WHY.
+$allowed_cpt = array(
+	'src/PostTypes/Registrar.php' => 'registers the private post type',
+	'src/Vendors/Repository.php'  => 'reads and writes the vendor posts',
+	'src/Vendors/Service.php'     => 'reads the post type through Repository only to validate IDs',
+	'src/Vendors/Admin.php'       => 'list columns and the admin-post decision handler (calls Service, never Account_Types)',
 );
 $src   = NEXORA_PATH . 'src';
 $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $src, FilesystemIterator::SKIP_DOTS ) );
 $hits  = array();
+$cpt   = array();
 $dyn   = array();
 foreach ( $files as $f ) {
 	if ( 'php' !== $f->getExtension() ) { continue; }
@@ -80,15 +91,51 @@ foreach ( $files as $f ) {
 	$code = file_get_contents( $f->getPathname() );
 	$code = preg_replace( '#/\*.*?\*/#s', '', $code ); // block comments
 	$code = preg_replace( '#^\s*//.*$#m', '', $code ); // line comments
-	if ( ! isset( $allowed[ $rel ] ) && preg_match( '/Account_Types::set_status|STATUS_META|_nexora_vendor_status|nexora_vendor|->add_role\(|->set_role\(|->remove_role\(|add_role\(|remove_role\(|->add_cap\(|->remove_cap\(|add_cap\(/', $code, $mm ) ) {
+	if ( ! isset( $allowed_writers[ $rel ] ) && preg_match( '/Account_Types::set_status|STATUS_META|_nexora_vendor_status|Account_Types::ROLE|->add_role\(|->set_role\(|->remove_role\(|add_role\(|remove_role\(|->add_cap\(|->remove_cap\(|add_cap\(/', $code, $mm ) ) {
 		$hits[] = $rel . ' (' . $mm[0] . ')';
+	}
+	// Service may call set_status but nothing else on that list.
+	if ( 'src/Vendors/Service.php' === $rel && preg_match( '/STATUS_META|_nexora_vendor_status|Account_Types::ROLE|add_role\(|remove_role\(|add_cap\(|remove_cap\(|set_role\(/', $code, $mm ) ) {
+		$hits[] = $rel . ' (' . $mm[0] . ')';
+	}
+	if ( ! isset( $allowed_cpt[ $rel ] ) && ! isset( $allowed_writers[ $rel ] ) && preg_match( '/[\'"]nexora_vendor[\'"]/', $code, $mm ) ) {
+		$cpt[] = $rel;
 	}
 	// A client-chosen meta key or role would be the dangerous shape.
 	if ( preg_match( '/(?:update|add|delete)_user_meta\(\s*[^,]+,\s*\$/', $code ) ) { $dyn[] = $rel; }
 	if ( preg_match( '/wp_(?:insert|update)_user\([^;]*[\'"]role[\'"]/s', $code ) ) { $dyn[] = $rel . ' (role in user array)'; }
 }
 nx_assert_same( array(), $hits, 'only the allowed files touch the vendor status or role: ' . wp_json_encode( $hits ) );
+nx_assert_same( array(), $cpt, 'only the vendor code mentions the vendor post type: ' . wp_json_encode( $cpt ) );
 nx_assert_same( array(), $dyn, 'no code writes user meta under a variable key or sets a role from an array: ' . wp_json_encode( $dyn ) );
+
+// Who calls set_status(): exactly Service (and Account_Types itself).
+$callers = array();
+foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $src, FilesystemIterator::SKIP_DOTS ) ) as $f ) {
+	if ( 'php' === $f->getExtension() && preg_match( '/Account_Types::set_status\(/', preg_replace( '#/\*.*?\*/#s', '', file_get_contents( $f->getPathname() ) ) ) ) {
+		$callers[] = 'src/' . ltrim( substr( $f->getPathname(), strlen( $src ) ), '/' );
+	}
+}
+sort( $callers );
+nx_assert_same( array( 'src/Vendors/Service.php' ), $callers, 'Vendors\\Service is the only caller of Account_Types::set_status()' );
+nx_assert( false === strpos( file_get_contents( NEXORA_PATH . 'src/Vendors/Ajax.php' ), 'set_status' ) && false === strpos( file_get_contents( NEXORA_PATH . 'src/Auth/Registration.php' ), 'set_status' ), 'the member-facing classes (Ajax, Registration) never call set_status(): they only ask Service::apply(), which can only produce pending' );
+
+// The one write path from a member is Service::apply(): whatever it is given, the outcome is pending.
+$probe = nx_test_user( 'sa_probe' );
+$res   = \Nexora\Vendors\Service::apply( $probe['user_id'], array(
+	'business_name' => 'Probe Shop', 'business_type' => 'other', 'gstin' => '06AAACR4849R1ZH', 'business_email' => 'probe@example.test', 'business_phone' => '9811111111',
+	'business_address' => '1 Probe Lane', 'business_city' => 'Delhi', 'business_state' => 'Delhi', 'business_pincode' => '110001',
+	'status' => 'approved', 'vendor_status' => 'approved', 'role' => 'administrator', 'roles' => array( 'administrator' ), '_nexora_vendor_status' => 'approved',
+) );
+if ( is_array( $res ) ) { $GLOBALS['nx_test']['posts'][] = $res['vendor_id']; }
+nx_assert( is_array( $res ) && 'pending' === Account_Types::vendor_status( $probe['user_id'] ) && ! Account_Types::can_sell( $probe['user_id'] ), 'Service::apply() can only ever produce a pending application' );
+// ...and a non-administrator can never move it on, even calling the Service directly.
+wp_set_current_user( $probe['user_id'] );
+foreach ( array_keys( \Nexora\Vendors\Service::actions() ) as $act ) {
+	nx_assert( is_wp_error( \Nexora\Vendors\Service::change_status( (int) ( $res['vendor_id'] ?? 0 ), $act ) ), "an applicant calling Service::change_status('$act') is refused" );
+}
+wp_set_current_user( 0 );
+nx_assert_same( 'pending', Account_Types::vendor_status( $probe['user_id'] ), 'the applicant is still pending' );
 
 /* ---------- 4. hooks: nothing else listens on the status or lets a role be chosen ---------- */
 $guards = 0;

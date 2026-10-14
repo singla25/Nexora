@@ -2,6 +2,7 @@
 
 namespace Nexora\Auth;
 
+use Nexora\Accounts\Account_Types;
 use Nexora\Core\Urls;
 use Nexora\Core\View;
 use Nexora\Http\Rate_Limiter;
@@ -118,6 +119,12 @@ class Registration {
 
 		$this->validate( $input );
 
+		// "Seller" is only an intent: the business details are checked now so nothing is created when they are wrong,
+		// and the account always starts as a customer; the application is then pending until an administrator decides.
+		if ( 'seller' === $input['intent'] ) {
+			$this->validate_business( $input );
+		}
+
 		Rate_Limiter::hit( 'register' );
 
 		$this->create_member( $input );
@@ -150,6 +157,7 @@ class Registration {
 			'phone'        => sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) ),
 			'gender'       => sanitize_text_field( wp_unslash( $_POST['gender'] ?? '' ) ),
 			'birthdate'    => sanitize_text_field( wp_unslash( $_POST['birthdate'] ?? '' ) ),
+			'intent'       => Account_Types::sanitize_intent( isset( $_POST['intent'] ) && is_string( $_POST['intent'] ) ? sanitize_text_field( wp_unslash( $_POST['intent'] ) ) : '' ),
 		);
 	}
 
@@ -197,6 +205,30 @@ class Registration {
 		if ( username_exists( $input['user_name'] ) || email_exists( $input['email'] ) ) {
 			wp_send_json_error( __( 'User already exists', 'nexora' ) );
 		}
+	}
+
+	/**
+	 * Ends the request with a JSON error when the seller details are wrong or the GSTIN is taken.
+	 *
+	 * @param array $input Sanitised sign-up fields (gets 'business' = the validated details).
+	 */
+	private function validate_business( array &$input ) {
+
+		$checked = \Nexora\Vendors\Validator::validate( \Nexora\Vendors\Validator::read_post() );
+
+		if ( $checked['errors'] ) {
+
+			$labels = \Nexora\Vendors\Fields::labels();
+			$key    = (string) key( $checked['errors'] );
+
+			wp_send_json_error( $labels[ $key ] . ': ' . reset( $checked['errors'] ) );
+		}
+
+		if ( \Nexora\Vendors\Repository::find_by_gstin( $checked['data']['gstin'] ) ) {
+			wp_send_json_error( __( 'This GSTIN is already registered.', 'nexora' ) );
+		}
+
+		$input['business'] = \Nexora\Vendors\Validator::read_post();
 	}
 
 	/**
@@ -254,6 +286,19 @@ class Registration {
 
 		// Link profile
 		update_user_meta( $wp_user_id, '_profile_id', $post_id );
+
+		// Seller sign-up: record the application; if that fails the whole sign-up is undone.
+		if ( 'seller' === $input['intent'] ) {
+
+			$application = \Nexora\Vendors\Service::apply( $wp_user_id, $input['business'] );
+
+			if ( is_wp_error( $application ) ) {
+				require_once ABSPATH . 'wp-admin/includes/user.php';
+				wp_delete_post( $post_id, true );
+				wp_delete_user( $wp_user_id );
+				wp_send_json_error( $application->get_error_message() );
+			}
+		}
 
 		$this->send_admin_notification( $input['user_name'], $input['email'], trim( $input['first_name'] . ' ' . $input['last_name'] ) );
 

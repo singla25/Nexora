@@ -1,0 +1,144 @@
+/* Nexora vendor forms: the Seller choice at sign-up and the "Become a seller" card on the profile. Prefix nx-vendor-*. */
+
+.nx-account-choice {
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-md);
+    padding: 12px 16px;
+    margin: 16px 0;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nx-account-choice legend {
+    padding: 0 6px;
+    font-weight: 600;
+    color: var(--nx-navy);
+}
+
+.nx-account-choice label {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    cursor: pointer;
+}
+
+.nx-seller-fields[hidden],
+.nx-vendor-form[hidden] {
+    display: none;
+}
+
+.nx-seller-fields h3,
+.nx-vendor-card h3 {
+    color: var(--nx-navy);
+    margin: 0 0 8px;
+}
+
+.nx-vendor-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+    margin: 12px 0;
+}
+
+.nx-vendor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.nx-vendor-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.nx-vendor-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--nx-text-muted);
+}
+
+.nx-vendor-field input,
+.nx-vendor-field select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    font: inherit;
+    background: var(--nx-white);
+}
+
+.nx-vendor-field input[readonly],
+.nx-vendor-field select:disabled {
+    background: var(--nx-bg-tint);
+    color: var(--nx-text-muted);
+}
+
+.nx-vendor-field input:focus-visible,
+.nx-vendor-field select:focus-visible,
+.nx-vendor-open:focus-visible,
+.nx-vendor-submit:focus-visible {
+    outline: 2px solid var(--nx-blue);
+    outline-offset: 2px;
+}
+
+.nx-vendor-field.has-error input,
+.nx-vendor-field.has-error select {
+    border-color: var(--nx-danger);
+}
+
+.nx-field-error {
+    min-height: 0;
+    font-size: 12px;
+    color: var(--nx-danger);
+}
+
+.nx-vendor-open,
+.nx-vendor-submit {
+    background: var(--nx-gradient);
+    color: var(--nx-white);
+    border: 0;
+    border-radius: var(--nx-radius-sm);
+    padding: 10px 20px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nx-vendor-submit[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.nx-vendor-status {
+    padding: 10px 14px;
+    border-radius: var(--nx-radius-sm);
+    background: var(--nx-bg-tint);
+    color: var(--nx-navy);
+}
+
+.nx-vendor-card[data-status="suspended"] .nx-vendor-status {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.nx-vendor-form-message {
+    margin: 8px 0 0;
+    font-size: 14px;
+}
+
+.nx-vendor-form-message.is-error {
+    color: var(--nx-danger);
+}
+
+.nx-vendor-form-message.is-ok {
+    color: var(--nx-success);
+}
+
+@media (max-width: 600px) {
+    .nx-vendor-fields {
+        grid-template-columns: 1fr;
+    }
+}

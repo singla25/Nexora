@@ -47,6 +47,9 @@ foreach ( $user_ids as $uid ) {
 	$removed['users']++;
 }
 
+// GSTIN locks left by a crashed application test
+$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'nexora\\_vendor\\_lock\\_%'" );
+
 // rate-limit counters and OTP references made by tests
 foreach ( array( '\\_transient\\_nexora\\_otp%', '\\_transient\\_timeout\\_nexora\\_otp%', 'nexora\\_rl\\_%', '\\_transient\\_nx\\_%', '\\_transient\\_timeout\\_nx\\_%' ) as $like ) {
 	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
