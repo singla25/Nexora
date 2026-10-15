@@ -56,6 +56,7 @@ class Uninstaller {
 				self::SETTING,
 				'nexora_upload_cap_cleaned',
 				\Nexora\Accounts\Account_Types::OPTION,
+				\Nexora\Products\Fields::OPTION,
 				'default_profile_image',
 				'default_cover_image',
 				'default_document_image',
@@ -75,7 +76,7 @@ class Uninstaller {
 			),
 			'user_meta'          => array( '_profile_id', 'reset_otp', 'reset_token', 'reset_token_expiry', 'otp_attempts', 'otp_expiry', \Nexora\Accounts\Account_Types::STATUS_META ),
 			'roles'              => array( \Nexora\Accounts\Account_Types::ROLE ),
-			'post_types'         => array( 'user_profile', 'user_connections', 'user_content' ),
+			'post_types'         => array( 'user_profile', 'user_connections', 'user_content', 'nexora_vendor', 'nexora_product' ),
 			'dirs'               => array( $upload['basedir'] . '/nexora-private' ),
 			'transient_prefixes' => array( 'nexora_', 'nx_rl_', 'nx_reg_', 'nx_contact_' ),
 		);

@@ -73,7 +73,7 @@ abstract class Vendor_Ajax extends Member_Ajax {
 	/**
 	 * Ends the request with the forbidden error.
 	 */
-	private function forbid() {
+	protected function forbid() {
 
 		wp_send_json_error(
 			array(

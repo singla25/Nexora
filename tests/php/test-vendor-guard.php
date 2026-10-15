@@ -86,6 +86,14 @@ nx_assert( 'publish' === get_post_status( $vid2 ) && 'Guarded Shop' === get_the_
 wp_set_current_user( 0 );
 nx_assert( Repository::id_for_user( $u2['user_id'] ) === $vid2 && 'pending' === Account_Types::vendor_status( $u2['user_id'] ), 'the application is intact and still pending' );
 
+// Nor can an application be created from outside the Repository.
+$before_n = (int) $GLOBALS['wpdb']->get_var( "SELECT COUNT(*) FROM {$GLOBALS['wpdb']->posts} WHERE post_type = 'nexora_vendor'" );
+wp_set_current_user( $admin_id );
+$forged = wp_insert_post( array( 'post_type' => 'nexora_vendor', 'post_title' => 'Forged application', 'post_status' => 'publish' ) );
+wp_set_current_user( 0 );
+nx_assert( ! $forged || is_wp_error( $forged ), 'wp_insert_post of an application from outside the Repository is refused' );
+nx_assert_same( $before_n, (int) $GLOBALS['wpdb']->get_var( "SELECT COUNT(*) FROM {$GLOBALS['wpdb']->posts} WHERE post_type = 'nexora_vendor'" ), 'and no application appeared' );
+
 // The sanctioned paths still work.
 wp_set_current_user( $admin_id );
 nx_assert( true === Service::change_status( $vid2, 'approve' ), 'Service can still approve' );

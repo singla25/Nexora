@@ -24,7 +24,7 @@ class Page {
 	 * that is in the map but not built yet (Marketplace, My Orders, My Products, Sales) is simply not rendered.
 	 * Add a slug here in the phase that builds its content.
 	 */
-	const BUILT_TABS = array( 'user-info', 'connections', 'content', 'notifications' );
+	const BUILT_TABS = array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-products' );
 
 	/**
 	 * Registers the shortcode, assets and the /profile-page/<username> rewrite.
@@ -221,9 +221,13 @@ class Page {
 		}
 
 		$feed = $this->content_feed( $current_user_id );
+		$tabs = $this->visible_tabs( $is_owner, $current_user_id );
 
 		return array(
-			'tabs'              => $this->visible_tabs( $is_owner, $current_user_id ),
+			'tabs'              => $tabs,
+			// Marketplace and My Products are only prepared for the owner's own profile.
+			'categories'        => in_array( 'marketplace', $tabs, true ) || in_array( 'my-products', $tabs, true ) ? \Nexora\Products\Fields::categories() : array(),
+			'my_products'       => in_array( 'my-products', $tabs, true ) ? \Nexora\Products\Presenter::mine( $current_user_id, \Nexora\Vendors\Repository::id_for_user( $current_user_id ) ) : array(),
 			'profile_id'        => $profile_id,
 			'is_owner'          => $is_owner,
 			'is_logged_in'      => $is_logged_in,

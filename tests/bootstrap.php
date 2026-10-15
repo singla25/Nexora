@@ -48,6 +48,33 @@ function nx_test_admin() {
 	return $id;
 }
 
+/**
+ * A member with a vendor application in the given state: 'pending', 'approved' or 'suspended'. Returns the
+ * nx_test_user() array plus 'vendor_id' (the application post) and 'gstin'. Cleaned up with the rest.
+ */
+function nx_test_vendor( $name, $state = 'approved', $gstin = null ) {
+	static $n = 0;
+	$n++;
+	$u     = nx_test_user( $name );
+	$gstin = $gstin ? $gstin : sprintf( '27ABCD%s%04dA1Z5', chr( 65 + ( $n % 26 ) ), wp_rand( 0, 9999 ) );
+	$r     = \Nexora\Vendors\Service::apply( $u['user_id'], array(
+		'business_name' => 'Test Shop ' . $name, 'business_type' => 'other', 'gstin' => $gstin, 'business_email' => $name . '@example.test',
+		'business_phone' => '9811100000', 'business_address' => '1 Test Road', 'business_city' => 'Delhi', 'business_state' => 'Delhi', 'business_pincode' => '110001',
+	) );
+	if ( ! is_array( $r ) ) { throw new RuntimeException( 'nx_test_vendor: application failed: ' . ( is_wp_error( $r ) ? wp_json_encode( $r->get_error_data() ) : 'unknown' ) ); }
+	$GLOBALS['nx_test']['posts'][] = $r['vendor_id'];
+	$u['vendor_id'] = $r['vendor_id'];
+	$u['gstin']     = $gstin;
+	if ( 'pending' !== $state ) {
+		$was = get_current_user_id();
+		wp_set_current_user( nx_test_admin() );
+		\Nexora\Vendors\Service::change_status( $r['vendor_id'], 'approve' );
+		if ( 'suspended' === $state ) { \Nexora\Vendors\Service::change_status( $r['vendor_id'], 'suspend' ); }
+		wp_set_current_user( $was );
+	}
+	return $u;
+}
+
 /** Track any extra post (connection, content) for cleanup. */
 function nx_test_track_post( $post_id ) {
 	$GLOBALS['nx_test']['posts'][] = $post_id;

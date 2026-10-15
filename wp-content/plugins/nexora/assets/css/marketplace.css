@@ -1,0 +1,225 @@
+/* Nexora Marketplace and My Products. Prefix nx-product-*, nx-market-*. */
+
+.nx-market-filter {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 0 16px;
+}
+
+.nx-market-filter input[type="search"] {
+    flex: 1 1 220px;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    font: inherit;
+}
+
+.nx-market-filter select {
+    flex: 0 1 200px;
+    padding: 10px 12px;
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    font: inherit;
+    background: var(--nx-white);
+}
+
+.nx-market-search,
+.nx-product-add,
+.nx-market-page {
+    background: var(--nx-gradient);
+    color: var(--nx-white);
+    border: 0;
+    border-radius: var(--nx-radius-sm);
+    padding: 10px 18px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nx-market-page[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.nx-market-filter input:focus-visible,
+.nx-market-filter select:focus-visible,
+.nx-market-search:focus-visible,
+.nx-product-add:focus-visible,
+.nx-market-page:focus-visible,
+.nx-product-edit:focus-visible,
+.nx-product-delete:focus-visible,
+.nx-product-image-pick:focus-visible,
+.nx-product-image-remove:focus-visible {
+    outline: 2px solid var(--nx-blue);
+    outline-offset: 2px;
+}
+
+.nx-market-empty,
+.nx-market-count {
+    color: var(--nx-text-muted);
+    margin: 12px 0;
+}
+
+.nx-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.nx-product-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--nx-white);
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-md);
+    box-shadow: var(--nx-shadow-card);
+    overflow: hidden;
+}
+
+.nx-product-img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: var(--nx-bg-tint);
+}
+
+.nx-product-body {
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nx-product-cat {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--nx-blue-dark);
+}
+
+.nx-product-name {
+    margin: 0;
+    color: var(--nx-navy);
+    font-size: 16px;
+    overflow-wrap: anywhere;
+}
+
+.nx-product-desc,
+.nx-product-seller,
+.nx-product-stock {
+    margin: 0;
+    font-size: 13px;
+    color: var(--nx-text-muted);
+    overflow-wrap: anywhere;
+}
+
+.nx-product-price {
+    margin: 4px 0 0;
+    font-weight: 700;
+    color: var(--nx-navy);
+}
+
+.nx-product-own {
+    align-self: flex-start;
+    margin-top: 6px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--nx-bg-tint);
+    color: var(--nx-navy);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.nx-product-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nx-product-sku {
+    margin: 0;
+    font-size: 12px;
+    color: var(--nx-text-muted);
+}
+
+.nx-product-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.nx-product-edit,
+.nx-product-delete,
+.nx-product-image-pick,
+.nx-product-image-remove {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: var(--nx-radius-sm);
+    border: 1px solid var(--nx-border-strong);
+    background: var(--nx-white);
+    color: var(--nx-navy);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nx-product-delete {
+    color: var(--nx-danger);
+    border-color: var(--nx-danger);
+}
+
+.nx-market-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 20px 0 4px;
+}
+
+.nx-market-page-info {
+    color: var(--nx-text-muted);
+    font-size: 14px;
+}
+
+/* The add / edit popup */
+.swal2-popup .nx-product-form {
+    text-align: left;
+}
+
+.nx-vendor-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    font: inherit;
+    resize: vertical;
+}
+
+.nx-product-image-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--nx-text-muted);
+}
+
+.nx-product-image-preview {
+    min-height: 0;
+}
+
+.nx-product-image-thumb {
+    display: block;
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: var(--nx-radius-sm);
+    border: 1px solid var(--nx-border);
+}
+
+.nx-product-image-buttons {
+    display: flex;
+    gap: 8px;
+    max-width: 260px;
+}

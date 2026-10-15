@@ -13,43 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Repository {
 
+	use \Nexora\Core\Internal_Writes;
+
 	const POST_TYPE = 'nexora_vendor';
 	const USER_META = '_vendor_id';
-
-	/**
-	 * True while the Repository itself is writing (Service calls). Vendors\Guard refuses every other
-	 * trash, delete, restore or status/title change of a vendor post.
-	 *
-	 * @var bool
-	 */
-	private static $internal = false;
-
-	/**
-	 * Whether the current write comes from the Repository (and so from Service).
-	 *
-	 * @return bool
-	 */
-	public static function is_internal() {
-		return self::$internal;
-	}
-
-	/**
-	 * Runs a write as the Repository, so the Guard lets it through.
-	 *
-	 * @param callable $write What to do.
-	 * @return mixed What the callable returns.
-	 */
-	private static function internally( callable $write ) {
-
-		$before         = self::$internal;
-		self::$internal = true;
-
-		try {
-			return $write();
-		} finally {
-			self::$internal = $before;
-		}
-	}
 
 	/**
 	 * The live vendor post of a user (0 when none, trashed, or not pointing back at that user).
@@ -112,6 +79,32 @@ class Repository {
 		);
 
 		return $ids ? (int) $ids[0] : 0;
+	}
+
+	/**
+	 * The vendor posts of every approved vendor (one query). Their published products are the ones the marketplace lists.
+	 *
+	 * @return int[]
+	 */
+	public static function approved_ids() {
+
+		global $wpdb;
+
+		// One join over the status meta (the single source of the status); nothing here is user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT p.ID FROM {$wpdb->posts} p
+				INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_wp_user_id'
+				INNER JOIN {$wpdb->usermeta} u ON u.user_id = m.meta_value AND u.meta_key = %s AND u.meta_value = %s
+				WHERE p.post_type = %s AND p.post_status = 'publish'",
+				\Nexora\Accounts\Account_Types::STATUS_META,
+				\Nexora\Accounts\Account_Types::APPROVED,
+				self::POST_TYPE
+			)
+		);
+
+		return array_map( 'intval', $ids );
 	}
 
 	/**

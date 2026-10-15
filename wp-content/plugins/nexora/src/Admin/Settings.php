@@ -57,6 +57,7 @@ class Settings {
 		register_setting( 'profile_settings_group', 'nexora_home_subtitle', array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
 		register_setting( 'profile_settings_group', 'nexora_home_features', array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
 		register_setting( 'profile_settings_group', 'nexora_home_testimonials', array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		register_setting( 'profile_settings_group', \Nexora\Products\Fields::OPTION, array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
 
 		register_setting( 'profile_settings_group', 'recaptcha_site_key', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		register_setting(
@@ -129,6 +130,7 @@ class Settings {
 					'subtitle'     => get_option( 'nexora_home_subtitle' ),
 					'features'     => get_option( 'nexora_home_features' ),
 					'testimonials' => get_option( 'nexora_home_testimonials' ),
+					'categories'   => get_option( \Nexora\Products\Fields::OPTION ),
 					'admin_email'  => get_option( 'default_admin_mail' ),
 					'site_key'     => get_option( 'recaptcha_site_key' ),
 					'has_secret'   => (bool) get_option( 'recaptcha_secret_key' ),

@@ -65,6 +65,14 @@
 					</tr>
 
 					<tr>
+						<th><label for="nexora_product_categories"><?php esc_html_e( 'Product categories', 'nexora' ); ?></label></th>
+						<td>
+							<textarea id="nexora_product_categories" name="nexora_product_categories" rows="6" class="large-text code" placeholder="<?php echo esc_attr__( 'Electronics', 'nexora' ); ?>"><?php echo esc_textarea( $v['categories'] ); ?></textarea>
+							<p class="description"><?php esc_html_e( 'One category per line. Leave empty to use the defaults. "Other" is always available.', 'nexora' ); ?></p>
+						</td>
+					</tr>
+
+					<tr>
 						<th><?php esc_html_e( 'Admin Notification Email', 'nexora' ); ?></th>
 						<td>
 							<input 

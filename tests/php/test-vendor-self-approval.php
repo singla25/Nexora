@@ -70,6 +70,7 @@ $allowed_writers = array(
 	'src/Accounts/Account_Types.php' => 'owns the status and the role',
 	'src/Database/Uninstaller.php'   => 'removes them on a data-deleting uninstall',
 	'src/Profile/Upload_Policy.php'  => 'strips the old upload_files cap from the subscriber role (reviewed: removal only)',
+	'src/Vendors/Repository.php'     => 'reads the status meta in one JOIN to list approved vendors (read-only: a check below proves it never writes it)',
 	'src/Vendors/Service.php'        => 'the ONLY caller of Account_Types::set_status(): applicant -> pending in apply(); approve/suspend/reactivate/reject in change_status(), which requires manage_options',
 );
 // Rule B: who may mention the vendor post type slug. It is a post type, not a permission, so this is only
@@ -79,7 +80,6 @@ $allowed_cpt = array(
 	'src/Vendors/Repository.php'  => 'reads and writes the vendor posts',
 	'src/Vendors/Service.php'     => 'reads the post type through Repository only to validate IDs',
 	'src/Vendors/Admin.php'       => 'list columns and the admin-post decision handler (calls Service, never Account_Types)',
-	'src/Vendors/Guard.php'       => 'refuses every trash/delete/restore/edit of a vendor post that does not come from the Repository',
 );
 $src   = NEXORA_PATH . 'src';
 $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $src, FilesystemIterator::SKIP_DOTS ) );
@@ -102,6 +102,8 @@ foreach ( $files as $f ) {
 	if ( ! isset( $allowed_cpt[ $rel ] ) && ! isset( $allowed_writers[ $rel ] ) && preg_match( '/[\'"]nexora_vendor[\'"]/', $code, $mm ) ) {
 		$cpt[] = $rel;
 	}
+	// Only Account_Types may write the status meta (the others above only read it).
+	if ( 'src/Accounts/Account_Types.php' !== $rel && preg_match( '/(?:update|add|delete)_(?:user_)?meta\(\s*[^,]+,\s*(?:\\\\?Nexora\\\\Accounts\\\\)?(?:Account_Types::)?STATUS_META/', $code ) ) { $dyn[] = $rel . ' (writes the status meta)'; }
 	// A client-chosen meta key or role would be the dangerous shape.
 	if ( preg_match( '/(?:update|add|delete)_user_meta\(\s*[^,]+,\s*\$/', $code ) ) { $dyn[] = $rel; }
 	if ( preg_match( '/wp_(?:insert|update)_user\([^;]*[\'"]role[\'"]/s', $code ) ) { $dyn[] = $rel . ' (role in user array)'; }
