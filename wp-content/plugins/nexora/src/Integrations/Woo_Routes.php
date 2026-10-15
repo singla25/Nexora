@@ -40,6 +40,7 @@ class Woo_Routes {
 		}
 
 		add_filter( 'woocommerce_checkout_registration_enabled', '__return_false' );
+		add_filter( 'woocommerce_prevent_admin_access', array( __CLASS__, 'allow_ajax_requests' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'redirect_account_page' ), 1 );
 	}
 
@@ -50,6 +51,19 @@ class Woo_Routes {
 	 */
 	public static function off() {
 		return 'no';
+	}
+
+	/**
+	 * WooCommerce keeps members out of wp-admin and exempts only admin-ajax.php and admin-post.php by file name. The media
+	 * modal uploads through wp-admin/async-upload.php (an AJAX request that WordPress marks with DOING_AJAX), so every member's
+	 * upload, product images included, was redirected to /my-account/ and failed. AJAX requests are let through here; Nexora's
+	 * own Access_Control still bounces members from every real admin page.
+	 *
+	 * @param bool $prevent Whether WooCommerce is about to block the request.
+	 * @return bool
+	 */
+	public static function allow_ajax_requests( $prevent ) {
+		return wp_doing_ajax() ? false : $prevent;
 	}
 
 	/**

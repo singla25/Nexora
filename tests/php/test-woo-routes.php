@@ -78,6 +78,7 @@ if ( $other ) { nx_assert_same( 'none', $visit( $member['user_id'], $other->ID )
 
 $src = file_get_contents( NEXORA_PATH . 'src/Integrations/Woo_Routes.php' );
 nx_assert( false !== strpos( $src, "function_exists( 'is_account_page' )" ), 'the redirect does nothing when WooCommerce is not active' );
+nx_assert( false !== has_filter( 'woocommerce_prevent_admin_access', array( 'Nexora\\Integrations\\Woo_Routes', 'allow_ajax_requests' ) ), 'WooCommerce\'s admin lock-down is told to leave AJAX requests (media uploads) alone' );
 nx_assert( false !== has_action( 'template_redirect', array( 'Nexora\\Integrations\\Woo_Routes', 'redirect_account_page' ) ), 'the redirect is hooked to template_redirect' );
 
 nx_test_finish();
