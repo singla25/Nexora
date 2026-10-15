@@ -44,7 +44,9 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 
 **Phase 3 (DONE)**: `test-profile-tabs.php`, `test-login-redirect.php`, `test-vendor-gating.php`, `test-woo-routes.php`.
 
-## Phase 4: Products and marketplace (`test-products.php`, `test-marketplace-list.php`)
+**Phase 4 (DONE)**: `test-product-validator.php`, `test-product-service.php` (add/edit/delete, ownership, other vendor's product, posted vendor_id, images, limit, rate limit, AJAX matrix), `test-product-guard.php`, `test-marketplace-list.php` (listing rules, search, category, pagination, query count, escaping, privacy), `test-product-ui.php` (tabs, cards, popup template, scripts); `test-vendor-guard.php` extended (no creation from outside).
+
+## Phase 4 (original plan): Products and marketplace (`test-products.php`, `test-marketplace-list.php`)
 - Own-only edit and delete; another vendor's ID gives an error.
 - Price and stock bounds, SKU unique per vendor, XSS in title and description is stripped or escaped, category whitelist.
 - Listing shows only published products from approved vendors (and Platform); suspended vendor products vanish; search, category filter and pagination are correct; query count stays flat as the list grows.
