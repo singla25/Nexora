@@ -121,6 +121,40 @@ Every vendor action rejects with a JSON error for customers, pending/suspended v
 - **History**: private `nexora_import_log` posts (guarded like the others), one per real import: source, file name, created/updated/unchanged/skipped, up to 50 row errors with line numbers; the vendor sees their last 10 on My Products; administrators see all under Nexora System. Rate limits: `csv_import` and `api_import` 10 previews per hour per vendor.
 - **Fix found on the way (Phase 4 bug)**: WordPress's kses filters rewrote product text into entities (`&` became `&amp;`, `<3` became `&lt;3`, `'` became `&#039;`) for every vendor save, so the edit popup showed encoded text and a re-import could never be "unchanged". The Repository's writes now run with those filters off (the text is already plain text and always escaped on output). Products saved earlier with `&`, `<`, `>` or `'` are still stored encoded and will read normally once edited and saved again.
 
+### 6b. Product API sources and the Nexora format (built)
+
+**Sources** (Nexora System > Settings > "Product API sources"). Each source has a name, an https address, an optional authentication (none, header key, or bearer token), an enabled flag and a format: **Nexora format** or the **DummyJSON adapter**. The list is seeded with DummyJSON (`https://dummyjson.com/products`, DummyJSON adapter, no auth, enabled); nothing is hard-coded in `Imports\Api_Source` any more. Keys are encrypted with the site salts (`Core\Secrets`, libsodium secretbox), are never shown back (the field is always empty; a blank field keeps the saved key; "Remove the saved key" clears it) and never appear in logs, history, errors, script data or the database in clear. Two more settings: a **master switch** "Let vendors import from their own API" (off by default) and an optional **host allow-list** for vendors' own APIs (one host per line; a host matches itself and its subdomains; empty = any public https host; it does not restrict the sources the administrator configured).
+
+**Vendors** (Import from API popup): pick a platform source, a saved connection, or "My own API" (an address and an optional key, header or bearer). Up to **5 saved connections** per vendor, with edit and delete; "Test my API" reads the first page and explains in plain language, item by item, what would be refused; Preview then Import keep the one-time token and the vendor + external id upsert (a connection's products carry `c-<connection id>:<item id>` so two feeds never collide). A vendor sees and changes only their own connections and can never supply an address for a platform source (the request names a source id; any `url`/key posted with it is ignored). Administrators see all connections under Nexora System > API connections: vendor, address, kind of authentication, last import - never the key.
+
+**Security.** Every outbound request goes through `Imports\Url_Guard`: https only (port 443 only), no credentials in the address, plain ASCII host names with a letters-only ending, no IP literals in any spelling, no names that mean "here" (`localhost`, `.local`, `.internal`, `.lan`, `.home.arpa` ...), the name is resolved and EVERY address (IPv4 and IPv6) must be public (loopback, private, CGNAT, link-local, reserved, documentation, multicast, broadcast, cloud metadata such as 169.254.169.254, 100.100.100.200, 168.63.129.16 and fd00:ec2::254, IPv4-mapped / NAT64 / 6to4 judged by the embedded address), and the request is pinned to the checked address with `CURLOPT_RESOLVE` so a second DNS answer cannot change it. No redirect is followed (a 3xx is an error). Each "next page" address is checked the same way and must be on the same host. Limits: 10 s timeout, 2 MB response, 500 items, 10 pages. Rate limits per vendor and hour: `api_test` 20, `api_import` (preview) 10, `api_apply` (import) 30, `api_connection` (save/delete) 30. Vendor-facing errors are generic: one message for every refused address ("This address cannot be used...") that never says why, and no upstream body, address or lookup detail.
+
+**The Nexora format.** A vendor's API answers a JSON object with a `"products"` list and, when there are more pages, `next`: the full https address of the next page on the same host.
+
+```json
+{
+  "products": [
+    { "id": "KURTA-001", "name": "Cotton Kurta", "price": 1299.5, "stock": 25, "category": "fashion",
+      "sku": "KURTA-001", "description": "Soft cotton, hand block printed.", "image": "https://shop.example.com/images/kurta-001.jpg" },
+    { "id": "MUG-7", "name": "Ceramic Mug", "price": 249, "stock": 120, "category": "Home & Kitchen" }
+  ],
+  "next": "https://shop.example.com/api/products?page=2"
+}
+```
+
+| Field | Required | Type | Rule |
+|---|---|---|---|
+| `id` | yes | text or whole number | your identifier: 1-64 of letters, numbers, `. _ : -`; importing again updates the product with the same id |
+| `name` | yes | text | 2-120 characters |
+| `price` | yes | number | 0.01 to 1,000,000, at most two decimals |
+| `stock` | yes | whole number | 0 to 100,000 |
+| `category` | yes | text | a marketplace category, by name or slug |
+| `sku` | no | text | 2-40 of letters, numbers, `. _ -`; defaults to the `id` |
+| `description` | no | text | plain text, up to 2,000 characters |
+| `image` | no | https address | on the API's own host or a subdomain; stays on that server; anything else is ignored (reported as a note by "Test my API") |
+
+Every item goes through the same shared product validator as the manual form and the CSV import; an item without a usable `id` is reported, any other problem is reported on its field in plain words and that item is skipped while the rest import. The DummyJSON adapter maps `title`, `description`, `category` (to the fixed list), `price`, `stock`, `sku` (`DJ-{id}` when missing) and `thumbnail` as in 8b.
+
 ## 7. Analytics
 
 Aggregated from order-item snapshots. Only processing and completed orders count; refunds and cancels are excluded. Reported: total sales, commission, net, order count, unique buyers, top products, per-order list (buyer name, date, qty, amount only). Date filter. A vendor can only ever query their own `vendor_id`. Commission is rounded half-up to 2 decimals per line.
