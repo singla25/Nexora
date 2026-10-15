@@ -2,6 +2,7 @@
 
 namespace Nexora\Imports;
 
+use Nexora\Core\Secrets;
 use Nexora\Products\Fields;
 use Nexora\Products\Repository as Products;
 use Nexora\Products\Validator;
@@ -11,16 +12,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Fetches and maps the DummyJSON catalog (the learning stand-in for a store API). Server side only: the URL is fixed
- * (no request parameter can change it), the host must be on a short allow-list, the response is size-capped, schema
- * checked and cached for ten minutes. The source needs no credentials, so none exist to leak. Upstream error bodies and
- * the request URL are never passed on.
+ * Fetches and maps a product API: the published "Nexora format" or the DummyJSON adapter. Every request goes through
+ * Url_Guard (https, public addresses only, checked after DNS, pinned to the checked address), follows no redirect, has
+ * a 10 second timeout and a 2 MB response cap, reads at most 10 pages and 500 items, and reports only generic errors:
+ * an upstream body, the address or the key never reach the caller.
+ *
+ * A source is an array: key, name, url, format, auth_type, auth_header, secret (PLAIN text, only here in memory),
+ * kind (platform | vendor), host_allowlist.
  */
 class Api_Source {
 
-	const URL       = 'https://dummyjson.com/products';
 	const PAGE      = 100;
 	const MAX_ITEMS = 500;
+	const MAX_PAGES = 10;
 	const MAX_BYTES = 2 * MB_IN_BYTES;
 	const CACHE     = 10 * MINUTE_IN_SECONDS;
 
@@ -58,38 +62,95 @@ class Api_Source {
 	}
 
 	/**
+	 * A platform source from the Settings list, ready to fetch (the key decrypted, in memory only).
+	 *
+	 * @param array $row A row of Sources::all().
+	 * @return array
+	 */
+	public static function from_platform( array $row ) {
+
+		return array(
+			'key'            => 'p-' . $row['id'],
+			'name'           => $row['name'],
+			'url'            => $row['url'],
+			'format'         => $row['format'],
+			'auth_type'      => $row['auth_type'],
+			'auth_header'    => $row['auth_header'],
+			'secret'         => Secrets::decrypt( $row['secret'] ),
+			'kind'           => 'platform',
+			'host_allowlist' => array(),
+		);
+	}
+
+	/**
 	 * Fetches up to 500 products.
 	 *
-	 * @return array items [ external_id, raw, image_url ], errors [ ref, message ], fetch_error (string, '' when fine)
+	 * @param array|null $source A source (see the class comment); null = the first enabled platform source.
+	 * @param array      $limits Optional smaller limits: pages, items (the "Test my API" button reads one page).
+	 * @return array items [ external_id, raw, image_url ], errors [ ref, message ], fetch_error ('' when fine), label
 	 */
-	public static function fetch() {
+	public static function fetch( $source = null, array $limits = array() ) {
 
-		$out  = array(
+		$max_pages = isset( $limits['pages'] ) ? max( 1, min( self::MAX_PAGES, (int) $limits['pages'] ) ) : self::MAX_PAGES;
+		$max_items = isset( $limits['items'] ) ? max( 1, min( self::MAX_ITEMS, (int) $limits['items'] ) ) : self::MAX_ITEMS;
+
+		if ( null === $source ) {
+
+			$enabled = Sources::enabled();
+			$source  = $enabled ? self::from_platform( $enabled[0] ) : null;
+		}
+
+		$out = array(
 			'items'       => array(),
 			'errors'      => array(),
 			'fetch_error' => '',
+			'label'       => $source ? (string) $source['name'] : '',
 		);
-		$base = self::base_url();
 
-		if ( '' === $base ) {
-			$out['fetch_error'] = __( 'The product source is not available.', 'nexora' );
+		if ( ! $source ) {
+			$out['fetch_error'] = __( 'No product source is available.', 'nexora' );
 			return $out;
 		}
 
-		$skip = 0;
-		$seen = 0;
+		$opts  = 'vendor' === $source['kind'] ? array( 'host_allowlist' => (array) $source['host_allowlist'] ) : array();
+		$first = Url_Guard::check( $source['url'], $opts );
 
-		while ( $seen < self::MAX_ITEMS ) {
+		if ( is_wp_error( $first ) ) {
+			$out['fetch_error'] = Url_Guard::MESSAGE;
+			return $out;
+		}
 
-			$page = self::page(
-				add_query_arg(
-					array(
-						'limit' => self::PAGE,
-						'skip'  => $skip,
-					),
-					$base
-				)
-			);
+		$host    = $first['host'];
+		$url     = 'dummyjson' === $source['format'] ? add_query_arg(
+			array(
+				'limit' => self::PAGE,
+				'skip'  => 0,
+			),
+			$first['url']
+		) : $first['url'];
+		$seen    = array();
+		$pages   = 0;
+		$skip    = 0;
+		$counted = 0;
+
+		while ( '' !== $url && $counted < $max_items ) {
+
+			if ( isset( $seen[ $url ] ) ) {
+				$out['fetch_error'] = __( 'The product source has too many pages, or its pages repeat.', 'nexora' );
+				break;
+			}
+
+			if ( $pages >= $max_pages ) {
+				if ( $max_pages >= self::MAX_PAGES ) {
+					$out['fetch_error'] = __( 'The product source has too many pages, or its pages repeat.', 'nexora' );
+				}
+				break;
+			}
+
+			$seen[ $url ] = true;
+			++$pages;
+
+			$page = self::page( $url, $source, $host, 'platform' === $source['kind'] );
 
 			if ( '' !== $page['error'] ) {
 				$out['fetch_error'] = $page['error'];
@@ -98,178 +159,316 @@ class Api_Source {
 
 			foreach ( $page['products'] as $product ) {
 
-				$mapped = self::map( $product );
-
-				++$seen;
+				$mapped = 'dummyjson' === $source['format'] ? self::map_dummyjson( $product, $host ) : self::map_nexora( $product, $source['key'], $host );
+				++$counted;
 
 				if ( isset( $mapped['error'] ) ) {
-					$out['errors'][] = $mapped['error'];
+					/* translators: 1: position of the entry in the answer, 2: what is wrong. */
+					$mapped['error']['message'] = sprintf( __( 'Entry %1$d: %2$s', 'nexora' ), $counted, $mapped['error']['message'] );
+					$out['errors'][]            = $mapped['error'];
 				} else {
 					$out['items'][] = $mapped;
 				}
 			}
 
-			$skip += self::PAGE;
+			$url = '';
 
-			if ( ! $page['products'] || $skip >= $page['total'] ) {
-				break;
+			if ( 'dummyjson' === $source['format'] ) {
+				$skip += self::PAGE;
+
+				if ( $page['products'] && $skip < $page['total'] ) {
+					$url = add_query_arg(
+						array(
+							'limit' => self::PAGE,
+							'skip'  => $skip,
+						),
+						$first['url']
+					);
+				}
+			} elseif ( null !== $page['next'] ) {
+
+				$next = Url_Guard::check( $page['next'], array( 'same_host' => $host ) );
+
+				if ( is_wp_error( $next ) ) {
+					$out['fetch_error'] = Url_Guard::MESSAGE;
+				} else {
+					$url = $next['url'];
+				}
 			}
 		}
 
-		$out['items'] = array_slice( $out['items'], 0, self::MAX_ITEMS );
+		$out['items'] = array_slice( $out['items'], 0, $max_items );
 
 		return $out;
 	}
 
 	/**
-	 * The fixed source URL, or '' when it is not an allowed https host.
+	 * One page: from the cache (platform sources only) or from the source.
 	 *
-	 * @return string
+	 * @param string $url      Page URL (already checked).
+	 * @param array  $source   The source.
+	 * @param string $host     The source's host.
+	 * @param bool   $cacheable Whether the page may be cached.
+	 * @return array products, total, next, error ('' when fine)
 	 */
-	private static function base_url() {
+	private static function page( $url, array $source, $host, $cacheable ) {
 
-		/**
-		 * The product source URL (tests point it elsewhere; the host must still be allowed).
-		 *
-		 * @param string $url URL.
-		 */
-		$url   = (string) apply_filters( 'nexora_import_api_url', self::URL );
-		$parts = wp_parse_url( $url );
-		/**
-		 * Hosts the import may call.
-		 *
-		 * @param string[] $hosts Allowed hosts.
-		 */
-		$hosts = (array) apply_filters( 'nexora_import_api_hosts', array( 'dummyjson.com' ) );
+		$key    = 'nexora_api_' . md5( $source['key'] . '|' . $url );
+		$cached = $cacheable ? get_transient( $key ) : false;
 
-		if ( ! $parts || empty( $parts['scheme'] ) || 'https' !== strtolower( $parts['scheme'] ) || empty( $parts['host'] ) || ! in_array( strtolower( $parts['host'] ), $hosts, true ) || isset( $parts['user'] ) || isset( $parts['pass'] ) ) {
-			return '';
-		}
-
-		return $url;
-	}
-
-	/**
-	 * One page, from the cache or the source.
-	 *
-	 * @param string $url Page URL.
-	 * @return array products, total, error ('' when fine).
-	 */
-	private static function page( $url ) {
-
-		$key    = 'nexora_api_' . md5( $url );
-		$cached = get_transient( $key );
-
-		if ( is_array( $cached ) && isset( $cached['products'], $cached['total'] ) ) {
-			return array(
-				'products' => $cached['products'],
-				'total'    => $cached['total'],
-				'error'    => '',
-			);
+		if ( is_array( $cached ) && isset( $cached['products'] ) ) {
+			return $cached + array( 'error' => '' );
 		}
 
 		$fail = function ( $message ) {
 			return array(
 				'products' => array(),
 				'total'    => 0,
+				'next'     => null,
 				'error'    => $message,
 			);
 		};
 
-		$response = wp_remote_get(
-			$url,
-			array(
-				'timeout'             => 10,
-				'redirection'         => 2,
-				'reject_unsafe_urls'  => true,
-				'limit_response_size' => self::MAX_BYTES,
-				'headers'             => array( 'Accept' => 'application/json' ),
-			)
-		);
+		// A second, checked lookup is the one the request is pinned to.
+		$checked = Url_Guard::check( $url, array( 'same_host' => $host ) );
+
+		if ( is_wp_error( $checked ) ) {
+			return $fail( Url_Guard::MESSAGE );
+		}
+
+		$headers = array( 'Accept' => 'application/json' );
+
+		if ( '' !== (string) $source['secret'] ) {
+
+			if ( 'bearer' === $source['auth_type'] ) {
+				$headers['Authorization'] = 'Bearer ' . $source['secret'];
+			} elseif ( 'header' === $source['auth_type'] && '' !== (string) $source['auth_header'] ) {
+				$headers[ $source['auth_header'] ] = $source['secret'];
+			}
+		}
+
+		// Pinning the request to the address that was just checked needs cURL options; WordPress has no API for it.
+		// phpcs:disable WordPress.WP.AlternativeFunctions
+		$pin  = $checked['ips'] ? Url_Guard::curl_pin( $host, $checked['ips'] ) : array();
+		$hook = function ( $handle ) use ( $pin ) {
+			curl_setopt( $handle, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS );
+			curl_setopt( $handle, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTPS );
+
+			if ( $pin ) {
+				curl_setopt( $handle, CURLOPT_RESOLVE, $pin );
+			}
+		};
+		// phpcs:enable WordPress.WP.AlternativeFunctions
+
+		add_action( 'http_api_curl', $hook );
+
+		try {
+			$response = wp_remote_get(
+				$checked['url'],
+				array(
+					'timeout'             => 10,
+					'redirection'         => 0,
+					'reject_unsafe_urls'  => true,
+					'limit_response_size' => self::MAX_BYTES,
+					'headers'             => $headers,
+				)
+			);
+		} finally {
+			remove_action( 'http_api_curl', $hook );
+		}
 
 		if ( is_wp_error( $response ) ) {
 			return $fail( __( 'Could not reach the product source. Please try again later.', 'nexora' ) );
 		}
 
-		if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
-			return $fail( __( 'The product source answered with an error. Please try again later.', 'nexora' ) );
+		$code = (int) wp_remote_retrieve_response_code( $response );
+
+		if ( $code >= 300 && $code < 400 ) {
+			return $fail( __( 'The product source sent us somewhere else. Redirects are not followed: use its final address.', 'nexora' ) );
+		}
+
+		if ( 200 !== $code ) {
+			/* translators: %d: HTTP status code. */
+			return $fail( sprintf( __( 'The product source answered with an error (HTTP %d).', 'nexora' ), $code ) );
 		}
 
 		$body = (string) wp_remote_retrieve_body( $response );
 
 		if ( '' === $body || strlen( $body ) >= self::MAX_BYTES ) {
-			return $fail( __( 'The product source sent an unusable answer.', 'nexora' ) );
+			return $fail( __( 'The product source sent an unusable answer (empty, or larger than 2 MB).', 'nexora' ) );
 		}
 
 		$json = json_decode( $body, true );
 
-		if ( ! is_array( $json ) || ! isset( $json['products'] ) || ! is_array( $json['products'] ) || ! array_is_list( $json['products'] ) ) {
-			return $fail( __( 'The product source sent an unexpected answer.', 'nexora' ) );
+		if ( ! is_array( $json ) || array_is_list( $json ) || ! isset( $json['products'] ) || ! is_array( $json['products'] ) || ! array_is_list( $json['products'] ) ) {
+			return $fail( __( 'The product source did not answer in the expected format: a JSON object with a "products" list.', 'nexora' ) );
 		}
 
 		$page = array(
 			'products' => $json['products'],
 			'total'    => isset( $json['total'] ) && is_numeric( $json['total'] ) ? (int) $json['total'] : count( $json['products'] ),
+			'next'     => array_key_exists( 'next', $json ) && null !== $json['next'] && '' !== $json['next'] ? $json['next'] : null,
 		);
 
-		set_transient( $key, $page, self::CACHE );
+		if ( $cacheable ) {
+			set_transient( $key, $page, self::CACHE );
+		}
 
 		return $page + array( 'error' => '' );
 	}
 
 	/**
-	 * Maps one DummyJSON product to the raw product fields.
+	 * Maps one entry of the published Nexora format. Required: id, name, price, stock, category. Optional: sku
+	 * (defaults to the id), description, image. The fields are passed on as given: the shared product validator
+	 * judges them and says what is wrong in plain words.
 	 *
-	 * @param mixed $product One entry of the list.
+	 * @param mixed  $product One entry of the list.
+	 * @param string $key     The source key (prefixes the external id).
+	 * @param string $host    The source host (an image must be on it).
 	 * @return array external_id, raw, image_url - or error [ ref, message ].
 	 */
-	private static function map( $product ) {
+	private static function map_nexora( $product, $key, $host ) {
+
+		if ( ! is_array( $product ) || array_is_list( $product ) ) {
+			return self::item_error( '?', __( 'This entry is not an object.', 'nexora' ) );
+		}
+
+		$id = self::id_of( $product );
+
+		if ( '' === $id ) {
+			return self::item_error( '?', __( 'This product has no usable "id" (1-64 letters, numbers, dot, dash, colon or underscore).', 'nexora' ) );
+		}
+
+		$sku   = isset( $product['sku'] ) && is_string( $product['sku'] ) && '' !== trim( $product['sku'] ) ? $product['sku'] : $id;
+		$image = isset( $product['image'] ) && is_string( $product['image'] ) ? $product['image'] : '';
+		$ok    = '' !== $image && Products::external_image_ok( $image, $host );
+
+		return array(
+			'external_id' => $key . ':' . $id,
+			'ref'         => $id,
+			'raw'         => array(
+				'name'        => isset( $product['name'] ) && is_string( $product['name'] ) ? $product['name'] : '',
+				'description' => isset( $product['description'] ) && is_string( $product['description'] ) ? $product['description'] : '',
+				'price'       => self::num( $product, 'price' ),
+				'stock'       => self::num( $product, 'stock' ),
+				'sku'         => $sku,
+				'category'    => self::category( $product['category'] ?? '' ),
+				'image_id'    => '0',
+			),
+			'image_url'   => $ok ? $image : '',
+			'notes'       => '' !== $image && ! $ok ? array( __( 'the image was ignored: use an https address on your API\'s own domain', 'nexora' ) ) : array(),
+		);
+	}
+
+	/**
+	 * Maps one DummyJSON product (the adapter): title, description, category (mapped to the fixed list), price, stock,
+	 * sku (DJ-{id} when missing), thumbnail.
+	 *
+	 * @param mixed  $product One entry of the list.
+	 * @param string $host    The source host.
+	 * @return array external_id, raw, image_url - or error [ ref, message ].
+	 */
+	private static function map_dummyjson( $product, $host ) {
 
 		if ( ! is_array( $product ) ) {
-			return array(
-				'error' => array(
-					'ref'     => '?',
-					'message' => __( 'Not a product.', 'nexora' ),
-				),
-			);
+			return self::item_error( '?', __( 'Not a product.', 'nexora' ) );
 		}
 
 		$id = isset( $product['id'] ) && ( is_int( $product['id'] ) || ( is_string( $product['id'] ) && ctype_digit( $product['id'] ) ) ) ? (string) $product['id'] : '';
 
 		if ( '' === $id || strlen( $id ) > 12 ) {
-			return array(
-				'error' => array(
-					'ref'     => '?',
-					'message' => __( 'A product without a usable id.', 'nexora' ),
-				),
-			);
+			return self::item_error( '?', __( 'A product without a usable id.', 'nexora' ) );
 		}
 
-		$text = function ( $key, $max ) use ( $product ) {
-			return isset( $product[ $key ] ) && is_string( $product[ $key ] ) ? mb_substr( $product[ $key ], 0, $max ) : '';
+		$text  = function ( $field, $max ) use ( $product ) {
+			return isset( $product[ $field ] ) && is_string( $product[ $field ] ) ? mb_substr( $product[ $field ], 0, $max ) : '';
 		};
-		$num  = function ( $key ) use ( $product ) {
-			return isset( $product[ $key ] ) && ( is_int( $product[ $key ] ) || is_float( $product[ $key ] ) || is_string( $product[ $key ] ) ) ? (string) $product[ $key ] : '';
-		};
-
 		$sku   = $text( 'sku', 40 );
 		$map   = self::category_map();
 		$cat   = isset( $product['category'] ) && is_string( $product['category'] ) && isset( $map[ $product['category'] ] ) ? $map[ $product['category'] ] : 'other';
-		$cat   = isset( Fields::categories()[ $cat ] ) ? $cat : 'other';
 		$thumb = $text( 'thumbnail', 300 );
 
 		return array(
 			'external_id' => $id,
+			'ref'         => $id,
 			'raw'         => array(
 				'name'        => $text( 'title', Validator::NAME_MAX ),
 				'description' => $text( 'description', Validator::DESCRIPTION_MAX ),
-				'price'       => $num( 'price' ),
-				'stock'       => $num( 'stock' ),
+				'price'       => self::num( $product, 'price' ),
+				'stock'       => self::num( $product, 'stock' ),
 				'sku'         => '' !== $sku ? $sku : 'DJ-' . $id,
-				'category'    => $cat,
+				'category'    => isset( Fields::categories()[ $cat ] ) ? $cat : 'other',
 				'image_id'    => '0',
 			),
-			'image_url'   => Products::external_image_ok( $thumb ) ? $thumb : '',
+			'image_url'   => Products::external_image_ok( $thumb, $host ) ? $thumb : '',
+		);
+	}
+
+	/**
+	 * The item id: a positive integer or a short string of letters, numbers and . _ : -.
+	 *
+	 * @param array $product The entry.
+	 * @return string '' when unusable.
+	 */
+	private static function id_of( array $product ) {
+
+		$id = $product['id'] ?? null;
+
+		if ( is_int( $id ) && $id > 0 ) {
+			return (string) $id;
+		}
+
+		return is_string( $id ) && preg_match( '/^[A-Za-z0-9._:-]{1,64}$/', $id ) ? $id : '';
+	}
+
+	/**
+	 * A number or numeric text as text ('' for anything else, so the validator refuses it).
+	 *
+	 * @param array  $product The entry.
+	 * @param string $field   Field name.
+	 * @return string
+	 */
+	private static function num( array $product, $field ) {
+
+		$value = $product[ $field ] ?? null;
+
+		return ( is_int( $value ) || is_float( $value ) || is_string( $value ) ) ? (string) $value : '';
+	}
+
+	/**
+	 * A category given as slug or label becomes the slug; anything else is passed on to be refused.
+	 *
+	 * @param mixed $value Category field.
+	 * @return string
+	 */
+	private static function category( $value ) {
+
+		$value = is_string( $value ) ? trim( $value ) : '';
+
+		foreach ( Fields::categories() as $slug => $label ) {
+
+			if ( 0 === strcasecmp( $value, $slug ) || 0 === strcasecmp( $value, $label ) ) {
+				return $slug;
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * An item-level error.
+	 *
+	 * @param string $ref     Item reference.
+	 * @param string $message What is wrong.
+	 * @return array
+	 */
+	private static function item_error( $ref, $message ) {
+
+		return array(
+			'error' => array(
+				'ref'     => $ref,
+				'message' => $message,
+			),
 		);
 	}
 }

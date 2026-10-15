@@ -58,6 +58,9 @@ class Settings {
 		register_setting( 'profile_settings_group', 'nexora_home_features', array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
 		register_setting( 'profile_settings_group', 'nexora_home_testimonials', array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
 		register_setting( 'profile_settings_group', \Nexora\Products\Fields::OPTION, array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		register_setting( 'profile_settings_group', \Nexora\Imports\Sources::OPTION, array( 'sanitize_callback' => array( '\Nexora\Imports\Sources', 'sanitize' ) ) );
+		register_setting( 'profile_settings_group', \Nexora\Imports\Sources::SWITCH, array( 'sanitize_callback' => array( '\Nexora\Imports\Sources', 'sanitize_switch' ) ) );
+		register_setting( 'profile_settings_group', \Nexora\Imports\Sources::HOSTS, array( 'sanitize_callback' => array( '\Nexora\Imports\Sources', 'sanitize_hosts' ) ) );
 
 		register_setting( 'profile_settings_group', 'recaptcha_site_key', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		register_setting(
@@ -131,6 +134,9 @@ class Settings {
 					'features'     => get_option( 'nexora_home_features' ),
 					'testimonials' => get_option( 'nexora_home_testimonials' ),
 					'categories'   => get_option( \Nexora\Products\Fields::OPTION ),
+					'sources'      => array_map( array( '\Nexora\Imports\Sources', 'public_view' ), \Nexora\Imports\Sources::all() ),
+					'vendor_apis'  => \Nexora\Imports\Sources::vendor_apis_enabled(),
+					'allowlist'    => implode( "\n", \Nexora\Imports\Sources::host_allowlist() ),
 					'admin_email'  => get_option( 'default_admin_mail' ),
 					'site_key'     => get_option( 'recaptcha_site_key' ),
 					'has_secret'   => (bool) get_option( 'recaptcha_secret_key' ),

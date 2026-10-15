@@ -12,6 +12,7 @@ $member = array(
 	'vendor_apply', 'vendor_update',
 	'product_save', 'product_delete', 'marketplace_list',
 	'csv_preview', 'csv_import', 'api_preview', 'api_import',
+	'api_test', 'api_connection_save', 'api_connection_delete',
 );
 $chat = array(
 	'search_users', 'get_messages', 'get_user_threads', 'send_message', 'create_thread_with_subject',

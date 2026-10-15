@@ -5,6 +5,7 @@
  * @var array $my_products Cards from Products\Presenter::mine().
  * @var array $categories  slug => label.
  * @var array $import_history Import history entries.
+ * @var array $api_import      The API popup data (platform sources, own connections).
  */
 ?>
 					<!-- MY PRODUCTS -->
@@ -49,7 +50,7 @@
 							<?php \Nexora\Core\View::output( 'imports/csv-popup' ); ?>
 						</template>
 						<template id="nx-import-tpl-api">
-							<?php \Nexora\Core\View::output( 'imports/api-popup' ); ?>
+							<?php \Nexora\Core\View::output( 'imports/api-popup', array( 'api_import' => $api_import ) ); ?>
 						</template>
 
 						<template id="nx-product-tpl-form">

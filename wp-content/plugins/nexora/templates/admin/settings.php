@@ -73,6 +73,92 @@
 					</tr>
 
 					<tr>
+						<th><?php esc_html_e( 'Product API sources', 'nexora' ); ?></th>
+						<td>
+							<p class="description"><?php esc_html_e( 'Product catalogs every approved vendor can import from. Only public https addresses work (private, local and cloud-metadata addresses are always refused). Keys are stored encrypted and are never shown again: leave a key field empty to keep the saved key.', 'nexora' ); ?></p>
+							<?php
+							$nx_index  = 0;
+							$nx_rows   = $v['sources'];
+							$nx_rows[] = array(
+								'id'          => '',
+								'name'        => '',
+								'url'         => '',
+								'format'      => 'nexora',
+								'auth_type'   => 'none',
+								'auth_header' => '',
+								'enabled'     => true,
+								'has_secret'  => false,
+								'blank'       => true,
+							);
+							$nx_rows[] = array(
+								'id'          => '',
+								'name'        => '',
+								'url'         => '',
+								'format'      => 'nexora',
+								'auth_type'   => 'none',
+								'auth_header' => '',
+								'enabled'     => true,
+								'has_secret'  => false,
+								'blank'       => true,
+							);
+							?>
+							<?php foreach ( $nx_rows as $nx_src ) : ?>
+								<?php $nx_n = 'nexora_api_sources[' . (int) $nx_index . ']'; ?>
+								<fieldset class="nx-source-row" style="border:1px solid #ccd0d4;padding:10px 12px;margin:0 0 10px;">
+									<legend><?php echo ! empty( $nx_src['blank'] ) ? esc_html__( 'Add a source', 'nexora' ) : esc_html( $nx_src['name'] ); ?></legend>
+									<input type="hidden" name="<?php echo esc_attr( $nx_n ); ?>[id]" value="<?php echo esc_attr( $nx_src['id'] ); ?>">
+									<p>
+										<label><?php esc_html_e( 'Name', 'nexora' ); ?> <input type="text" name="<?php echo esc_attr( $nx_n ); ?>[name]" value="<?php echo esc_attr( $nx_src['name'] ); ?>" class="regular-text" maxlength="60"></label>
+										<label><?php esc_html_e( 'Address (https)', 'nexora' ); ?> <input type="url" name="<?php echo esc_attr( $nx_n ); ?>[url]" value="<?php echo esc_attr( $nx_src['url'] ); ?>" class="regular-text" placeholder="<?php echo esc_attr__( 'https://', 'nexora' ); ?>"></label>
+									</p>
+									<p>
+										<label><?php esc_html_e( 'Format', 'nexora' ); ?>
+											<select name="<?php echo esc_attr( $nx_n ); ?>[format]">
+												<option value="nexora" <?php selected( $nx_src['format'], 'nexora' ); ?>><?php esc_html_e( 'Nexora format', 'nexora' ); ?></option>
+												<option value="dummyjson" <?php selected( $nx_src['format'], 'dummyjson' ); ?>><?php esc_html_e( 'DummyJSON adapter', 'nexora' ); ?></option>
+											</select>
+										</label>
+										<label><?php esc_html_e( 'Authentication', 'nexora' ); ?>
+											<select name="<?php echo esc_attr( $nx_n ); ?>[auth_type]">
+												<option value="none" <?php selected( $nx_src['auth_type'], 'none' ); ?>><?php esc_html_e( 'None', 'nexora' ); ?></option>
+												<option value="header" <?php selected( $nx_src['auth_type'], 'header' ); ?>><?php esc_html_e( 'Header key', 'nexora' ); ?></option>
+												<option value="bearer" <?php selected( $nx_src['auth_type'], 'bearer' ); ?>><?php esc_html_e( 'Bearer token', 'nexora' ); ?></option>
+											</select>
+										</label>
+										<label><?php esc_html_e( 'Header name', 'nexora' ); ?> <input type="text" name="<?php echo esc_attr( $nx_n ); ?>[auth_header]" value="<?php echo esc_attr( $nx_src['auth_header'] ); ?>" class="regular-text" placeholder="<?php echo esc_attr__( 'X-API-Key', 'nexora' ); ?>"></label>
+									</p>
+									<p>
+										<label><?php esc_html_e( 'Key / token', 'nexora' ); ?>
+											<input type="password" name="<?php echo esc_attr( $nx_n ); ?>[secret]" value="" class="regular-text" autocomplete="new-password" placeholder="<?php echo esc_attr( $nx_src['has_secret'] ? '•••••••• ' . __( 'saved (leave empty to keep)', 'nexora' ) : __( 'No key saved', 'nexora' ) ); ?>">
+										</label>
+										<?php if ( $nx_src['has_secret'] ) : ?>
+											<label><input type="checkbox" name="<?php echo esc_attr( $nx_n ); ?>[clear_secret]" value="1"> <?php esc_html_e( 'Remove the saved key', 'nexora' ); ?></label>
+										<?php endif; ?>
+									</p>
+									<p>
+										<label><input type="checkbox" name="<?php echo esc_attr( $nx_n ); ?>[enabled]" value="1" <?php checked( ! empty( $nx_src['enabled'] ) ); ?>> <?php esc_html_e( 'Enabled (vendors can pick it)', 'nexora' ); ?></label>
+										<?php if ( empty( $nx_src['blank'] ) ) : ?>
+											<label><input type="checkbox" name="<?php echo esc_attr( $nx_n ); ?>[remove]" value="1"> <?php esc_html_e( 'Delete this source', 'nexora' ); ?></label>
+										<?php endif; ?>
+									</p>
+								</fieldset>
+								<?php ++$nx_index; ?>
+							<?php endforeach; ?>
+
+							<p>
+								<label>
+									<input type="checkbox" name="nexora_vendor_apis_enabled" value="1" <?php checked( ! empty( $v['vendor_apis'] ) ); ?>>
+									<?php esc_html_e( 'Let vendors import from their own API ("My own API")', 'nexora' ); ?>
+								</label>
+							</p>
+							<p>
+								<label for="nexora_api_host_allowlist"><?php esc_html_e( 'Allowed hosts for vendors\' own APIs (optional, one per line; empty = any public https host)', 'nexora' ); ?></label><br>
+								<textarea id="nexora_api_host_allowlist" name="nexora_api_host_allowlist" rows="3" class="large-text code" placeholder="<?php echo esc_attr__( 'api.example.com', 'nexora' ); ?>"><?php echo esc_textarea( $v['allowlist'] ); ?></textarea>
+							</p>
+						</td>
+					</tr>
+
+					<tr>
 						<th><?php esc_html_e( 'Admin Notification Email', 'nexora' ); ?></th>
 						<td>
 							<input 

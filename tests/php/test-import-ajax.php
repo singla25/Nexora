@@ -10,6 +10,7 @@ use Nexora\Products\Repository;
 global $wpdb;
 nx_test_capture_mail();
 nx_test_reset_limits();
+add_filter( 'nexora_resolve_host', function () { return array( '93.184.216.34' ); } ); // no real DNS in tests
 
 $A = nx_test_vendor( 'iaa', 'approved' );
 $B = nx_test_vendor( 'iab', 'approved' );

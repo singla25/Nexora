@@ -9,6 +9,7 @@ use Nexora\Products\Repository;
 global $wpdb;
 nx_test_capture_mail();
 nx_test_reset_limits();
+add_filter( 'nexora_resolve_host', function () { return array( '93.184.216.34' ); } ); // no real DNS in tests
 
 $A = nx_test_vendor( 'apa', 'approved' );
 $B = nx_test_vendor( 'apb', 'approved' );
@@ -48,9 +49,9 @@ $flush();
 $r = Api_Source::fetch();
 $req = $GLOBALS['nx_http'][0] ?? array();
 nx_assert( 1 === count( $GLOBALS['nx_http'] ), 'one page is one request' );
-nx_assert( 0 === strpos( $req['url'] ?? '', 'https://dummyjson.com/products?' ) && false !== strpos( $req['url'], 'limit=100' ), 'the request goes to the fixed DummyJSON products URL with limit=100' );
+nx_assert( 0 === strpos( $req['url'] ?? '', 'https://dummyjson.com/products?' ) && false !== strpos( $req['url'], 'limit=100' ), 'the request goes to the DummyJSON source from the settings with limit=100' );
 nx_assert_same( 10, (int) ( $req['args']['timeout'] ?? 0 ), 'the request has a 10 second timeout' );
-nx_assert( ! empty( $req['args']['reject_unsafe_urls'] ) && (int) ( $req['args']['redirection'] ?? 9 ) <= 2, 'unsafe URLs are rejected and redirects are limited' );
+nx_assert( ! empty( $req['args']['reject_unsafe_urls'] ) && 0 === (int) ( $req['args']['redirection'] ?? 9 ), 'unsafe URLs are rejected and redirects are not followed' );
 nx_assert( ! empty( $req['args']['limit_response_size'] ), 'the response size is capped' );
 nx_assert( empty( $req['args']['headers']['Authorization'] ) && false === strpos( wp_json_encode( $req ), 'api_key' ), 'no credential is sent (the source needs none)' );
 $unmock( $f );
@@ -207,17 +208,18 @@ $e = Api_Source::fetch();
 nx_assert( 2 === count( $GLOBALS['nx_http'] ) && '' !== $e['fetch_error'], 'a failed response is not cached' );
 $unmock( $f );
 
-/* ---------- the URL is not controllable ---------- */
+/* ---------- the address comes from the settings only, and is checked ---------- */
 $f = $mock( array( 0 => array( 200, $page( $good, 3 ) ) ) );
 $flush();
-add_filter( 'nexora_import_api_url', function () { return 'https://evil.example/products'; } );
-$r = Api_Source::fetch();
-nx_assert( '' !== $r['fetch_error'] && array() === $GLOBALS['nx_http'], 'a URL on another host is refused before any request is made' );
-remove_all_filters( 'nexora_import_api_url' );
-add_filter( 'nexora_import_api_url', function () { return 'http://dummyjson.com/products'; } );
-$r = Api_Source::fetch();
-nx_assert( '' !== $r['fetch_error'] && array() === $GLOBALS['nx_http'], 'a plain http URL is refused' );
-remove_all_filters( 'nexora_import_api_url' );
+$saved_sources = get_option( 'nexora_api_sources', '__unset__' );
+foreach ( array( 'https://evil.example/products' => 'refused: a host that resolves privately is covered in test-url-guard; here, http', 'http://dummyjson.com/products' => 'plain http', 'https://localhost/products' => 'localhost', 'https://127.0.0.1/products' => 'an IP address' ) as $url => $why ) {
+	if ( 'https://evil.example/products' === $url ) { continue; }
+	$rows = \Nexora\Imports\Sources::defaults(); $rows[0]['url'] = $url; update_option( 'nexora_api_sources', $rows );
+	$GLOBALS['nx_http'] = array();
+	$r = Api_Source::fetch();
+	nx_assert( '' !== $r['fetch_error'] && array() === $GLOBALS['nx_http'] && array() === $r['items'], "a source set to $why is refused before any request is made" );
+}
+if ( '__unset__' === $saved_sources ) { delete_option( 'nexora_api_sources' ); } else { update_option( 'nexora_api_sources', $saved_sources ); }
 $unmock( $f );
 
 /* ---------- no credential or internal detail in a report ---------- */

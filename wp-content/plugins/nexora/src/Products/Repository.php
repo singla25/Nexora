@@ -226,13 +226,16 @@ class Repository {
 	}
 
 	/**
-	 * Whether a URL may be shown as a product image without being uploaded: https and an allowed host only
-	 * (the API import's CDN). Nothing is ever downloaded.
+	 * Whether a URL may be used as a product image without being uploaded: https, no credentials or port, plain
+	 * characters; and, when the import knows where the data came from, only on that source's own domain (or a subdomain,
+	 * such as its CDN). Nothing is ever downloaded.
 	 *
-	 * @param string $url Image URL.
+	 * @param string      $url         Image URL.
+	 * @param string|null $source_host The host of the API the product came from (null when only the shape is checked,
+	 *                                 e.g. when an already imported product is shown).
 	 * @return bool
 	 */
-	public static function external_image_ok( $url ) {
+	public static function external_image_ok( $url, $source_host = null ) {
 
 		if ( ! is_string( $url ) || '' === $url || strlen( $url ) > 300 || preg_match( '/[\x00-\x20\\\\]/', $url ) ) {
 			return false;
@@ -244,14 +247,13 @@ class Repository {
 			return false;
 		}
 
-		/**
-		 * Hosts an imported product image may come from.
-		 *
-		 * @param string[] $hosts Allowed hosts.
-		 */
-		$hosts = (array) apply_filters( 'nexora_external_image_hosts', array( 'cdn.dummyjson.com' ) );
+		$host = strtolower( $parts['host'] );
 
-		return in_array( strtolower( $parts['host'] ), $hosts, true );
+		if ( is_wp_error( \Nexora\Imports\Url_Guard::syntax( 'https://' . $host . '/' ) ) ) {
+			return false;
+		}
+
+		return null === $source_host || \Nexora\Imports\Url_Guard::on_list( $host, array( $source_host ) );
 	}
 
 	/**

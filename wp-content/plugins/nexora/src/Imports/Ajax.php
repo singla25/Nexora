@@ -24,6 +24,9 @@ class Ajax extends Vendor_Ajax {
 		\Nexora\Http\Ajax::register( 'csv_import', array( $this, 'csv_import' ) );
 		\Nexora\Http\Ajax::register( 'api_preview', array( $this, 'api_preview' ) );
 		\Nexora\Http\Ajax::register( 'api_import', array( $this, 'api_import' ) );
+		\Nexora\Http\Ajax::register( 'api_test', array( $this, 'api_test' ) );
+		\Nexora\Http\Ajax::register( 'api_connection_save', array( $this, 'connection_save' ) );
+		\Nexora\Http\Ajax::register( 'api_connection_delete', array( $this, 'connection_delete' ) );
 	}
 
 	/**
@@ -97,13 +100,94 @@ class Ajax extends Vendor_Ajax {
 		$member = $this->seller();
 		$this->throttle( 'api_import', $member['user_id'] );
 
-		$plan = Importer::plan_api( $member['user_id'], Api_Source::fetch() );
+		$resolved = $this->source( $member['user_id'] );
+		$plan     = Importer::plan_api( $member['user_id'], Api_Source::fetch( $resolved['source'] ) );
 
 		if ( is_wp_error( $plan ) ) {
 			$this->forbid();
 		}
 
+		// Remembered with the plan so the confirm step can record the import on the connection; never sent to the browser.
+		$plan['conn_id'] = $resolved['conn_id'];
+
 		$this->send_preview( $member['user_id'], $plan );
+	}
+
+	/**
+	 * "Test my API": reads the first page and explains what would be refused. Writes nothing.
+	 */
+	public function api_test() {
+
+		$member = $this->seller();
+		$this->throttle( 'api_test', $member['user_id'] );
+
+		$resolved = $this->source( $member['user_id'] );
+
+		wp_send_json_success( Api_Test::run( $resolved['source'] ) );
+	}
+
+	/**
+	 * Saves (adds or edits) one of the vendor's API connections.
+	 */
+	public function connection_save() {
+
+		$member = $this->seller();
+		$this->throttle( 'api_connection', $member['user_id'] );
+
+		$raw = array();
+
+		foreach ( array( 'name', 'url', 'auth_type', 'auth_header', 'secret' ) as $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce checked in seller(); every field is validated and cleaned in Connections::save().
+			$raw[ $key ] = isset( $_POST[ $key ] ) && is_string( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : '';
+		}
+
+		$result = Connections::save( $member['user_id'], $raw, $this->connection_id( false ) );
+
+		if ( is_wp_error( $result ) ) {
+
+			if ( 'nexora_forbidden' === $result->get_error_code() ) {
+				$this->forbid();
+			}
+
+			$data = $result->get_error_data();
+
+			wp_send_json_error(
+				array(
+					'message' => $result->get_error_message(),
+					'fields'  => is_array( $data ) && isset( $data['fields'] ) ? $data['fields'] : array(),
+				)
+			);
+		}
+
+		wp_send_json_success(
+			array(
+				'message'     => __( 'Connection saved.', 'nexora' ),
+				'id'          => $result['id'],
+				'connections' => $this->connections( $member['user_id'] ),
+			)
+		);
+	}
+
+	/**
+	 * Deletes one of the vendor's own connections.
+	 */
+	public function connection_delete() {
+
+		$member = $this->seller();
+		$this->throttle( 'api_connection', $member['user_id'] );
+
+		$id = $this->connection_id( true );
+
+		if ( is_wp_error( Connections::delete( $member['user_id'], $id ) ) ) {
+			$this->forbid();
+		}
+
+		wp_send_json_success(
+			array(
+				'message'     => __( 'Connection deleted.', 'nexora' ),
+				'connections' => $this->connections( $member['user_id'] ),
+			)
+		);
 	}
 
 	/**
@@ -122,6 +206,10 @@ class Ajax extends Vendor_Ajax {
 
 		$member = $this->seller();
 
+		if ( 'api' === $source ) {
+			$this->throttle( 'api_apply', $member['user_id'] );
+		}
+
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the token is matched against a strict 32 hex pattern in Importer::take().
 		$token = isset( $_POST['token'] ) && is_string( $_POST['token'] ) ? wp_unslash( $_POST['token'] ) : '';
 		$plan  = Importer::take( $token, $member['user_id'], $source );
@@ -136,7 +224,95 @@ class Ajax extends Vendor_Ajax {
 			$this->forbid();
 		}
 
+		$this->record_use( $member['user_id'], $plan );
+
 		wp_send_json_success( array( 'summary' => $result['summary'] ) );
+	}
+
+	/**
+	 * The vendor's saved connections as the popup lists them (never with a key).
+	 *
+	 * @param int $user_id The vendor's user ID.
+	 * @return array[]
+	 */
+	private function connections( $user_id ) {
+		return Connection_Repository::for_vendor( \Nexora\Vendors\Repository::id_for_user( $user_id ) );
+	}
+
+	/**
+	 * Notes the import on the saved connection it came from (if it is still the vendor's own).
+	 *
+	 * @param int   $user_id The vendor's user ID.
+	 * @param array $plan    The applied plan.
+	 */
+	private function record_use( $user_id, array $plan ) {
+
+		$conn_id   = (int) ( $plan['conn_id'] ?? 0 );
+		$vendor_id = \Nexora\Vendors\Repository::id_for_user( $user_id );
+
+		if ( $conn_id > 0 && Connection_Repository::find( $conn_id, $vendor_id ) ) {
+			Connection_Repository::touch( $conn_id, '' === $plan['fetch_error'] ? 'ok' : 'error' );
+		}
+	}
+
+	/**
+	 * The source the request asks for, or the request ends with a plain message.
+	 *
+	 * @param int $user_id The vendor's user ID.
+	 * @return array source, conn_id
+	 */
+	private function source( $user_id ) {
+
+		$request = array();
+
+		foreach ( array( 'source', 'url', 'auth_type', 'auth_header', 'secret' ) as $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce checked in seller(); Connections::resolve_source() validates every value (a platform source ignores all but its id).
+			$request[ $key ] = isset( $_POST[ $key ] ) ? ( is_string( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : array() ) : '';
+		}
+
+		$resolved = Connections::resolve_source( $user_id, $request );
+
+		if ( is_wp_error( $resolved ) ) {
+
+			if ( 'nexora_forbidden' === $resolved->get_error_code() ) {
+				$this->forbid();
+			}
+
+			$data = $resolved->get_error_data();
+
+			wp_send_json_error(
+				array(
+					'message' => $resolved->get_error_message(),
+					'fields'  => is_array( $data ) && isset( $data['fields'] ) ? $data['fields'] : array(),
+				)
+			);
+		}
+
+		return $resolved;
+	}
+
+	/**
+	 * The posted connection_id: 0 when absent or empty; anything that is not a whole number ends the request.
+	 *
+	 * @param bool $required Whether an id must be given.
+	 * @return int
+	 */
+	private function connection_id( $required ) {
+
+		// Nonce checked in seller(); the value is accepted only if it is digits (checked next).
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$value = isset( $_POST['connection_id'] ) ? wp_unslash( $_POST['connection_id'] ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+		if ( '' === $value && ! $required ) {
+			return 0;
+		}
+
+		if ( ! is_string( $value ) || ! ctype_digit( $value ) || strlen( $value ) > 12 || ( $required && (int) $value <= 0 ) ) {
+			$this->fail( __( 'Invalid request.', 'nexora' ) );
+		}
+
+		return (int) $value;
 	}
 
 	/**

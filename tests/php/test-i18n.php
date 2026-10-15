@@ -42,7 +42,7 @@ update_post_meta( $post, 'user_name', $bob['login'] );
 update_post_meta( $alice['profile_id'], 'first_name', 'Alicefirst' );
 
 // words that are data, not interface
-$data_words = array_merge( preg_split( '/[^A-Za-z]+/', $alice['login'] . ' ' . $bob['login'] . ' Alicefirst Hello content localhost83 local com nexora Test subject' ), array( 'request', 'accepted', 'pending', 'rejected', 'removed', 'active', 'inactive', 'Accepted', 'Pending', 'Rejected', 'Removed', 'Active', 'Inactive', 'wp', 'png', 'http', 'https', 'px', 'ago', 'PM', 'AM', 'Oct', 'Jan', 'Dec', 'Nov' ) );
+$data_words = array_merge( preg_split( '/[^A-Za-z]+/', $alice['login'] . ' ' . $bob['login'] . ' Alicefirst Hello content localhost83 local com nexora Test subject' ), array( 'request', 'accepted', 'pending', 'rejected', 'removed', 'active', 'inactive', 'Accepted', 'Pending', 'Rejected', 'Removed', 'Active', 'Inactive', 'wp', 'png', 'http', 'https', 'px', 'ago', 'PM', 'AM', 'Oct', 'Jan', 'Dec', 'Nov', 'DummyJSON' ) );
 
 /** Visible words outside « » in $html (tags, scripts, comments removed), and attribute texts that are not tagged. */
 $leftovers = function ( $html ) use ( $data_words ) {

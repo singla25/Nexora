@@ -104,7 +104,7 @@ class Importer {
 
 			$entries[] = array(
 				'line'        => 0,
-				'ref'         => (string) ( $item['external_id'] ?? '' ),
+				'ref'         => (string) ( $item['ref'] ?? $item['external_id'] ?? '' ),
 				'raw'         => (array) ( $item['raw'] ?? array() ),
 				'external_id' => (string) ( $item['external_id'] ?? '' ),
 				'image_url'   => (string) ( $item['image_url'] ?? '' ),
@@ -112,7 +112,7 @@ class Importer {
 			);
 		}
 
-		$plan = self::plan( (int) $user_id, 'api', $entries, 'DummyJSON', (string) ( $fetched['fetch_error'] ?? '' ) );
+		$plan = self::plan( (int) $user_id, 'api', $entries, (string) ( $fetched['label'] ?? '' ), (string) ( $fetched['fetch_error'] ?? '' ) );
 
 		foreach ( (array) ( $fetched['errors'] ?? array() ) as $error ) {
 			$plan['rows'][] = array(

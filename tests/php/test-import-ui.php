@@ -33,7 +33,8 @@ foreach ( array( 'sku', 'name', 'description', 'price', 'stock', 'category', 'im
 nx_assert( false !== strpos( $csv, '2 MB' ) && false !== strpos( $csv, '500' ), 'the CSV popup states the 2 MB and 500 row limits' );
 nx_assert( false !== strpos( $csv, 'Preview' ), 'the CSV popup starts with a preview (dry run)' );
 $api = $template( $html, 'nx-import-tpl-api' );
-nx_assert( false !== strpos( $api, 'DummyJSON' ) && false === strpos( $api, 'type="file"' ) && false === stripos( $api, 'api key' ) && 0 === preg_match( '/<input[^>]*type="(text|url|password)"/', $api ), 'the API popup names the source and has no URL or credential field (nothing to tamper with)' );
+nx_assert( false !== strpos( $api, 'DummyJSON' ) && false === strpos( $api, 'type="file"' ), 'the API popup offers the platform source (DummyJSON from the settings) and has no file input' );
+nx_assert( 0 === preg_match( '/<input[^>]*type="(text|url|password)"/', $api ) || 0 === (int) get_option( 'nexora_vendor_apis_enabled', 0 ), 'with vendor APIs switched off the popup has no address or key field at all' );
 nx_assert( false !== strpos( $html, 'id="nx-import-report"' ) || false !== strpos( $csv, 'nx-import-report' ), 'there is a place for the preview report' );
 
 /* ---------- history ---------- */
