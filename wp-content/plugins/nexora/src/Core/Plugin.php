@@ -49,6 +49,9 @@ class Plugin {
 		new \Nexora\Products\Marketplace_Ajax();
 		new \Nexora\Products\Admin();
 		new \Nexora\Products\Assets();
+		new \Nexora\Imports\Ajax();
+		new \Nexora\Imports\Admin();
+		new \Nexora\Core\Post_Guard( \Nexora\Imports\Log_Repository::POST_TYPE, array( '\Nexora\Imports\Log_Repository', 'is_internal' ) );
 		new \Nexora\Core\Post_Guard( \Nexora\Products\Repository::POST_TYPE, array( '\Nexora\Products\Repository', 'is_internal' ), array( 'post_status', 'post_title', 'post_content', 'post_excerpt' ) );
 		new \Nexora\Integrations\Woo_Routes();
 		new \Nexora\Vendors\Assets();

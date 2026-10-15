@@ -66,6 +66,20 @@ nx_assert( 'Product AAA-1' === get_the_title( $id ) && '499.00' === Repository::
 nx_assert_same( $id, Repository::find_by_sku( $A['vendor_id'], 'aaa-1' ), 'find_by_sku is scoped to the vendor' );
 nx_assert_same( $rb['product_id'], Repository::find_by_sku( $B['vendor_id'], 'AAA-1' ), 'and to the other vendor' );
 
+/* ---------- text is stored exactly as validated (no HTML-entity rewriting by WordPress's post filters) ---------- */
+$tricky = array( 'name' => 'Tom & "Jerry" Tee <3 it\'s', 'description' => "Salt & pepper, 5 > 3 & \"quotes\"\nSecond line", 'price' => '12', 'stock' => '2', 'sku' => 'AMP-1', 'category' => 'other' );
+wp_set_current_user( $A['user_id'] ); // a vendor: no unfiltered_html, so WordPress's kses filters are active
+$r = $track( Service::save( $A['user_id'], $tricky ) );
+$want = Nexora\Products\Validator::validate( $tricky )['data'];
+$have = Repository::data( $r['product_id'] );
+nx_assert( $want['name'] === $have['name'] && $want['description'] === $have['description'], 'name and description are stored exactly as validated (no &amp; rewriting): ' . wp_json_encode( array( $have['name'], $have['description'] ) ) );
+$again = Service::import_row( $A['user_id'], $tricky, 'csv', '', false );
+nx_assert( is_array( $again ) && 'unchanged' === $again['action'], 'importing the same text again is "unchanged", not an update' );
+$card = Nexora\Products\Presenter::mine( $A['user_id'], $A['vendor_id'] );
+$edit = array(); foreach ( $card as $c ) { if ( $c['id'] === $r['product_id'] ) { $edit = $c['edit']; } }
+nx_assert( $want['name'] === ( $edit['name'] ?? '' ), 'the edit popup is filled with the real text, not an entity-encoded copy' );
+wp_set_current_user( 0 );
+
 /* ---------- edit own ---------- */
 $r = Service::save( $A['user_id'], $form( 'AAA-1', array( 'name' => 'Renamed', 'price' => '600' ) ), $id );
 nx_assert( is_array( $r ) && $id === $r['product_id'], 'a vendor can edit their product' );

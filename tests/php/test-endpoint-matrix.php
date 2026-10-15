@@ -11,6 +11,7 @@ $member = array(
 	'update_personal_info', 'update_address_info', 'update_work_info', 'update_documents_info', 'update_profile_password',
 	'vendor_apply', 'vendor_update',
 	'product_save', 'product_delete', 'marketplace_list',
+	'csv_preview', 'csv_import', 'api_preview', 'api_import',
 );
 $chat = array(
 	'search_users', 'get_messages', 'get_user_threads', 'send_message', 'create_thread_with_subject',

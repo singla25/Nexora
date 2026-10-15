@@ -223,3 +223,142 @@
     gap: 8px;
     max-width: 260px;
 }
+
+/* Imports (CSV and API) */
+.nx-import-csv,
+.nx-import-api {
+    background: var(--nx-white);
+    color: var(--nx-navy);
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    padding: 10px 16px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nx-import-csv:focus-visible,
+.nx-import-api:focus-visible,
+.nx-import-preview:focus-visible,
+.nx-import-confirm:focus-visible {
+    outline: 2px solid var(--nx-blue);
+    outline-offset: 2px;
+}
+
+.nx-import-history {
+    margin-top: 28px;
+}
+
+.nx-import-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.nx-import-entry {
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-md);
+    padding: 12px 14px;
+    background: var(--nx-white);
+}
+
+.nx-import-entry p {
+    margin: 0 0 4px;
+}
+
+.nx-import-date,
+.nx-import-counts {
+    color: var(--nx-text-muted);
+    font-size: 13px;
+}
+
+.nx-import-date {
+    margin-left: 8px;
+}
+
+.nx-import-errors {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: var(--nx-danger);
+}
+
+.swal2-popup .nx-import-popup {
+    text-align: left;
+    font-size: 14px;
+}
+
+.nx-import-notes {
+    margin: 8px 0 12px 18px;
+    padding: 0;
+    color: var(--nx-text-muted);
+}
+
+.nx-import-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.nx-import-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.nx-import-preview,
+.nx-import-confirm {
+    background: var(--nx-gradient);
+    color: var(--nx-white);
+    border: 0;
+    border-radius: var(--nx-radius-sm);
+    padding: 10px 18px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nx-import-preview[disabled],
+.nx-import-confirm[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.nx-import-confirm[hidden] {
+    display: none;
+}
+
+.nx-import-scroll {
+    max-height: 260px;
+    overflow: auto;
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-sm);
+}
+
+.nx-import-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.nx-import-table th,
+.nx-import-table td {
+    padding: 6px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--nx-border);
+    overflow-wrap: anywhere;
+}
+
+.nx-import-row-error td {
+    color: var(--nx-danger);
+}
+
+.nx-import-ok {
+    color: var(--nx-success);
+}
+
+.nx-import-bad {
+    color: var(--nx-danger);
+}

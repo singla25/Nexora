@@ -109,13 +109,15 @@ class Repository {
 	public static function data( $id ) {
 
 		return array(
-			'name'        => get_the_title( $id ),
+			// The stored title, not get_the_title(): that one runs display filters (curly quotes) and would never equal what was saved.
+			'name'        => (string) get_post_field( 'post_title', $id ),
 			'description' => (string) get_post_field( 'post_content', $id ),
 			'price'       => (string) get_post_meta( $id, 'price', true ),
 			'stock'       => (int) get_post_meta( $id, 'stock', true ),
 			'sku'         => (string) get_post_meta( $id, 'sku', true ),
 			'category'    => (string) get_post_meta( $id, 'category', true ),
 			'image_id'    => (int) get_post_meta( $id, 'image_id', true ),
+			'image_url'   => (string) get_post_meta( $id, 'image_url', true ),
 			'vendor_id'   => (int) get_post_meta( $id, 'vendor_id', true ),
 			'source'      => (string) get_post_meta( $id, 'source', true ),
 			'external_id' => (string) get_post_meta( $id, 'external_id', true ),
@@ -177,6 +179,79 @@ class Repository {
 		);
 
 		return $ids ? (int) $ids[0] : 0;
+	}
+
+	/**
+	 * The product a vendor already imported from a source under an external id.
+	 *
+	 * @param int    $vendor_post_id Vendor application post ID.
+	 * @param string $external_id    The id in the source system.
+	 * @param string $source         Source (api).
+	 * @return int Product ID, or 0.
+	 */
+	public static function find_by_external( $vendor_post_id, $external_id, $source = 'api' ) {
+
+		if ( '' === (string) $external_id ) {
+			return 0;
+		}
+
+		$ids = get_posts(
+			array(
+				'post_type'        => self::POST_TYPE,
+				'post_status'      => array( 'publish', 'draft', 'pending', 'private' ),
+				'fields'           => 'ids',
+				'posts_per_page'   => 1,
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- a lookup by vendor, source and external id.
+				'meta_query'       => array(
+					'relation' => 'AND',
+					array(
+						'key'   => 'vendor_id',
+						'value' => (int) $vendor_post_id,
+					),
+					array(
+						'key'   => 'source',
+						'value' => $source,
+					),
+					array(
+						'key'   => 'external_id',
+						'value' => (string) $external_id,
+					),
+				),
+			)
+		);
+
+		return $ids ? (int) $ids[0] : 0;
+	}
+
+	/**
+	 * Whether a URL may be shown as a product image without being uploaded: https and an allowed host only
+	 * (the API import's CDN). Nothing is ever downloaded.
+	 *
+	 * @param string $url Image URL.
+	 * @return bool
+	 */
+	public static function external_image_ok( $url ) {
+
+		if ( ! is_string( $url ) || '' === $url || strlen( $url ) > 300 || preg_match( '/[\x00-\x20\\\\]/', $url ) ) {
+			return false;
+		}
+
+		$parts = wp_parse_url( $url );
+
+		if ( ! $parts || empty( $parts['scheme'] ) || empty( $parts['host'] ) || 'https' !== strtolower( $parts['scheme'] ) || isset( $parts['user'] ) || isset( $parts['pass'] ) || isset( $parts['port'] ) ) {
+			return false;
+		}
+
+		/**
+		 * Hosts an imported product image may come from.
+		 *
+		 * @param string[] $hosts Allowed hosts.
+		 */
+		$hosts = (array) apply_filters( 'nexora_external_image_hosts', array( 'cdn.dummyjson.com' ) );
+
+		return in_array( strtolower( $parts['host'] ), $hosts, true );
 	}
 
 	/**
@@ -255,6 +330,10 @@ class Repository {
 			if ( isset( $data[ $key ] ) ) {
 				update_post_meta( $id, $key, $data[ $key ] );
 			}
+		}
+
+		if ( isset( $data['image_url'] ) && self::external_image_ok( $data['image_url'] ) ) {
+			update_post_meta( $id, 'image_url', esc_url_raw( $data['image_url'] ) );
 		}
 	}
 }

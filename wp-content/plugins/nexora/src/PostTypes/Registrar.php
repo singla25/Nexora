@@ -99,5 +99,25 @@ class Registrar {
 				'menu_icon'           => 'dashicons-products',
 			)
 		);
+
+		// Import history: one private entry per real import, written only by Imports\Log_Repository.
+		register_post_type(
+			'nexora_import_log',
+			array(
+				'label'               => __( 'Import history', 'nexora' ),
+				'public'              => false,
+				'publicly_queryable'  => false,
+				'exclude_from_search' => true,
+				'has_archive'         => false,
+				'rewrite'             => false,
+				'delete_with_user'    => true,
+				'map_meta_cap'        => true,
+				'capabilities'        => array( 'create_posts' => 'do_not_allow' ),
+				'show_ui'             => true,
+				'supports'            => array( 'title' ),
+				'show_in_menu'        => 'nexora-system',
+				'menu_icon'           => 'dashicons-upload',
+			)
+		);
 	}
 }

@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.0.10\n"
+"Project-Id-Version: Nexora 1.0.11\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-14T13:52:33+00:00\n"
+"POT-Creation-Date: 2026-10-15T10:13:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -109,12 +109,12 @@ msgid "User Content Info"
 msgstr ""
 
 #: src/Admin/Meta_Boxes.php:101
-#: src/Profile/Page.php:307
+#: src/Profile/Page.php:308
 msgid "Profile Image"
 msgstr ""
 
 #: src/Admin/Meta_Boxes.php:102
-#: src/Profile/Page.php:308
+#: src/Profile/Page.php:309
 msgid "Cover Image"
 msgstr ""
 
@@ -123,12 +123,12 @@ msgid "Aadhar Card"
 msgstr ""
 
 #: src/Admin/Meta_Boxes.php:104
-#: src/Profile/Page.php:310
+#: src/Profile/Page.php:311
 msgid "Driving License"
 msgstr ""
 
 #: src/Admin/Meta_Boxes.php:105
-#: src/Profile/Page.php:311
+#: src/Profile/Page.php:312
 msgid "Company ID Card"
 msgstr ""
 
@@ -167,7 +167,7 @@ msgstr ""
 
 #: src/Auth/Login.php:78
 #: src/Auth/Login.php:154
-#: src/Http/Rate_Limiter.php:213
+#: src/Http/Rate_Limiter.php:215
 msgid "Too many requests. Please try again later."
 msgstr ""
 
@@ -440,6 +440,164 @@ msgstr ""
 msgid "Permission denied"
 msgstr ""
 
+#: src/Imports/Admin.php:35
+#: templates/imports/api-popup.php:11
+#: templates/imports/csv-popup.php:15
+msgid "Import"
+msgstr ""
+
+#: src/Imports/Admin.php:36
+#: src/Products/Admin.php:37
+#: templates/admin/metabox-product.php:14
+#: templates/auth/registration-form.php:52
+msgid "Seller"
+msgstr ""
+
+#: src/Imports/Admin.php:37
+msgid "Created"
+msgstr ""
+
+#: src/Imports/Admin.php:38
+msgid "Updated"
+msgstr ""
+
+#: src/Imports/Admin.php:39
+msgid "Unchanged"
+msgstr ""
+
+#: src/Imports/Admin.php:40
+msgid "Skipped"
+msgstr ""
+
+#: src/Imports/Admin.php:41
+#: templates/admin/metabox-contents.php:7
+#: templates/admin/notifications.php:14
+#: templates/profile/content-history.php:6
+msgid "Date"
+msgstr ""
+
+#: src/Imports/Admin.php:83
+msgid "Import details"
+msgstr ""
+
+#: src/Imports/Ajax.php:42
+msgid "Choose a .csv file first."
+msgstr ""
+
+#: src/Imports/Ajax.php:46
+#: src/Imports/Csv_Parser.php:43
+#: src/Imports/Csv_Parser.php:49
+msgid "The file is larger than 2 MB."
+msgstr ""
+
+#: src/Imports/Ajax.php:46
+msgid "The upload did not complete. Please try again."
+msgstr ""
+
+#: src/Imports/Ajax.php:50
+msgid "The upload could not be verified."
+msgstr ""
+
+#: src/Imports/Api_Source.php:75
+msgid "The product source is not available."
+msgstr ""
+
+#: src/Imports/Api_Source.php:191
+msgid "Could not reach the product source. Please try again later."
+msgstr ""
+
+#: src/Imports/Api_Source.php:195
+msgid "The product source answered with an error. Please try again later."
+msgstr ""
+
+#: src/Imports/Api_Source.php:201
+msgid "The product source sent an unusable answer."
+msgstr ""
+
+#: src/Imports/Api_Source.php:207
+msgid "The product source sent an unexpected answer."
+msgstr ""
+
+#: src/Imports/Api_Source.php:232
+msgid "Not a product."
+msgstr ""
+
+#: src/Imports/Api_Source.php:243
+msgid "A product without a usable id."
+msgstr ""
+
+#: src/Imports/Csv_Parser.php:33
+msgid "Only .csv files are accepted."
+msgstr ""
+
+#: src/Imports/Csv_Parser.php:37
+msgid "The file could not be read."
+msgstr ""
+
+#: src/Imports/Csv_Parser.php:53
+msgid "The file is empty."
+msgstr ""
+
+#: src/Imports/Csv_Parser.php:57
+msgid "This is not a text CSV file."
+msgstr ""
+
+#: src/Imports/Csv_Parser.php:65
+msgid "The file must be saved as UTF-8."
+msgstr ""
+
+#. translators: %d: the row limit.
+#: src/Imports/Csv_Parser.php:138
+#, php-format
+msgid "The file has more than %d rows."
+msgstr ""
+
+#: src/Imports/Csv_Parser.php:144
+msgid "This row has more cells than the header."
+msgstr ""
+
+#: src/Imports/Csv_Parser.php:164
+msgid "The file has a header but no products."
+msgstr ""
+
+#: src/Imports/Csv_Parser.php:189
+msgid "The header repeats a column."
+msgstr ""
+
+#. translators: %s: the unknown column names.
+#: src/Imports/Csv_Parser.php:196
+#, php-format
+msgid "Unknown column(s): %s"
+msgstr ""
+
+#. translators: %s: the missing column names.
+#: src/Imports/Csv_Parser.php:203
+#, php-format
+msgid "Missing required column(s): %s"
+msgstr ""
+
+#. translators: %d: line number of the first row with this SKU.
+#: src/Imports/Importer.php:60
+#, php-format
+msgid "Repeats the SKU of line %d."
+msgstr ""
+
+#: src/Imports/Importer.php:71
+msgid "Use the address of an image in your own Media Library."
+msgstr ""
+
+#: src/Imports/Importer.php:233
+msgid "This preview has expired. Please preview again."
+msgstr ""
+
+#: src/Imports/Importer.php:412
+#: src/Products/Service.php:322
+#: src/Vendors/Admin.php:227
+#: src/Vendors/Service.php:163
+#: src/Vendors/Vendor_Ajax.php:81
+msgid "You are not allowed to do that."
+msgstr ""
+
 #: src/Notifications/Ajax.php:28
 #: src/Profile/Ajax.php:175
 msgid "Not logged in"
@@ -465,14 +623,13 @@ msgstr ""
 msgid "Products"
 msgstr ""
 
-#: src/Products/Admin.php:36
-msgid "Product"
+#: src/PostTypes/Registrar.php:107
+#: templates/imports/history.php:9
+msgid "Import history"
 msgstr ""
 
-#: src/Products/Admin.php:37
-#: templates/admin/metabox-product.php:14
-#: templates/auth/registration-form.php:52
-msgid "Seller"
+#: src/Products/Admin.php:36
+msgid "Product"
 msgstr ""
 
 #: src/Products/Admin.php:38
@@ -584,48 +741,52 @@ msgstr ""
 msgid "Other"
 msgstr ""
 
-#: src/Products/Presenter.php:145
+#: src/Products/Presenter.php:168
 msgid "Out of stock"
 msgstr ""
 
 #. translators: %d: units left.
-#: src/Products/Presenter.php:150
+#: src/Products/Presenter.php:173
 #, php-format
 msgid "Only %d left"
 msgstr ""
 
-#: src/Products/Presenter.php:153
+#: src/Products/Presenter.php:176
 msgid "In stock"
 msgstr ""
 
 #: src/Products/Service.php:43
+#: src/Products/Service.php:112
 msgid "Choose one of your own uploaded images."
 msgstr ""
 
 #: src/Products/Service.php:53
+#: src/Products/Service.php:126
 msgid "This product is being saved right now. Please try again in a moment."
 msgstr ""
 
-#: src/Products/Service.php:106
-msgid "You already have a product with this SKU."
+#: src/Products/Service.php:160
+msgid "You already have a different product with this SKU."
 msgstr ""
 
-#: src/Products/Service.php:112
+#: src/Products/Service.php:166
+#: src/Products/Service.php:266
 msgid "You have reached the maximum number of products."
 msgstr ""
 
-#: src/Products/Service.php:118
+#: src/Products/Service.php:180
+msgid "Could not save the product."
+msgstr ""
+
+#: src/Products/Service.php:260
+msgid "You already have a product with this SKU."
+msgstr ""
+
+#: src/Products/Service.php:272
 msgid "Could not save the product. Please try again."
 msgstr ""
 
-#: src/Products/Service.php:168
-#: src/Vendors/Admin.php:227
-#: src/Vendors/Service.php:163
-#: src/Vendors/Vendor_Ajax.php:81
-msgid "You are not allowed to do that."
-msgstr ""
-
-#: src/Products/Service.php:178
+#: src/Products/Service.php:332
 #: src/Vendors/Ajax.php:44
 #: src/Vendors/Service.php:232
 msgid "Please correct the highlighted fields."
@@ -713,36 +874,36 @@ msgstr ""
 msgid "Password updated successfully"
 msgstr ""
 
-#: src/Profile/Page.php:309
+#: src/Profile/Page.php:310
 msgid "Aadhaar Card"
 msgstr ""
 
 #. translators: %s: member name.
-#: src/Profile/Page.php:449
+#: src/Profile/Page.php:450
 #, php-format
 msgid "%s sent you a connection request"
 msgstr ""
 
 #. translators: %s: member name.
-#: src/Profile/Page.php:453
+#: src/Profile/Page.php:454
 #, php-format
 msgid "%s accepted your connection request"
 msgstr ""
 
 #. translators: %s: member name.
-#: src/Profile/Page.php:457
+#: src/Profile/Page.php:458
 #, php-format
 msgid "%s rejected your connection request"
 msgstr ""
 
 #. translators: %s: member name.
-#: src/Profile/Page.php:461
+#: src/Profile/Page.php:462
 #, php-format
 msgid "%s removed the connection with you"
 msgstr ""
 
 #. translators: %s: member name.
-#: src/Profile/Page.php:465
+#: src/Profile/Page.php:466
 #, php-format
 msgid "%s uploaded new content"
 msgstr ""
@@ -1249,12 +1410,6 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: templates/admin/metabox-contents.php:7
-#: templates/admin/notifications.php:14
-#: templates/profile/content-history.php:6
-msgid "Date"
-msgstr ""
-
 #: templates/admin/metabox-contents.php:26
 #: templates/profile/content-history.php:29
 #: templates/profile/tab-notifications.php:55
@@ -1713,6 +1868,126 @@ msgstr ""
 msgid "Search users..."
 msgstr ""
 
+#: templates/imports/admin-box.php:9
+msgid "No details available."
+msgstr ""
+
+#: templates/imports/admin-box.php:12
+msgid "API import"
+msgstr ""
+
+#: templates/imports/admin-box.php:12
+msgid "CSV import"
+msgstr ""
+
+#. translators: 1: created, 2: updated, 3: unchanged, 4: skipped.
+#: templates/imports/admin-box.php:18
+#, php-format
+msgid "%1$d created, %2$d updated, %3$d unchanged, %4$d skipped"
+msgstr ""
+
+#. translators: %d: line number.
+#: templates/imports/admin-box.php:26
+#, php-format
+msgid "Line %d: "
+msgstr ""
+
+#. translators: %s: item reference.
+#: templates/imports/admin-box.php:26
+#, php-format
+msgid "Item %s: "
+msgstr ""
+
+#: templates/imports/api-popup.php:3
+msgid "Import the sample catalog from DummyJSON (up to 500 products) into your own products."
+msgstr ""
+
+#: templates/imports/api-popup.php:5
+msgid "Products are matched by their id in the source: importing again updates them instead of adding copies."
+msgstr ""
+
+#: templates/imports/api-popup.php:6
+msgid "Prices are taken as they are (no currency conversion). Images stay on the source's server."
+msgstr ""
+
+#: templates/imports/api-popup.php:7
+#: templates/imports/csv-popup.php:9
+msgid "Preview first: nothing is saved until you confirm."
+msgstr ""
+
+#: templates/imports/api-popup.php:10
+#: templates/imports/csv-popup.php:14
+msgid "Preview"
+msgstr ""
+
+#: templates/imports/csv-popup.php:3
+msgid "Upload a .csv file (UTF-8, up to 2 MB and 500 rows). The first row must name the columns:"
+msgstr ""
+
+#: templates/imports/csv-popup.php:6
+msgid "sku, name, price, stock and category are required. description and image_url are optional."
+msgstr ""
+
+#: templates/imports/csv-popup.php:7
+msgid "The SKU identifies your product: a SKU you already have is updated, a new one is created. Other sellers' products are never touched."
+msgstr ""
+
+#: templates/imports/csv-popup.php:8
+msgid "image_url must be the address of an image in your own Media Library. Leave it empty for no image."
+msgstr ""
+
+#: templates/imports/csv-popup.php:11
+msgid "CSV file"
+msgstr ""
+
+#: templates/imports/history.php:11
+msgid "No imports yet."
+msgstr ""
+
+#: templates/imports/history.php:17
+msgid "API"
+msgstr ""
+
+#: templates/imports/history.php:17
+msgid "CSV"
+msgstr ""
+
+#. translators: %d: number of products.
+#: templates/imports/history.php:24
+#, php-format
+msgid "%d created"
+msgstr ""
+
+#. translators: %d: number of products.
+#: templates/imports/history.php:27
+#, php-format
+msgid "%d updated"
+msgstr ""
+
+#. translators: %d: number of products.
+#: templates/imports/history.php:30
+#, php-format
+msgid "%d unchanged"
+msgstr ""
+
+#. translators: %d: number of rows.
+#: templates/imports/history.php:33
+#, php-format
+msgid "%d skipped"
+msgstr ""
+
+#. translators: 1: line number, 2: what was wrong.
+#: templates/imports/history.php:43
+#, php-format
+msgid "Line %1$d: %2$s"
+msgstr ""
+
+#. translators: 1: item reference, 2: what was wrong.
+#: templates/imports/history.php:46
+#, php-format
+msgid "Item %1$s: %2$s"
+msgstr ""
+
 #: templates/mail/admin-new-member.php:1
 msgid "New User Registration"
 msgstr ""
@@ -1944,7 +2219,7 @@ msgid "Marketplace"
 msgstr ""
 
 #: templates/profile/page.php:30
-#: templates/profile/tab-my-products.php:13
+#: templates/profile/tab-my-products.php:14
 msgid "My Products"
 msgstr ""
 
@@ -2092,34 +2367,50 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: templates/profile/tab-my-products.php:14
+#: templates/profile/tab-my-products.php:15
 msgid "Products you sell on the marketplace"
 msgstr ""
 
-#: templates/profile/tab-my-products.php:17
+#: templates/profile/tab-my-products.php:18
 msgid "Add product"
 msgstr ""
 
-#: templates/profile/tab-my-products.php:22
+#: templates/profile/tab-my-products.php:19
+msgid "Import products from a CSV file"
+msgstr ""
+
+#: templates/profile/tab-my-products.php:19
+msgid "Import CSV"
+msgstr ""
+
+#: templates/profile/tab-my-products.php:20
+msgid "Import products from the API"
+msgstr ""
+
+#: templates/profile/tab-my-products.php:20
+msgid "Import from API"
+msgstr ""
+
+#: templates/profile/tab-my-products.php:25
 msgid "You have not added any products yet."
 msgstr ""
 
 #. translators: %s: the product's SKU.
-#: templates/profile/tab-my-products.php:31
+#: templates/profile/tab-my-products.php:34
 #, php-format
 msgid "SKU: %s"
 msgstr ""
 
-#: templates/profile/tab-my-products.php:35
+#: templates/profile/tab-my-products.php:38
 msgid "Edit product"
 msgstr ""
 
-#: templates/profile/tab-my-products.php:35
+#: templates/profile/tab-my-products.php:38
 #: templates/profile/vendor-card.php:57
 msgid "Edit"
 msgstr ""
 
-#: templates/profile/tab-my-products.php:36
+#: templates/profile/tab-my-products.php:39
 msgid "Delete"
 msgstr ""
 

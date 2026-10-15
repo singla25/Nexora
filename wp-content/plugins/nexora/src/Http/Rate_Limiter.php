@@ -46,6 +46,8 @@ class Rate_Limiter {
 			'vendor_apply'       => array( 3, DAY_IN_SECONDS ),
 			'product_save'       => array( 60, HOUR_IN_SECONDS ),
 			'marketplace_list'   => array( 120, MINUTE_IN_SECONDS ),
+			'csv_import'         => array( 10, HOUR_IN_SECONDS ),
+			'api_import'         => array( 10, HOUR_IN_SECONDS ),
 		);
 	}
 

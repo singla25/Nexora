@@ -81,7 +81,7 @@ class Presenter {
 			'stock'       => $stock,
 			'stock_label' => self::stock_label( $stock ),
 			'category'    => isset( $categories[ $category ] ) ? $categories[ $category ] : '',
-			'image'       => $image_id ? (string) wp_get_attachment_image_url( $image_id, 'medium' ) : '',
+			'image'       => self::image( $id, $image_id, 'medium' ),
 			'seller'      => $vendor_id ? (string) get_post_meta( $vendor_id, 'business_name', true ) : '',
 			'own'         => (int) $viewer_id > 0 && Repository::owner_of( $id ) === (int) $viewer_id,
 		);
@@ -112,12 +112,35 @@ class Presenter {
 				'sku'         => $data['sku'],
 				'category'    => $data['category'],
 				'image_id'    => $data['image_id'],
-				'image_url'   => $data['image_id'] ? (string) wp_get_attachment_image_url( $data['image_id'], 'thumbnail' ) : '',
+				'image_url'   => self::image( $id, $data['image_id'], 'thumbnail' ),
 			);
 			$card['sku']  = $data['sku'];
 		}
 
 		return $cards;
+	}
+
+	/**
+	 * The image to show: the uploaded one, else an imported one from an allowed host.
+	 *
+	 * @param int    $id       Product ID.
+	 * @param int    $image_id Attachment ID (0 when none).
+	 * @param string $size     Image size.
+	 * @return string URL, or ''.
+	 */
+	private static function image( $id, $image_id, $size ) {
+
+		if ( $image_id ) {
+			$url = (string) wp_get_attachment_image_url( $image_id, $size );
+
+			if ( '' !== $url ) {
+				return $url;
+			}
+		}
+
+		$external = (string) get_post_meta( $id, 'image_url', true );
+
+		return Repository::external_image_ok( $external ) ? $external : '';
 	}
 
 	/**
