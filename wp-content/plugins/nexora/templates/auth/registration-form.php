@@ -46,6 +46,27 @@
 
 		</div>
 
+		<fieldset class="nx-account-choice">
+			<legend><?php esc_html_e( 'I want to join as', 'nexora' ); ?></legend>
+			<label><input type="radio" name="intent" value="customer" checked> <?php esc_html_e( 'Customer', 'nexora' ); ?></label>
+			<label><input type="radio" name="intent" value="seller"> <?php esc_html_e( 'Seller', 'nexora' ); ?></label>
+		</fieldset>
+
+		<div class="nx-seller-fields" hidden>
+			<h3><?php esc_html_e( 'Business details', 'nexora' ); ?></h3>
+			<?php
+			\Nexora\Core\View::output(
+				'seller/business-fields',
+				array(
+					'data'   => array_fill_keys( \Nexora\Vendors\Fields::keys(), '' ),
+					'types'  => \Nexora\Vendors\Fields::business_types(),
+					'locked' => array(),
+					'prefix' => 'nx-signup',
+				)
+			);
+			?>
+		</div>
+
 		<?php echo $captcha_html; // phpcs:ignore WordPress.Security.EscapeOutput -- markup built and escaped by Recaptcha::render() ?>
 
 		<button type="submit" class="profile-registration-form-btn"><?php esc_html_e( 'Create Account', 'nexora' ); ?></button>

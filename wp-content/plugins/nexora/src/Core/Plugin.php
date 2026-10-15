@@ -41,6 +41,17 @@ class Plugin {
 		new \Nexora\Shortcodes\Contact_Form();
 
 		new \Nexora\Database\Migrations();
+		new \Nexora\Accounts\Account_Types();
+		new \Nexora\Vendors\Ajax();
+		new \Nexora\Vendors\Admin();
+		new \Nexora\Core\Post_Guard( \Nexora\Vendors\Repository::POST_TYPE, array( '\Nexora\Vendors\Repository', 'is_internal' ) );
+		new \Nexora\Products\Ajax();
+		new \Nexora\Products\Marketplace_Ajax();
+		new \Nexora\Products\Admin();
+		new \Nexora\Products\Assets();
+		new \Nexora\Core\Post_Guard( \Nexora\Products\Repository::POST_TYPE, array( '\Nexora\Products\Repository', 'is_internal' ), array( 'post_status', 'post_title', 'post_content', 'post_excerpt' ) );
+		new \Nexora\Integrations\Woo_Routes();
+		new \Nexora\Vendors\Assets();
 		new \Nexora\Connections\Cache();
 
 		new I18n();

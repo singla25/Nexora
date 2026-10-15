@@ -43,6 +43,9 @@ class Rate_Limiter {
 			'connection_request' => array( 20, HOUR_IN_SECONDS ),
 			'content_save'       => array( 20, HOUR_IN_SECONDS ),
 			'chat_message'       => array( 30, MINUTE_IN_SECONDS ),
+			'vendor_apply'       => array( 3, DAY_IN_SECONDS ),
+			'product_save'       => array( 60, HOUR_IN_SECONDS ),
+			'marketplace_list'   => array( 120, MINUTE_IN_SECONDS ),
 		);
 	}
 

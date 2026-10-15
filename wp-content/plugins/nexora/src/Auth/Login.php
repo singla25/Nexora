@@ -291,9 +291,13 @@ class Login {
 			wp_send_json_error( __( 'Invalid username or password', 'nexora' ) );
 		}
 
+		// A safe return URL (cart, checkout, a profile...) is followed; anything else lands on the member's own profile.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Urls::safe_return() validates it as a URL on this site.
+		$requested = isset( $_POST['redirect_to'] ) && is_string( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '';
+
 		wp_send_json_success(
 			array(
-				'redirect' => Urls::profile_for( $user ),
+				'redirect' => Urls::after_login( $user, $requested ),
 			)
 		);
 	}

@@ -38,6 +38,43 @@ function nx_test_user( $name ) {
 	return array( 'user_id' => $uid, 'profile_id' => $pid, 'login' => $login );
 }
 
+/** A throwaway administrator (cleaned up with the rest). Returns its user ID. */
+function nx_test_admin() {
+	static $id = 0;
+	if ( $id && get_userdata( $id ) ) { return $id; }
+	$login = 'nxtest_adm_' . wp_generate_password( 5, false );
+	$id = wp_insert_user( array( 'user_login' => $login, 'user_pass' => wp_generate_password(), 'user_email' => $login . '@example.test', 'role' => 'administrator' ) );
+	$GLOBALS['nx_test']['users'][] = $id;
+	return $id;
+}
+
+/**
+ * A member with a vendor application in the given state: 'pending', 'approved' or 'suspended'. Returns the
+ * nx_test_user() array plus 'vendor_id' (the application post) and 'gstin'. Cleaned up with the rest.
+ */
+function nx_test_vendor( $name, $state = 'approved', $gstin = null ) {
+	static $n = 0;
+	$n++;
+	$u     = nx_test_user( $name );
+	$gstin = $gstin ? $gstin : sprintf( '27ABCD%s%04dA1Z5', chr( 65 + ( $n % 26 ) ), wp_rand( 0, 9999 ) );
+	$r     = \Nexora\Vendors\Service::apply( $u['user_id'], array(
+		'business_name' => 'Test Shop ' . $name, 'business_type' => 'other', 'gstin' => $gstin, 'business_email' => $name . '@example.test',
+		'business_phone' => '9811100000', 'business_address' => '1 Test Road', 'business_city' => 'Delhi', 'business_state' => 'Delhi', 'business_pincode' => '110001',
+	) );
+	if ( ! is_array( $r ) ) { throw new RuntimeException( 'nx_test_vendor: application failed: ' . ( is_wp_error( $r ) ? wp_json_encode( $r->get_error_data() ) : 'unknown' ) ); }
+	$GLOBALS['nx_test']['posts'][] = $r['vendor_id'];
+	$u['vendor_id'] = $r['vendor_id'];
+	$u['gstin']     = $gstin;
+	if ( 'pending' !== $state ) {
+		$was = get_current_user_id();
+		wp_set_current_user( nx_test_admin() );
+		\Nexora\Vendors\Service::change_status( $r['vendor_id'], 'approve' );
+		if ( 'suspended' === $state ) { \Nexora\Vendors\Service::change_status( $r['vendor_id'], 'suspend' ); }
+		wp_set_current_user( $was );
+	}
+	return $u;
+}
+
 /** Track any extra post (connection, content) for cleanup. */
 function nx_test_track_post( $post_id ) {
 	$GLOBALS['nx_test']['posts'][] = $post_id;
@@ -196,12 +233,13 @@ function nx_test_finish() {
 /* ------------------------------------------------------------------
  * Golden-output snapshots: pin the exact HTML a refactor must keep producing.
  * Run with NX_UPDATE_GOLDEN=1 to (re)write tests/golden/<name>.html.
- * Whitespace between tags and nonces are normalised; nothing else is.
+ * Whitespace between tags and nonces (form fields and _wpnonce URL args) are normalised; nothing else is.
  * ---------------------------------------------------------------- */
 function nx_golden_normalize( $html ) {
 	$html = (string) $html;
 	$html = preg_replace( '/(name="[\w-]*nonce[\w-]*"[^>]*value=")[a-f0-9]{10}/', '$1{NONCE}', $html );
 	$html = preg_replace( '/(id="[\w-]*nonce[\w-]*"[^>]*value=")[a-f0-9]{10}/', '$1{NONCE}', $html );
+	$html = preg_replace( '/([?&]|&#038;|&amp;)(_wpnonce=)[a-f0-9]{10}/', '$1$2{NONCE}', $html );
 	$html = preg_replace( '/\s+/', ' ', $html );
 	$html = preg_replace( '/>\s+</', '><', $html );
 	return trim( $html );
@@ -217,7 +255,7 @@ function nx_assert_golden( $name, $html ) {
 		nx_assert( strlen( $norm ) > 0, "golden $name is not empty" );
 		return;
 	}
-	$expected = rtrim( file_get_contents( $file ), "\n" );
+	$expected = nx_golden_normalize( rtrim( file_get_contents( $file ), "\n" ) ); // Stored snapshots may predate nonce normalisation.
 	$ok = ( $expected === $norm );
 	if ( ! $ok ) {
 		$i = 0; $n = min( strlen( $expected ), strlen( $norm ) );

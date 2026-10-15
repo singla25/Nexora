@@ -14,6 +14,9 @@
 									<button class="user-edit-info" data-type="address-info"><?php esc_html_e( 'Address', 'nexora' ); ?></button>
 									<button class="user-edit-info" data-type="work-info"><?php esc_html_e( 'Work', 'nexora' ); ?></button>
 									<button class="user-edit-info" data-type="docs-info"><?php esc_html_e( 'Documents', 'nexora' ); ?></button>
+									<?php if ( ! empty( $vendor ) && 'none' !== $vendor['status'] ) : ?>
+										<button class="user-edit-info nx-vendor-open" data-type="business-info" data-template="nx-vendor-tpl-edit" data-title="<?php echo esc_attr__( 'Edit business details', 'nexora' ); ?>"><?php esc_html_e( 'Business', 'nexora' ); ?></button>
+									<?php endif; ?>
 									<button class="user-edit-info" data-type="security-info"><?php esc_html_e( 'Security', 'nexora' ); ?></button>
 								</div>
 
@@ -203,5 +206,8 @@
 								</div>
 							</div>
 						</div>
+						<?php if ( ! empty( $vendor ) ) : ?>
+							<?php \Nexora\Core\View::output( 'profile/vendor-card', array( 'vendor' => $vendor ) ); ?>
+						<?php endif; ?>
 					</div>
 

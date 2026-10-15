@@ -17,19 +17,28 @@
 
 				<!-- TABS -->
 				<div class="profile-tabs">
-					<button class="tab-btn active" data-tab="user-info"><?php esc_html_e( 'User Information', 'nexora' ); ?></button>
-					<button class="tab-btn" data-tab="connections"><?php esc_html_e( 'Connections', 'nexora' ); ?></button>
-					<?php if ( $is_owner ) : ?>
-						<button class="tab-btn" data-tab="content"><?php esc_html_e( 'Content', 'nexora' ); ?></button>
-						<button class="tab-btn" data-tab="notifications">
-							<?php esc_html_e( 'Notifications', 'nexora' ); ?>
-							<?php if ( $unread_count > 0 ) : ?>
-								<span class="noti-badge">
-									<?php echo (int) $unread_count; ?>
-								</span>
-							<?php endif; ?>
-						</button>
-					<?php endif; ?>
+					<?php foreach ( $tabs as $nx_tab ) : ?>
+						<?php if ( 'user-info' === $nx_tab ) : ?>
+							<button class="tab-btn active" data-tab="user-info"><?php esc_html_e( 'User Information', 'nexora' ); ?></button>
+						<?php elseif ( 'connections' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="connections"><?php esc_html_e( 'Connections', 'nexora' ); ?></button>
+						<?php elseif ( 'content' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="content"><?php esc_html_e( 'Content', 'nexora' ); ?></button>
+						<?php elseif ( 'marketplace' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="marketplace"><?php esc_html_e( 'Marketplace', 'nexora' ); ?></button>
+						<?php elseif ( 'my-products' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="my-products"><?php esc_html_e( 'My Products', 'nexora' ); ?></button>
+						<?php elseif ( 'notifications' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="notifications">
+								<?php esc_html_e( 'Notifications', 'nexora' ); ?>
+								<?php if ( $unread_count > 0 ) : ?>
+									<span class="noti-badge">
+										<?php echo (int) $unread_count; ?>
+									</span>
+								<?php endif; ?>
+							</button>
+						<?php endif; ?>
+					<?php endforeach; ?>
 				</div>
 
 				<!-- MAIN CONTENT -->
@@ -37,6 +46,16 @@
 					
 <?php foreach ( array( 'tab-info', 'tab-connections', 'tab-notifications', 'tab-content' ) as $partial ) : ?>
 	<?php \Nexora\Core\View::output( 'profile/' . $partial, $vars ); ?>
+<?php endforeach; ?>
+<?php
+foreach ( array(
+	'marketplace' => 'tab-marketplace',
+	'my-products' => 'tab-my-products',
+) as $nx_tab => $nx_partial ) :
+	?>
+	<?php if ( in_array( $nx_tab, $tabs, true ) ) : ?>
+		<?php \Nexora\Core\View::output( 'profile/' . $nx_partial, $vars ); ?>
+	<?php endif; ?>
 <?php endforeach; ?>
 				</div>
 			</div>

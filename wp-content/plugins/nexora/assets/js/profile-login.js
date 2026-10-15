@@ -11,6 +11,12 @@ jQuery(document).ready(function ($) {
         formData.append('action', 'nexora_profile_login');
         formData.append('nonce', profileData.nonce); // 🔥 ADD THIS
 
+        // Return to the page that sent the visitor here (the server only follows safe URLs)
+        let returnTo = new URLSearchParams(window.location.search).get('redirect_to');
+        if (returnTo) {
+            formData.append('redirect_to', returnTo);
+        }
+
         // 🔥 Add captcha
         let captcha = '';
         if (typeof grecaptcha !== 'undefined') {

@@ -59,5 +59,45 @@ class Registrar {
 				'menu_icon'    => 'dashicons-groups',
 			)
 		);
+
+		// Vendor applications: private, no front-end URL. Approve/suspend happen through Vendors\Admin, not the edit form.
+		register_post_type(
+			'nexora_vendor',
+			array(
+				'label'               => __( 'Vendors', 'nexora' ),
+				'public'              => false,
+				'publicly_queryable'  => false,
+				'exclude_from_search' => true,
+				'has_archive'         => false,
+				'rewrite'             => false,
+				'delete_with_user'    => true,
+				'map_meta_cap'        => true,
+				'capabilities'        => array( 'create_posts' => 'do_not_allow' ),
+				'show_ui'             => true,
+				'supports'            => array( 'title' ),
+				'show_in_menu'        => 'nexora-system',
+				'menu_icon'           => 'dashicons-store',
+			)
+		);
+
+		// Marketplace products: private, no front-end URL. Created, edited and deleted only through Products\Service.
+		register_post_type(
+			'nexora_product',
+			array(
+				'label'               => __( 'Products', 'nexora' ),
+				'public'              => false,
+				'publicly_queryable'  => false,
+				'exclude_from_search' => true,
+				'has_archive'         => false,
+				'rewrite'             => false,
+				'delete_with_user'    => true,
+				'map_meta_cap'        => true,
+				'capabilities'        => array( 'create_posts' => 'do_not_allow' ),
+				'show_ui'             => true,
+				'supports'            => array( 'title' ),
+				'show_in_menu'        => 'nexora-system',
+				'menu_icon'           => 'dashicons-products',
+			)
+		);
 	}
 }
