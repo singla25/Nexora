@@ -19,7 +19,19 @@ foreach ( $opts as $k => $v ) { add_filter( "pre_option_$k", function () use ( $
 set_transient( Nexora_Home_Page::STATS_TRANSIENT, array( 'members' => 1234, 'connections' => 56, 'posts' => 7890, 'chats' => 12 ), HOUR_IN_SECONDS );
 
 /* ---------- clean slate (fixed ids only) ---------- */
-$clean = function () use ( $wpdb ) {
+// The fixed ids push the auto-increment counters into the millions. The site's own counters are read first and put back exactly (never
+// reset to 1, which would let InnoDB hand out the ids of recently deleted real rows again). A counter left in the millions by a
+// crashed earlier run is not trusted: that table is given back to InnoDB (max(id)+1).
+$counter_tables = array( $wpdb->users, $wpdb->posts, "{$wpdb->prefix}nexora_threads", "{$wpdb->prefix}nexora_messages", "{$wpdb->prefix}nexora_notifications", "{$wpdb->prefix}nexora_thread_participants" );
+$counters       = array();
+$wpdb->suppress_errors( true );
+$wpdb->query( 'SET SESSION information_schema_stats_expiry = 0' ); // MySQL 8 caches these statistics; read them fresh (MariaDB has no such setting)
+$wpdb->suppress_errors( false );
+foreach ( $counter_tables as $table ) {
+	$next = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s', $table ) );
+	$counters[ $table ] = ( $next > 0 && $next < 9000000 ) ? $next : 1;
+}
+$clean = function () use ( $wpdb, $counters ) {
 	require_once ABSPATH . 'wp-admin/includes/user.php';
 	foreach ( $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE ID >= 9000000 AND ID < 9100000" ) as $id ) { wp_delete_post( (int) $id, true ); }
 	foreach ( $wpdb->get_col( "SELECT ID FROM {$wpdb->users} WHERE ID >= 9100000" ) as $id ) { wp_delete_user( (int) $id ); }
@@ -27,9 +39,9 @@ $clean = function () use ( $wpdb ) {
 		$wpdb->query( "DELETE FROM {$wpdb->prefix}$t WHERE $w" );
 	}
 	delete_transient( Nexora_Home_Page::STATS_TRANSIENT );
-	// Fixed ids push the auto-increment counters into the millions; give them back (InnoDB uses max(id)+1).
-	foreach ( array( $wpdb->users, $wpdb->posts, "{$wpdb->prefix}nexora_threads", "{$wpdb->prefix}nexora_messages", "{$wpdb->prefix}nexora_notifications", "{$wpdb->prefix}nexora_thread_participants" ) as $table ) {
-		$wpdb->query( "ALTER TABLE $table AUTO_INCREMENT = 1" );
+	// Give the counters back exactly as the site had them (InnoDB never goes below max(id)+1).
+	foreach ( $counters as $table => $next ) {
+		$wpdb->query( "ALTER TABLE $table AUTO_INCREMENT = " . (int) $next );
 	}
 };
 $clean();

@@ -2,6 +2,7 @@
 // Marketplace Phase 6a: may this member buy this product, this many? One set of rules for the button, the add endpoint,
 // cart load and checkout. Pure reads: nothing here changes the database.
 require_once __DIR__ . '/../bootstrap.php';
+nx_test_marketplace_item_scope(); // the cart goes through a scratch Marketplace Item; the real one (real orders point at it) is never touched
 
 use Nexora\Marketplace\Cart_Rules;
 use Nexora\Products\Repository;

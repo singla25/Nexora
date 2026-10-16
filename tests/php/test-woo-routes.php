@@ -16,6 +16,7 @@ global $wpdb;
 
 /* ---------- Woo's sign-up and login-at-checkout options are forced off ---------- */
 $keys = array( 'woocommerce_enable_signup_and_login_from_checkout', 'woocommerce_enable_checkout_login_reminder', 'woocommerce_enable_myaccount_registration' );
+nx_test_options_keep( $keys );
 $raw  = array();
 foreach ( $keys as $k ) { $raw[ $k ] = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $k ) ); }
 foreach ( $keys as $k ) {
@@ -24,9 +25,7 @@ foreach ( $keys as $k ) {
 }
 nx_assert( false === WC()->checkout()->is_registration_enabled(), 'Woo reports checkout registration as disabled' );
 nx_assert( 'no' === get_option( 'woocommerce_enable_checkout_login_reminder' ), 'the login reminder at checkout is off' );
-foreach ( $keys as $k ) {
-	if ( null === $raw[ $k ] ) { delete_option( $k ); } else { $wpdb->update( $wpdb->options, array( 'option_value' => $raw[ $k ] ), array( 'option_name' => $k ) ); }
-}
+nx_test_options_restore(); // the site's own values come back here, exactly
 wp_cache_flush();
 foreach ( $keys as $k ) {
 	nx_assert_same( $raw[ $k ], $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $k ) ), "the test restored the real stored value of $k" );

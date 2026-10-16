@@ -10,6 +10,7 @@ global $wpdb;
 nx_test_capture_mail();
 nx_test_reset_limits();
 add_filter( 'nexora_resolve_host', function () { return array( '93.184.216.34' ); } ); // no real DNS in tests
+nx_test_options( array( 'nexora_api_sources' => null, 'nexora_vendor_apis_enabled' => null, 'nexora_api_host_allowlist' => null ) ); // the test's own known settings (the site's are put back at the end)
 
 $A = nx_test_vendor( 'apa', 'approved' );
 $B = nx_test_vendor( 'apb', 'approved' );
@@ -41,7 +42,7 @@ $mock = function ( array $routes ) {
 	return $f;
 };
 $unmock = function ( $f ) { remove_filter( 'pre_http_request', $f, 10 ); };
-$flush  = function () use ( $wpdb ) { $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_nexora\\_api\\_%' OR option_name LIKE '\\_transient\\_timeout\\_nexora\\_api\\_%'" ); wp_cache_flush(); };
+$flush = function () { nx_test_flush_api_cache(); };
 
 /* ---------- the request ---------- */
 $f = $mock( array( 0 => array( 200, $page( array( $item( 1 ) ), 1 ) ) ) );
@@ -211,7 +212,6 @@ $unmock( $f );
 /* ---------- the address comes from the settings only, and is checked ---------- */
 $f = $mock( array( 0 => array( 200, $page( $good, 3 ) ) ) );
 $flush();
-$saved_sources = get_option( 'nexora_api_sources', '__unset__' );
 foreach ( array( 'https://evil.example/products' => 'refused: a host that resolves privately is covered in test-url-guard; here, http', 'http://dummyjson.com/products' => 'plain http', 'https://localhost/products' => 'localhost', 'https://127.0.0.1/products' => 'an IP address' ) as $url => $why ) {
 	if ( 'https://evil.example/products' === $url ) { continue; }
 	$rows = \Nexora\Imports\Sources::defaults(); $rows[0]['url'] = $url; update_option( 'nexora_api_sources', $rows );
@@ -219,7 +219,6 @@ foreach ( array( 'https://evil.example/products' => 'refused: a host that resolv
 	$r = Api_Source::fetch();
 	nx_assert( '' !== $r['fetch_error'] && array() === $GLOBALS['nx_http'] && array() === $r['items'], "a source set to $why is refused before any request is made" );
 }
-if ( '__unset__' === $saved_sources ) { delete_option( 'nexora_api_sources' ); } else { update_option( 'nexora_api_sources', $saved_sources ); }
 $unmock( $f );
 
 /* ---------- no credential or internal detail in a report ---------- */

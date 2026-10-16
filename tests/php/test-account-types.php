@@ -5,6 +5,8 @@ require_once __DIR__ . '/../bootstrap.php';
 use Nexora\Accounts\Account_Types;
 
 global $wpdb;
+// This test removes and re-creates the vendor role and edits two settings; the site's originals (the roles table included) come back at the end.
+nx_test_options_keep( array( $wpdb->prefix . 'user_roles', 'nexora_accounts_version', 'nexora_delete_data_on_uninstall' ) );
 
 /* ---------- role registration: idempotent, self-upgrading ---------- */
 remove_role( Account_Types::ROLE );

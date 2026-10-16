@@ -13,17 +13,14 @@ use Nexora\Core\View;
 global $wpdb;
 nx_test_capture_mail();
 nx_test_reset_limits();
-$saved = array( get_option( 'nexora_api_sources', '__unset__' ), get_option( 'nexora_vendor_apis_enabled', '__unset__' ), get_option( 'nexora_api_host_allowlist', '__unset__' ) );
-delete_option( 'nexora_api_sources' );
-update_option( 'nexora_vendor_apis_enabled', 1 );
-delete_option( 'nexora_api_host_allowlist' );
+nx_test_options( array( 'nexora_api_sources' => null, 'nexora_vendor_apis_enabled' => 1, 'nexora_api_host_allowlist' => null ) );
 add_filter( 'nexora_resolve_host', function () { return array( '93.184.216.34' ); } ); // no real DNS in tests
 
 $A = nx_test_vendor( 'lma', 'approved' );
 $B = nx_test_vendor( 'lmb', 'approved' );
 $count = function () use ( $wpdb ) { return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'nexora_product'" ); };
 $track = function ( $v ) { foreach ( Repository::ids_for_vendor( $v['vendor_id'] ) as $id ) { $GLOBALS['nx_test']['posts'][] = $id; } foreach ( Conns::for_vendor( $v['vendor_id'] ) as $c ) { $GLOBALS['nx_test']['posts'][] = $c['id']; } };
-$flush = function () use ( $wpdb ) { $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_nexora\\_api\\_%' OR option_name LIKE '\\_transient\\_timeout\\_nexora\\_api\\_%'" ); wp_cache_flush(); };
+$flush = function () { nx_test_flush_api_cache(); };
 $call = function ( $uid, $action, array $post = array() ) {
 	nx_test_reset_limits();
 	wp_set_current_user( $uid );
@@ -297,9 +294,5 @@ nx_assert( 1 === preg_match( '/\.nx-api-limit[^;]*change[^}]*token\s*=\s*\'\'|ch
 nx_assert( false !== strpos( $js, 'feed_note' ), 'the preview shows the server\'s "Showing the first N of M" line' );
 nx_assert( false === strpos( $js, 'innerHTML' ) && false === strpos( $js, 'eval(' ), 'still no raw HTML and no eval' );
 
-// restore
-foreach ( array( 'nexora_api_sources', 'nexora_vendor_apis_enabled', 'nexora_api_host_allowlist' ) as $i => $opt ) {
-	if ( '__unset__' === $saved[ $i ] ) { delete_option( $opt ); } else { update_option( $opt, $saved[ $i ] ); }
-}
 $track( $A ); $track( $B );
 nx_test_finish();

@@ -172,9 +172,7 @@ nx_assert( nx_rejected( $last ), 'ajax: the 4th listing request in a minute is r
 remove_all_filters( 'nexora_rate_limits' );
 
 /* ---------- category setting ---------- */
-$old = get_option( 'nexora_product_categories', '__unset__' );
-update_option( 'nexora_product_categories', "Gadgets\nGarden Tools" );
+update_option( 'nexora_product_categories', "Gadgets\nGarden Tools" ); // (scoped by nx_test_default_settings(): the site's value comes back at the end)
 nx_assert_same( array( 'gadgets', 'garden-tools', 'other' ), array_keys( \Nexora\Products\Fields::categories() ), 'the category list comes from the setting, one per line, and keeps Other' );
-if ( '__unset__' === $old ) { delete_option( 'nexora_product_categories' ); } else { update_option( 'nexora_product_categories', $old ); }
 
 nx_test_finish();

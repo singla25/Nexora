@@ -3,6 +3,7 @@
 // the cart-related wc-ajax actions, the cart and checkout pages, Woo's login / registration / lost-password handlers; and guest
 // checkout stays off.
 require_once __DIR__ . '/../bootstrap.php';
+nx_test_marketplace_item_scope(); // the cart goes through a scratch Marketplace Item; the real one (real orders point at it) is never touched
 
 use Nexora\Core\Urls;
 use Nexora\Integrations\Woo_Routes;
@@ -89,12 +90,12 @@ nx_assert_same( Urls::login(), wp_lostpassword_url(), 'and so is WordPress\'s' )
 nx_assert_same( Urls::login(), apply_filters( 'woocommerce_lostpassword_url', 'https://x.example/wp-login.php?action=lostpassword' ), 'whatever address was proposed' );
 
 /* ---------- guest checkout stays off, whatever the settings say ---------- */
-$raw = $wpdb->get_var( "SELECT option_value FROM {$wpdb->options} WHERE option_name = 'woocommerce_enable_guest_checkout'" );
+nx_test_options_keep( array( 'woocommerce_enable_guest_checkout' ) );
 update_option( 'woocommerce_enable_guest_checkout', 'yes' );
 nx_assert_same( 'no', get_option( 'woocommerce_enable_guest_checkout' ), 'guest checkout reads as "no" even when the database says yes' );
 nx_assert( in_array( 'woocommerce_enable_guest_checkout', Woo_Routes::forced_off_options(), true ), 'it is on the forced-off list with the other sign-up options' );
 nx_assert( true === WC()->checkout()->is_registration_required(), 'so WooCommerce requires an account to check out' );
-if ( null === $raw ) { delete_option( 'woocommerce_enable_guest_checkout' ); } else { $wpdb->update( $wpdb->options, array( 'option_value' => $raw ), array( 'option_name' => 'woocommerce_enable_guest_checkout' ) ); }
+nx_test_options_restore(); // the site's own value comes back right here, exactly
 wp_cache_flush();
 
 /* ---------- the cart and checkout pages send guests to sign in ---------- */

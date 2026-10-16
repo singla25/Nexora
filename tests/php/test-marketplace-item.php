@@ -8,6 +8,7 @@ use Nexora\Marketplace\Marketplace_Item;
 if ( ! function_exists( 'wc_get_product' ) ) { echo "WooCommerce not active: skipped\n"; nx_test_finish(); return; }
 
 global $wpdb;
+nx_test_marketplace_item_scope(); // a scratch item: the site's real one (real orders point at it) is never edited or deleted
 $count = function () use ( $wpdb ) { return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE m.meta_key = '_nexora_marketplace_item' AND p.post_status <> 'trash'" ); };
 
 /* ---------- created once, with the right shape ---------- */
@@ -82,9 +83,8 @@ nx_assert_same( 1, $count(), 'still exactly one' );
 nx_assert_same( $id, (int) get_option( Marketplace_Item::OPTION ), 'and the option is corrected' );
 
 // Concurrent creation: only one request creates it; the other gets "not now".
-wp_delete_post( $id, true );
-delete_option( Marketplace_Item::OPTION );
-foreach ( wc_get_products( array( 'limit' => -1, 'return' => 'ids', 'meta_key' => '_nexora_marketplace_item', 'meta_value' => '1' ) ) as $leftover ) { wp_delete_post( $leftover, true ); }
+nx_test_write_raw_option( Marketplace_Item::OPTION, null ); // so deleting the scratch items does not make a new one
+foreach ( nx_test_marketplace_item_scratch_ids() as $scratch_id ) { wp_delete_post( $scratch_id, true ); }
 nx_assert_same( 0, $count(), 'setup: no item at all' );
 nx_assert( Lock::take( Marketplace_Item::LOCK ), 'setup: another request holds the creation lock' );
 nx_assert_same( 0, Marketplace_Item::id(), 'while the lock is held and there is no item, id() says 0 (try again) and creates nothing' );
@@ -97,5 +97,5 @@ nx_assert( $id > 0 && 1 === $count(), 'once the lock is free it is created (once
 nx_assert( Marketplace_Item::is_item( $id ) && ! Marketplace_Item::is_item( $id + 12345 ) && ! Marketplace_Item::is_item( 0 ) && ! Marketplace_Item::is_item( 'x' ), 'is_item() recognises only the Marketplace Item' );
 nx_assert( in_array( Marketplace_Item::OPTION, \Nexora\Database\Uninstaller::defaults()['options'], true ), 'the option is on the uninstall list' );
 
-Marketplace_Item::id(); // leave the dev site with one valid item (this test deletes and recreates it)
+Marketplace_Item::id(); // (the scratch items are removed and the real item put back when the test finishes)
 nx_test_finish();

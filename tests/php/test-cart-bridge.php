@@ -3,6 +3,7 @@
 // vendor and stock are read from the product post, never from the request; a product that changes (or disappears) while it sits in
 // the cart is fixed on the next load and the member is told what changed; checkout re-checks without fixing.
 require_once __DIR__ . '/../bootstrap.php';
+nx_test_marketplace_item_scope(); // the cart goes through a scratch Marketplace Item; the real one (real orders point at it) is never touched
 
 use Nexora\Marketplace\Cart_Bridge;
 use Nexora\Marketplace\Cart_Panel;

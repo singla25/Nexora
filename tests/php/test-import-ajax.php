@@ -36,7 +36,7 @@ $mock = function ( array $items ) {
 	add_filter( 'pre_http_request', $f, 10, 3 );
 	return $f;
 };
-$flush = function () use ( $wpdb ) { $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_nexora\\_api\\_%' OR option_name LIKE '\\_transient\\_timeout\\_nexora\\_api\\_%'" ); wp_cache_flush(); };
+$flush = function () { nx_test_flush_api_cache(); };
 
 /* ---------- gating: all four actions ---------- */
 foreach ( array( 'nexora_csv_preview', 'nexora_csv_import', 'nexora_api_preview', 'nexora_api_import' ) as $action ) {

@@ -7,10 +7,7 @@ use Nexora\Core\Secrets;
 use Nexora\Imports\Sources;
 
 global $wpdb;
-$saved = array( get_option( 'nexora_api_sources', '__unset__' ), get_option( 'nexora_vendor_apis_enabled', '__unset__' ), get_option( 'nexora_api_host_allowlist', '__unset__' ) );
-delete_option( 'nexora_api_sources' );
-delete_option( 'nexora_vendor_apis_enabled' );
-delete_option( 'nexora_api_host_allowlist' );
+nx_test_options( array( 'nexora_api_sources' => null, 'nexora_vendor_apis_enabled' => null, 'nexora_api_host_allowlist' => null ) );
 
 /* ---------- seeded with DummyJSON, vendor APIs off ---------- */
 $all = Sources::all();
@@ -101,8 +98,4 @@ nx_assert( 1 === preg_match( '/name="nexora_api_sources\[\d+\]\[format\]"/', $ht
 nx_assert( 1 === preg_match( '/name="nexora_api_sources\[\d+\]\[auth_type\]"/', $html ) && false !== strpos( $html, 'Header key' ) && false !== strpos( $html, 'Bearer' ), 'and an auth choice (none, header key, bearer)' );
 nx_assert( preg_match_all( '/name="nexora_api_sources\[\d+\]\[name\]"/', $html ) >= count( Sources::all() ) + 2, 'there are blank rows to add sources' );
 
-// restore
-foreach ( array( 'nexora_api_sources', 'nexora_vendor_apis_enabled', 'nexora_api_host_allowlist' ) as $i => $opt ) {
-	if ( '__unset__' === $saved[ $i ] ) { delete_option( $opt ); } else { update_option( $opt, $saved[ $i ] ); }
-}
 nx_test_finish();

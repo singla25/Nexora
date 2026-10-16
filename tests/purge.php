@@ -47,18 +47,8 @@ foreach ( $user_ids as $uid ) {
 	$removed['users']++;
 }
 
-// mocked API pages and import tokens left by a crashed import test
-foreach ( array( '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%', '\\_transient\\_nexora\\_import\\_%', '\\_transient\\_timeout\\_nexora\\_import\\_%' ) as $like ) {
-	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
-}
-
-// GSTIN locks left by a crashed application test
-$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'nexora\\_vendor\\_lock\\_%'" );
-
-// rate-limit counters and OTP references made by tests
-foreach ( array( '\\_transient\\_nexora\\_otp%', '\\_transient\\_timeout\\_nexora\\_otp%', 'nexora\\_rl\\_%', '\\_transient\\_nx\\_%', '\\_transient\\_timeout\\_nx\\_%' ) as $like ) {
-	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
-}
+// Rate-limit counters, cached API pages, import previews and locks are NOT swept here: they belong to whoever is using the site, and a
+// test run puts back what it set aside and removes only what it made itself (tests/bootstrap.php, nx_test_ephemera_*).
 
 if ( array_sum( $removed ) ) {
 	echo 'purged leftover test data: ' . wp_json_encode( $removed ) . "\n";
