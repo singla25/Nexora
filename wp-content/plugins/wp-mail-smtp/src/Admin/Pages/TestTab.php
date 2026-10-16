@@ -298,7 +298,7 @@ class TestTab extends PageAbstract {
 					<span><?php esc_html_e( 'Send Email', 'wp-mail-smtp' ); ?></span>
 					<?php echo wp_mail_smtp()->prepare_loader( 'white', 'sm' ); // phpcs:ignore ?>
 				</button>
-				<?php echo $help_text; ?>
+				<?php echo wp_kses_post( $help_text ); ?>
 			</p>
 			<?php $this->post_form_hidden_field(); ?>
 		</form>
@@ -510,10 +510,11 @@ class TestTab extends PageAbstract {
 				<?php
 				echo wp_kses(
 					sprintf(
-						/* translators: %1$s - plugin name (bold). %2$s - settings-page hyperlink. */
-						__( '%1$s was installed and activated, please visit their %2$s to configure it.', 'wp-mail-smtp' ),
+						/* translators: %1$s - plugin name (bold), %2$s - opening link tag, %3$s - closing link tag. */
+						__( '%1$s was installed and activated, please visit their %2$ssettings page%3$s to configure it.', 'wp-mail-smtp' ),
 						'<strong class="wpms:font-medium! wpms:text-primary">' . esc_html( $product['name'] ) . '</strong>',
-						'<a href="' . esc_url( $product['settings_page_url'] ) . '" class="wpms:font-medium! wpms:text-link wpms:underline">' . esc_html__( 'settings page', 'wp-mail-smtp' ) . '</a>'
+						'<a href="' . esc_url( $product['settings_page_url'] ) . '" class="wpms:font-medium! wpms:text-link wpms:underline">',
+						'</a>'
 					),
 					[
 						'strong' => [ 'class' => [] ],

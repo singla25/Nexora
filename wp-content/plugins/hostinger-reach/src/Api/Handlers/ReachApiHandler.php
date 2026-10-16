@@ -80,6 +80,7 @@ class ReachApiHandler extends ApiHandler {
          * email: string - - Contact email
          * name: string (optional) - Contact name
          * surname: string (optional) - Contact surname
+         * phone: string (optional) - Contact phone number in E.164 format
          * group: string (optional) - The group to which the contact belongs WordPress by default
          * metadata: array (optional) - Additional metadata to be sent with the contact
          *    - plugin: string - The name of the plugin sending the contact
@@ -153,6 +154,7 @@ class ReachApiHandler extends ApiHandler {
         $email    = $request->get_param( 'email' );
         $name     = $request->get_param( 'name' );
         $surname  = $request->get_param( 'surname' );
+        $phone    = $request->get_param( 'phone' );
         $form_id  = $request->get_param( 'id' );
         $metadata = $request->get_param( 'metadata' );
         $tags     = $request->get_param( 'tags' );
@@ -166,6 +168,7 @@ class ReachApiHandler extends ApiHandler {
                 'email'    => $email,
                 'name'     => $name,
                 'surname'  => $surname,
+                'phone'    => $phone,
                 'metadata' => $metadata,
             )
         );
@@ -460,6 +463,10 @@ class ReachApiHandler extends ApiHandler {
 
         if ( ! empty( $data['surname'] ) ) {
             $contact['surname'] = $this->ensure_utf8( (string) $data['surname'] );
+        }
+
+        if ( ! empty( $data['phone'] ) ) {
+            $contact['phone'] = $this->ensure_utf8( $data['phone'] );
         }
 
         $metadata = $data['metadata'] ?? array();

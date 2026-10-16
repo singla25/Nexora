@@ -21,6 +21,7 @@ use Hostinger\Reach\Integrations\WPFormsLite\WpFormsLiteIntegration;
 use Hostinger\Reach\Integrations\WSForms\WSFormsIntegration;
 use Hostinger\Reach\Repositories\ContactListRepository;
 use Hostinger\Reach\Repositories\FormRepository;
+use Hostinger\Reach\Utils\PhoneNumberFormatter;
 
 if ( ! defined( 'ABSPATH' ) ) {
     die;
@@ -60,6 +61,7 @@ class IntegrationsProvider implements ProviderInterface {
             ),
             WooCommerceIntegration::class  => array(
                 $container->get( FormRepository::class ),
+                $container->get( PhoneNumberFormatter::class ),
             ),
             NinjaFormsIntegration::class   => array(),
             SureFormsIntegration::class    => array(),

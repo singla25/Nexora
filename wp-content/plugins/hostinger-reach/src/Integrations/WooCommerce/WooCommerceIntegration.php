@@ -9,6 +9,7 @@ use Hostinger\Reach\Integrations\IntegrationInterface;
 use Hostinger\Reach\Integrations\IntegrationWithForms;
 use Hostinger\Reach\Dto\PluginData;
 use Hostinger\Reach\Repositories\FormRepository;
+use Hostinger\Reach\Utils\PhoneNumberFormatter;
 use stdClass;
 use WC_Order;
 use WP_Post;
@@ -17,9 +18,18 @@ use WP_REST_Request;
 class WooCommerceIntegration extends IntegrationWithForms implements IntegrationInterface {
     public FormRepository $form_repository;
 
-    public const INTEGRATION_NAME     = 'woocommerce';
-    public const OPTIN_KEY            = 'hostinger_reach_optin';
-    public const ORDER_META_OPTIN_KEY = '_wc_other/hostinger-reach/newsletter-optin';
+    private PhoneNumberFormatter $phone_number_formatter;
+
+    public const INTEGRATION_NAME         = 'woocommerce';
+    public const OPTIN_KEY                = 'hostinger_reach_optin';
+    public const ORDER_META_OPTIN_KEY     = '_wc_other/hostinger-reach/newsletter-optin';
+    public const BILLING_PHONE_META_KEY   = 'billing_phone';
+    public const BILLING_COUNTRY_META_KEY = 'billing_country';
+
+    public function __construct( FormRepository $form_repository, PhoneNumberFormatter $phone_number_formatter ) {
+        parent::__construct( $form_repository );
+        $this->phone_number_formatter = $phone_number_formatter;
+    }
 
     public static function get_name(): string {
         return self::INTEGRATION_NAME;
@@ -161,6 +171,7 @@ class WooCommerceIntegration extends IntegrationWithForms implements Integration
         $email   = $order->get_billing_email();
         $name    = $order->get_billing_first_name();
         $surname = $order->get_billing_last_name();
+        $phone   = $this->phone_number_formatter->to_e164( $order->get_billing_phone(), $order->get_billing_country() );
         if ( $email ) {
             do_action(
                 'hostinger_reach_submit',
@@ -169,6 +180,7 @@ class WooCommerceIntegration extends IntegrationWithForms implements Integration
                     'email'    => $email,
                     'name'     => $name,
                     'surname'  => $surname,
+                    'phone'    => $phone,
                     'metadata' => array(
                         'plugin' => self::INTEGRATION_NAME,
                     ),
@@ -220,9 +232,8 @@ class WooCommerceIntegration extends IntegrationWithForms implements Integration
         }
 
         global $wpdb;
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-        $table = $wpdb->prefix . 'wc_customer_lookup';
-        $sql   = "SELECT email, first_name FROM {$table}";
+        $table = $this->get_woocommerce_customer_table();
+        $sql   = "SELECT email, first_name, last_name, user_id, customer_id, country FROM {$table}";
 
         if ( $limit > 0 ) {
             $sql .= $wpdb->prepare( ' LIMIT %d', $limit );
@@ -232,11 +243,22 @@ class WooCommerceIntegration extends IntegrationWithForms implements Integration
             $sql .= $wpdb->prepare( ' OFFSET %d', $offset );
         }
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The table name is built from the database prefix; the limit and offset go through prepare().
+        $customers       = $wpdb->get_results( $sql );
+        $billing_details = $this->get_billing_details_by_user_id( $customers );
+
         return array_map(
-            function ( stdClass $user ) {
+            function ( stdClass $customer ) use ( $billing_details ): array {
+                $user_id = (int) ( $customer->user_id ?? 0 );
+
                 return array(
-                    'email'    => $user->email ?? '',
-                    'name'     => $user->first_name ?? '',
+                    'email'    => $customer->email ?? '',
+                    'name'     => $customer->first_name ?? '',
+                    'surname'  => $customer->last_name ?? '',
+                    'phone'    => $this->phone_number_formatter->to_e164(
+                        $billing_details[ $user_id ]['phone'] ?? '',
+                        $billing_details[ $user_id ]['country'] ?? ''
+                    ),
                     'metadata' => array(
                         'form_id' => wc_get_page_id( 'checkout' ),
                         'plugin'  => self::INTEGRATION_NAME,
@@ -244,8 +266,7 @@ class WooCommerceIntegration extends IntegrationWithForms implements Integration
                     ),
                 );
             },
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $wpdb->get_results( $sql )
+            $customers
         );
     }
 
@@ -256,7 +277,7 @@ class WooCommerceIntegration extends IntegrationWithForms implements Integration
         }
 
         $table = $this->get_woocommerce_customer_table();
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name is built from the database prefix.
         return $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ) ?? 0;
     }
 
@@ -264,26 +285,141 @@ class WooCommerceIntegration extends IntegrationWithForms implements Integration
         $customer_id = get_current_user_id();
         $order       = wc_get_order( $oder_id );
 
-        if ( $customer_id > 0 ) {
-            update_user_meta( $customer_id, self::OPTIN_KEY, $opted_in ? 'yes' : 'no' );
-        } elseif ( $order ) {
-            $order->update_meta_data( self::ORDER_META_OPTIN_KEY, $opted_in ? 'yes' : 'no' );
+        $value = $opted_in ? 'yes' : 'no';
+
+        if ( $order ) {
+            $order->update_meta_data( self::ORDER_META_OPTIN_KEY, $value );
             $order->save();
+        }
+
+        if ( $customer_id > 0 ) {
+            update_user_meta( $customer_id, self::OPTIN_KEY, $value );
         }
     }
 
     private function is_opted_in( mixed $oder_id = false ): bool {
-        $customer_id = get_current_user_id();
-        $order       = wc_get_order( $oder_id );
-        $is_opted_in = false;
+        $order = wc_get_order( $oder_id );
 
-        if ( $customer_id > 0 ) {
-            $is_opted_in = get_user_meta( get_current_user_id(), self::OPTIN_KEY, true );
-        } elseif ( $order ) {
-            $is_opted_in = $order->get_meta( self::ORDER_META_OPTIN_KEY, true );
+        if ( $order ) {
+            $order_optin = $order->get_meta( self::ORDER_META_OPTIN_KEY, true );
+
+            if ( $order_optin !== '' ) {
+                return $order_optin === 'yes';
+            }
         }
 
-        return $is_opted_in === 'yes';
+        $customer_id = get_current_user_id();
+
+        if ( $customer_id > 0 ) {
+            return get_user_meta( $customer_id, self::OPTIN_KEY, true ) === 'yes';
+        }
+
+        return false;
+    }
+
+    private function get_billing_details_by_user_id( array $customers ): array {
+        $account_holders = array_filter(
+            $customers,
+            function ( stdClass $customer ): bool {
+                return (int) ( $customer->user_id ?? 0 ) > 0;
+            }
+        );
+
+        $billing_details = $this->get_profile_billing_details( $account_holders );
+
+        $without_a_phone = array_filter(
+            $account_holders,
+            function ( stdClass $customer ) use ( $billing_details ): bool {
+                return $billing_details[ (int) $customer->user_id ]['phone'] === '';
+            }
+        );
+
+        return array_replace( $billing_details, $this->get_latest_order_billing_details( $without_a_phone ) );
+    }
+
+    private function get_profile_billing_details( array $account_holders ): array {
+        update_meta_cache( 'user', wp_list_pluck( $account_holders, 'user_id' ) );
+
+        $billing_details = array();
+
+        foreach ( $account_holders as $customer ) {
+            $user_id = (int) $customer->user_id;
+            $country = (string) get_user_meta( $user_id, self::BILLING_COUNTRY_META_KEY, true );
+
+            $billing_details[ $user_id ] = array(
+                'phone'   => (string) get_user_meta( $user_id, self::BILLING_PHONE_META_KEY, true ),
+                'country' => $country ?: (string) ( $customer->country ?? '' ),
+            );
+        }
+
+        return $billing_details;
+    }
+
+    private function get_latest_order_billing_details( array $customers ): array {
+        $customers_by_lookup_id = array();
+
+        foreach ( $customers as $customer ) {
+            $lookup_customer_id = (int) ( $customer->customer_id ?? 0 );
+
+            if ( $lookup_customer_id > 0 ) {
+                $customers_by_lookup_id[ $lookup_customer_id ] = $customer;
+            }
+        }
+
+        $billing_details = array();
+
+        foreach ( $this->get_latest_order_ids( array_keys( $customers_by_lookup_id ) ) as $lookup_customer_id => $order_id ) {
+            $order = wc_get_order( $order_id );
+            $phone = $order instanceof WC_Order ? (string) $order->get_billing_phone() : '';
+
+            if ( $phone === '' ) {
+                continue;
+            }
+
+            $customer = $customers_by_lookup_id[ $lookup_customer_id ];
+            $country  = (string) $order->get_billing_country();
+
+            $billing_details[ (int) $customer->user_id ] = array(
+                'phone'   => $phone,
+                'country' => $country ?: (string) ( $customer->country ?? '' ),
+            );
+        }
+
+        return $billing_details;
+    }
+
+    private function get_latest_order_ids( array $lookup_customer_ids ): array {
+        $table = $this->get_woocommerce_order_stats_table();
+
+        if ( empty( $lookup_customer_ids ) || ! $this->table_exists( $table ) ) {
+            return array();
+        }
+
+        global $wpdb;
+
+        $placeholders = implode( ', ', array_fill( 0, count( $lookup_customer_ids ), '%d' ) );
+
+        $sql = "SELECT orders.customer_id, MAX(orders.order_id) AS order_id
+                FROM %i AS orders
+                INNER JOIN (
+                    SELECT customer_id, MAX(date_created) AS latest_date
+                    FROM %i
+                    WHERE parent_id = 0 AND customer_id IN ( {$placeholders} )
+                    GROUP BY customer_id
+                ) AS latest ON latest.customer_id = orders.customer_id AND latest.latest_date = orders.date_created
+                WHERE orders.parent_id = 0
+                GROUP BY orders.customer_id";
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Only the placeholder list is interpolated; the table names and the customer IDs go through prepare().
+        $rows = $wpdb->get_results( $wpdb->prepare( $sql, $table, $table, ...$lookup_customer_ids ) );
+
+        $order_ids = array();
+
+        foreach ( $rows as $row ) {
+            $order_ids[ (int) $row->customer_id ] = (int) $row->order_id;
+        }
+
+        return $order_ids;
     }
 
     private function get_woocommerce_customer_table(): string {
@@ -291,12 +427,19 @@ class WooCommerceIntegration extends IntegrationWithForms implements Integration
         return "{$wpdb->prefix}wc_customer_lookup";
     }
 
-    private function is_woo_customer_data_available(): bool {
+    private function get_woocommerce_order_stats_table(): string {
         global $wpdb;
-        $table = $this->get_woocommerce_customer_table();
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-        $table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table'" ) === $table;
-        return function_exists( 'wc_get_page_id' ) && $table_exists;
+        return "{$wpdb->prefix}wc_order_stats";
+    }
+
+    private function is_woo_customer_data_available(): bool {
+        return function_exists( 'wc_get_page_id' ) && $this->table_exists( $this->get_woocommerce_customer_table() );
+    }
+
+    private function table_exists( string $table ): bool {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name is built from the database prefix.
+        return $wpdb->get_var( "SHOW TABLES LIKE '$table'" ) === $table;
     }
 
     private function load_template(): void {

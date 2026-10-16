@@ -3,11 +3,13 @@
 namespace WPMailSMTP\Admin\SetupWizard;
 
 use WPMailSMTP\Admin\Area;
+use WPMailSMTP\Admin\Dashboard\Page as DashboardPage;
 use WPMailSMTP\Options;
 use WPMailSMTP\Providers\Gmail\Auth as GmailAuth;
 use WPMailSMTP\Reports\Emails\Summary as SummaryReportEmail;
 use WPMailSMTP\SettingsImport\SettingsImport;
 use WPMailSMTP\WP;
+use WPMailSMTP\Helpers\Helpers;
 
 /**
  * The hosted Setup Wizard: a cross-origin SPA the plugin hands off to, backed by
@@ -158,7 +160,7 @@ class Hosted {
 				'css_url'              => $assets_url . '/vue/css/wizard' . $rtl . '.min.css?ver=' . WPMS_PLUGIN_VER,
 				'logo_url'             => $assets_url . '/vue/img/logo.svg',
 				'loading_url'          => $assets_url . '/vue/img/loading-pattie.svg',
-				'settings_url'         => wp_mail_smtp()->get_admin()->get_admin_page_url(),
+				'dashboard_url'        => wp_mail_smtp()->get_admin()->get_admin_page_url( DashboardPage::SLUG ),
 				// A site with nothing to transfer to is shown no transfer notice.
 				'is_local_environment' => WP::is_local_environment(),
 			],
@@ -239,8 +241,9 @@ class Hosted {
 			[
 				// Clear of the hosted wizard's own budget for reaching this site and
 				// answering, and inside a 30 second max_execution_time.
-				'timeout' => 12,
-				'body'    => array_merge(
+				'timeout'    => 12,
+				'user-agent' => Helpers::get_default_user_agent(),
+				'body'       => array_merge(
 					[
 						'token'           => $token,
 						'rest_url'        => $this->api->get_url(),
@@ -510,7 +513,7 @@ class Hosted {
 		return [
 			'is_multisite'         => is_multisite(),
 			'translations'         => WP::get_jed_locale_data( 'wp-mail-smtp' ),
-			'plugin_admin_url'     => wp_mail_smtp()->get_admin()->get_admin_page_url(),
+			'plugin_admin_url'     => wp_mail_smtp()->get_admin()->get_admin_page_url( DashboardPage::SLUG ),
 			'wizard_restart_url'   => Launcher::get_url(),
 			'email_test_tab_url'   => add_query_arg( 'tab', 'test', wp_mail_smtp()->get_admin()->get_admin_page_url( Area::SLUG . '-tools' ) ),
 			'is_pro'               => wp_mail_smtp()->is_pro(),

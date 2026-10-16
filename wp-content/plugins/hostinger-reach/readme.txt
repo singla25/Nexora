@@ -2,9 +2,9 @@
 Tags: email marketing, marketing, newsletter, subscription, lead generation
 Contributors: hostinger
 Requires at least: 6.3
-Requires PHP: 8.0
+Requires PHP: 8.1
 Tested up to: 7.1
-Stable tag: 1.8.5
+Stable tag: 1.8.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -162,6 +162,16 @@ Not yet. Currently, Reach is focused on one-time newsletters and promotional cam
 == Screenshots ==
 
 == Changelog ==
+
+1.8.7 (2026-10-14)
+
+- Feature: Sync WooCommerce customer phone numbers to Reach contacts
+- Tweak: Bump required PHP version in readme.txt to 8.1
+- Fix: Fixed the WooCommerce newsletter opt-in being lost when a shopper creates an account during block checkout.
+
+1.8.6 (2026-10-07)
+
+- Fix: Include the customer's last name when importing WooCommerce customers
 
 1.8.5 (2026-10-01)
 

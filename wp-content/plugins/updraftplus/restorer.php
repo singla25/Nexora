@@ -2948,6 +2948,25 @@ class Updraft_Restorer {
 
 		$sql_line = "";
 		$sql_type = -1;
+		
+		// This array has been created for clarity, to be able to refer to names and not numbers
+		$sql_types = array(
+			'INSERT' => 3,
+			'DELIMITER' => 10,
+			'CREATE_TRIGGER' => 9,
+			'CREATE_PROCEDURE' => 10,
+			'CREATE_TABLE' => 2,
+			'DROP_VIEW' => 16,
+			'DROP_TABLE' => 1,
+			'CREATE_TABLE' => 2,
+			'ALTER_OR_LOCK_TABLE' => 4,
+			'LOCK_OR_UNLOCK_TABLE' => 15,
+			'CREATE_OR_DROP_DATABASE' => 6,
+			'USE' => 7,
+			'SET_NAMES' => 8,
+			'CREATE_TRIGGER' => 9,
+			'CREATE_FUNCTION' => 12,
+		);
 
 		$this->start_time = microtime(true);
 
@@ -3273,6 +3292,8 @@ class Updraft_Restorer {
 			// Allow a 100-byte margin for error (including searching/replacing table prefix)
 			if (3 == $sql_type && $sql_line && strlen($sql_line.$buffer) > ($this->max_allowed_packet - 100) && preg_match('/,\s*$/', $sql_line) && preg_match('/^\s*\(/', $buffer)) {
 				
+				if (!UpdraftPlus_Database_Utility::sql_statement_is_finished($sql_line)) continue;
+				
 				if ($this->table_should_be_skipped($this->table_name)) {
 					// Reset - we need the insert prefix so following lines get detected correctly
 					$sql_line = $insert_prefix." ";
@@ -3307,8 +3328,13 @@ class Updraft_Restorer {
 			//
 			// $wpdb->query("CREATE TRIGGER `civicrm_acl_after_insert` AFTER INSERT ON `civicrm_acl` FOR EACH ROW BEGIN IF (@civicrm_disable_logging IS NULL OR @civicrm_disable_logging = 0 ) THEN INSERT INTO log_civicrm_acl (`id`, `name`, `deny`, `entity_table`, `entity_id`, `operation`, `object_table`, `object_id`, `acl_table`, `acl_id`, `is_active`, log_conn_id, log_user_id, log_action) VALUES ( NEW.`id`, NEW.`name`, NEW.`deny`, NEW.`entity_table`, NEW.`entity_id`, NEW.`operation`, NEW.`object_table`, NEW.`object_id`, NEW.`acl_table`, NEW.`acl_id`, NEW.`is_active`, COALESCE(@uniqueID, LEFT(CONCAT('c_', unix_timestamp()/3600, CONNECTION_ID()), 17)), @civicrm_user_id, 'insert'); END IF; END"));
 
-			if ((3 == $sql_type && !preg_match('/\)\s*'.$delimiter_regex.'$/', substr($sql_line, -5, 5))) || (!in_array($sql_type, array(3, 9, 10, 12)) && substr($sql_line, -strlen($delimiter), strlen($delimiter)) != $delimiter) || (9 == $sql_type && !preg_match('/(?:END)?\s*'.$delimiter_regex.'\s*$/', $sql_line))) continue;
+			if (($sql_types['INSERT'] == $sql_type && !preg_match('/\)\s*'.$delimiter_regex.'$/', substr($sql_line, -5, 5)))
+				|| (!in_array($sql_type, array($sql_types['INSERT'], $sql_types['CREATE_TRIGGER'], $sql_types['CREATE_PROCEDURE'], $sql_types['CREATE_FUNCTION'])) && substr($sql_line, -strlen($delimiter), strlen($delimiter)) != $delimiter)
+				|| ($sql_types['CREATE_TRIGGER'] == $sql_type && !preg_match('/(?:END)?\s*'.$delimiter_regex.'\s*$/', $sql_line))
+			) continue;
 
+			if (!UpdraftPlus_Database_Utility::sql_statement_is_finished($sql_line)) continue;
+			
 			$this->line++;
 
 			// We now have a complete line - process it
