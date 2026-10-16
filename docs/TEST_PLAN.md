@@ -64,6 +64,9 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - Upsert scope: vendor B uploads (CSV) and imports (API) a sku/external_id that vendor A already has; A's product is byte-identical afterwards (price, stock, name, modified date) and B gets its own product. Re-importing B's file updates only B's.
 - Both: customers, pending and suspended vendors blocked; rate limits.
 
+## Phase 6a (DONE): the cart
+`test-marketplace-item.php` (hidden item: shape, idempotent, restored, recreated, hidden everywhere, not editable by vendors), `test-cart-rules.php` (every refusal code, quantity forms, snapshot from the DB), `test-cart-bridge.php` (add stores only the product id; hostile requests: tampered price/name/vendor/quantity/ids, direct add of the hidden item, forged cart data; deleted, unpublished, suspended-vendor, 0-stock and price-changed products already in the cart; own product; several vendors grouped with subtotals; fresh checkout errors; rate limit), `test-cart-routes.php` (guest 401 on every Store API cart/checkout/order route, guarded `wc-ajax`, `?add-to-cart=`, Woo handlers removed, guest checkout forced off, cart/checkout pages redirect guests), `test-cart-ui.php` (button states, tamper-free markup and script, flat query count), `test-cart-http.php` (real HTTP: add with a tampered request, Store API cart JSON, forged add-item, edited price, suspended vendor, guest). `test-endpoint-matrix.php` lists `add_to_cart`.
+
 ## Phase 6: Cart, checkout, orders (`test-wc-bridge.php`, `test-wc-stock.php`)
 - Marketplace Item is created once, re-created if deleted, **physical (not virtual)**, hidden, tax none.
 - Shipping: a ₹200 cart gets ₹50; a cart over ₹1000 gets free shipping; the shipping address is required.
