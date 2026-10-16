@@ -501,3 +501,43 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Add to cart on a product card. */
+.nx-add-to-cart,
+.nx-out-of-stock,
+.nx-sign-in-to-buy {
+	display: inline-block;
+	margin-top: var(--nx-space-2, 8px);
+	padding: 8px 14px;
+	border: 0;
+	border-radius: var(--nx-radius, 6px);
+	background: var(--nx-primary, #2563eb);
+	color: #fff;
+	font: inherit;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.nx-add-to-cart:focus-visible,
+.nx-sign-in-to-buy:focus-visible {
+	outline: 2px solid var(--nx-primary, #2563eb);
+	outline-offset: 2px;
+}
+
+.nx-out-of-stock {
+	background: #9ca3af;
+	cursor: not-allowed;
+}
+
+.nx-cart-msg {
+	margin: 6px 0 0;
+	font-size: 0.9em;
+}
+
+.nx-cart-msg:empty {
+	display: none;
+}
+
+.nx-cart-msg.is-error {
+	color: #b91c1c;
+}

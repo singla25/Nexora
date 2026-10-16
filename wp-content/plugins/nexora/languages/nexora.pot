@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.0.12\n"
+"Project-Id-Version: Nexora 1.0.13\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-15T13:28:23+00:00\n"
+"POT-Creation-Date: 2026-10-16T05:48:20+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -168,7 +168,7 @@ msgstr ""
 
 #: src/Auth/Login.php:78
 #: src/Auth/Login.php:154
-#: src/Http/Rate_Limiter.php:218
+#: src/Http/Rate_Limiter.php:219
 msgid "Too many requests. Please try again later."
 msgstr ""
 
@@ -530,45 +530,45 @@ msgstr ""
 msgid "Entry %1$d: %2$s"
 msgstr ""
 
-#: src/Imports/Api_Source.php:279
+#: src/Imports/Api_Source.php:281
 msgid "Could not reach the product source. Please try again later."
 msgstr ""
 
-#: src/Imports/Api_Source.php:285
+#: src/Imports/Api_Source.php:287
 msgid "The product source sent us somewhere else. Redirects are not followed: use its final address."
 msgstr ""
 
 #. translators: %d: HTTP status code.
-#: src/Imports/Api_Source.php:290
+#: src/Imports/Api_Source.php:292
 #, php-format
 msgid "The product source answered with an error (HTTP %d)."
 msgstr ""
 
-#: src/Imports/Api_Source.php:296
+#: src/Imports/Api_Source.php:298
 msgid "The product source sent an unusable answer (empty, or larger than 2 MB)."
 msgstr ""
 
-#: src/Imports/Api_Source.php:302
+#: src/Imports/Api_Source.php:304
 msgid "The product source did not answer in the expected format: a JSON object with a \"products\" list."
 msgstr ""
 
-#: src/Imports/Api_Source.php:331
+#: src/Imports/Api_Source.php:333
 msgid "This entry is not an object."
 msgstr ""
 
-#: src/Imports/Api_Source.php:337
+#: src/Imports/Api_Source.php:339
 msgid "This product has no usable \"id\" (1-64 letters, numbers, dot, dash, colon or underscore)."
 msgstr ""
 
-#: src/Imports/Api_Source.php:357
+#: src/Imports/Api_Source.php:359
 msgid "the image was ignored: use an https address on your API's own domain"
 msgstr ""
 
-#: src/Imports/Api_Source.php:372
+#: src/Imports/Api_Source.php:374
 msgid "Not a product."
 msgstr ""
 
-#: src/Imports/Api_Source.php:378
+#: src/Imports/Api_Source.php:380
 msgid "A product without a usable id."
 msgstr ""
 
@@ -863,6 +863,113 @@ msgstr ""
 msgid "The key for \"%s\" must be 1-512 visible ASCII characters, so it was not changed."
 msgstr ""
 
+#: src/Integrations/Woo_Routes.php:82
+msgid "Please sign in to continue."
+msgstr ""
+
+#: src/Marketplace/Cart_Ajax.php:36
+#: src/Marketplace/Cart_Rules.php:40
+msgid "Please sign in to buy."
+msgstr ""
+
+#: src/Marketplace/Cart_Ajax.php:62
+msgid "Added to your cart."
+msgstr ""
+
+#: src/Marketplace/Cart_Bridge.php:72
+msgid "Shopping is not available right now."
+msgstr ""
+
+#: src/Marketplace/Cart_Bridge.php:89
+msgid "Shopping is not available right now. Please try again in a moment."
+msgstr ""
+
+#: src/Marketplace/Cart_Bridge.php:101
+msgid "This product could not be added to your cart."
+msgstr ""
+
+#: src/Marketplace/Cart_Bridge.php:125
+#: src/Marketplace/Cart_Bridge.php:158
+msgid "Please sign in to add products to your cart."
+msgstr ""
+
+#: src/Marketplace/Cart_Bridge.php:237
+msgid "Sold by"
+msgstr ""
+
+#: src/Marketplace/Cart_Bridge.php:285
+#: src/Marketplace/Cart_Bridge.php:512
+msgid "A product"
+msgstr ""
+
+#. translators: 1: product name, 2: units left.
+#: src/Marketplace/Cart_Bridge.php:301
+#, php-format
+msgid "\"%1$s\": only %2$d left, so your quantity was lowered."
+msgstr ""
+
+#. translators: %s: product name.
+#: src/Marketplace/Cart_Bridge.php:322
+#, php-format
+msgid "\"%s\" is sold out and was removed from your cart."
+msgstr ""
+
+#. translators: %s: product name.
+#: src/Marketplace/Cart_Bridge.php:324
+#, php-format
+msgid "\"%s\" is no longer available and was removed from your cart."
+msgstr ""
+
+#. translators: 1: product name, 2: why it cannot be bought.
+#: src/Marketplace/Cart_Bridge.php:515
+#, php-format
+msgid "\"%1$s\": %2$s"
+msgstr ""
+
+#. translators: 1: product name, 2: old price, 3: new price.
+#: src/Marketplace/Cart_Bridge.php:599
+#, php-format
+msgid "\"%1$s\" changed price from %2$s to %3$s."
+msgstr ""
+
+#: src/Marketplace/Cart_Rules.php:58
+msgid "You cannot buy your own product."
+msgstr ""
+
+#: src/Marketplace/Cart_Rules.php:64
+msgid "Choose a quantity from 1 to 99."
+msgstr ""
+
+#: src/Marketplace/Cart_Rules.php:68
+msgid "You can have at most 99 of one product in your cart."
+msgstr ""
+
+#: src/Marketplace/Cart_Rules.php:74
+msgid "Out of stock."
+msgstr ""
+
+#. translators: %d: units in stock.
+#: src/Marketplace/Cart_Rules.php:83
+#, php-format
+msgid "You already have all %d available in your cart."
+msgstr ""
+
+#. translators: 1: units that can still be added, 2: units already in the cart.
+#: src/Marketplace/Cart_Rules.php:86
+#, php-format
+msgid "Only %1$d more can be added (you already have %2$d in your cart)."
+msgstr ""
+
+#. translators: %d: units left.
+#: src/Marketplace/Cart_Rules.php:89
+#, php-format
+msgid "Only %d left."
+msgstr ""
+
+#: src/Marketplace/Cart_Rules.php:128
+msgid "This product is not available."
+msgstr ""
+
 #: src/Notifications/Ajax.php:28
 #: src/Profile/Ajax.php:175
 msgid "Not logged in"
@@ -1005,17 +1112,18 @@ msgstr ""
 msgid "Other"
 msgstr ""
 
-#: src/Products/Presenter.php:168
+#: src/Products/Presenter.php:190
+#: templates/marketplace/card.php:37
 msgid "Out of stock"
 msgstr ""
 
 #. translators: %d: units left.
-#: src/Products/Presenter.php:173
+#: src/Products/Presenter.php:195
 #, php-format
 msgid "Only %d left"
 msgstr ""
 
-#: src/Products/Presenter.php:176
+#: src/Products/Presenter.php:198
 msgid "In stock"
 msgstr ""
 
@@ -2516,12 +2624,40 @@ msgstr ""
 
 #. translators: %s: the seller's business name.
 #: templates/marketplace/card.php:28
+#: templates/marketplace/cart-panel.php:29
 #, php-format
 msgid "Sold by %s"
 msgstr ""
 
 #: templates/marketplace/card.php:33
 msgid "Your product"
+msgstr ""
+
+#: templates/marketplace/card.php:35
+msgid "Add to cart"
+msgstr ""
+
+#: templates/marketplace/card.php:39
+msgid "Sign in to buy"
+msgstr ""
+
+#: templates/marketplace/cart-panel.php:10
+#: templates/marketplace/cart-panel.php:23
+msgid "Your cart by seller"
+msgstr ""
+
+#: templates/marketplace/cart-panel.php:13
+msgid "Your cart changed:"
+msgstr ""
+
+#. translators: 1: quantity, 2: price of one.
+#: templates/marketplace/cart-panel.php:42
+#, php-format
+msgid "%1$d x %2$s"
+msgstr ""
+
+#: templates/marketplace/cart-panel.php:50
+msgid "Subtotal from this seller"
 msgstr ""
 
 #: templates/marketplace/results.php:12

@@ -56,6 +56,10 @@ class Plugin {
 		new \Nexora\Core\Post_Guard( \Nexora\Imports\Log_Repository::POST_TYPE, array( '\Nexora\Imports\Log_Repository', 'is_internal' ) );
 		new \Nexora\Core\Post_Guard( \Nexora\Products\Repository::POST_TYPE, array( '\Nexora\Products\Repository', 'is_internal' ), array( 'post_status', 'post_title', 'post_content', 'post_excerpt' ) );
 		new \Nexora\Integrations\Woo_Routes();
+		new \Nexora\Marketplace\Marketplace_Item();
+		new \Nexora\Marketplace\Cart_Bridge();
+		new \Nexora\Marketplace\Cart_Panel();
+		new \Nexora\Marketplace\Cart_Ajax();
 		new \Nexora\Vendors\Assets();
 		new \Nexora\Connections\Cache();
 

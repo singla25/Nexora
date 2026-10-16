@@ -18,6 +18,7 @@ class Installer {
 	public static function activate() {
 		Migrations::run();
 		\Nexora\Accounts\Account_Types::maybe_register();
+		\Nexora\Marketplace\Marketplace_Item::id();
 	}
 
 	/**
