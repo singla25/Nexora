@@ -84,7 +84,29 @@ class Presenter {
 			'image'       => self::image( $id, $image_id, 'medium' ),
 			'seller'      => $vendor_id ? (string) get_post_meta( $vendor_id, 'business_name', true ) : '',
 			'own'         => (int) $viewer_id > 0 && Repository::owner_of( $id ) === (int) $viewer_id,
+			'buy'         => self::buy_state( $id, $viewer_id, $stock ),
 		);
+	}
+
+	/**
+	 * What the viewer may do with the product. Display only: Cart_Rules decides again on the server when they click.
+	 *
+	 * @param int $id        Product ID.
+	 * @param int $viewer_id Who is looking.
+	 * @param int $stock     Units in stock.
+	 * @return string own, guest, out or ok.
+	 */
+	private static function buy_state( $id, $viewer_id, $stock ) {
+
+		if ( (int) $viewer_id > 0 && Repository::owner_of( $id ) === (int) $viewer_id ) {
+			return 'own';
+		}
+
+		if ( (int) $viewer_id <= 0 ) {
+			return 'guest';
+		}
+
+		return $stock > 0 ? 'ok' : 'out';
 	}
 
 	/**
@@ -128,7 +150,7 @@ class Presenter {
 	 * @param string $size     Image size.
 	 * @return string URL, or ''.
 	 */
-	private static function image( $id, $image_id, $size ) {
+	public static function image( $id, $image_id, $size ) {
 
 		if ( $image_id ) {
 			$url = (string) wp_get_attachment_image_url( $image_id, $size );

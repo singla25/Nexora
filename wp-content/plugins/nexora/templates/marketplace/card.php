@@ -31,6 +31,13 @@
 		<?php endif; ?>
 		<?php if ( $card['own'] ) : ?>
 			<span class="nx-product-own"><?php esc_html_e( 'Your product', 'nexora' ); ?></span>
+		<?php elseif ( 'ok' === $card['buy'] ) : ?>
+			<button type="button" class="nx-add-to-cart" data-product="<?php echo esc_attr( (string) $card['id'] ); ?>"><?php esc_html_e( 'Add to cart', 'nexora' ); ?></button>
+		<?php elseif ( 'out' === $card['buy'] ) : ?>
+			<button type="button" class="nx-out-of-stock" disabled><?php esc_html_e( 'Out of stock', 'nexora' ); ?></button>
+		<?php elseif ( 'guest' === $card['buy'] ) : ?>
+			<a class="nx-sign-in-to-buy" href="<?php echo esc_url( \Nexora\Core\Urls::login() ); ?>"><?php esc_html_e( 'Sign in to buy', 'nexora' ); ?></a>
 		<?php endif; ?>
+		<p class="nx-cart-msg" role="status" aria-live="polite"></p>
 	</div>
 </article>
