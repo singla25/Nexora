@@ -59,6 +59,7 @@ class Uninstaller {
 				\Nexora\Products\Fields::OPTION,
 				\Nexora\Imports\Sources::OPTION,
 				\Nexora\Marketplace\Marketplace_Item::OPTION,
+				\Nexora\Orders\Commission::OPTION,
 				\Nexora\Imports\Sources::SWITCH,
 				\Nexora\Imports\Sources::HOSTS,
 				'default_profile_image',

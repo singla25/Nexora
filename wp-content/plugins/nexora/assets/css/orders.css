@@ -1,0 +1,132 @@
+/* Nexora My Orders and Sales. Prefix nx-order-*, nx-sale-*, nx-sales-*, nx-orders-*. */
+.nx-order-card {
+	border: 1px solid var(--nx-border, #e5e7eb);
+	border-radius: var(--nx-radius, 10px);
+	padding: 14px 16px;
+	margin: 0 0 14px;
+	background: var(--nx-surface, #fff);
+}
+
+.nx-order-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.nx-order-title {
+	margin: 0;
+	font-size: 1.05em;
+}
+
+.nx-order-meta,
+.nx-order-ship,
+.nx-order-total {
+	margin: 6px 0;
+	font-size: 0.92em;
+	color: var(--nx-muted, #4b5563);
+}
+
+.nx-order-status {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-size: 0.82em;
+	background: #e5e7eb;
+	color: #111827;
+}
+
+.nx-status-processing,
+.nx-status-completed {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.nx-status-on-hold,
+.nx-status-pending {
+	background: #fef3c7;
+	color: #92400e;
+}
+
+.nx-status-cancelled,
+.nx-status-failed,
+.nx-status-refunded {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+.nx-order-lines {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.92em;
+	margin: 8px 0;
+}
+
+.nx-order-lines th,
+.nx-order-lines td {
+	text-align: left;
+	padding: 6px 8px;
+	border-bottom: 1px solid var(--nx-border, #e5e7eb);
+}
+
+.nx-order-sku {
+	color: var(--nx-muted, #6b7280);
+	font-size: 0.85em;
+}
+
+.nx-sale-view,
+.nx-orders-page {
+	padding: 6px 12px;
+	border: 0;
+	border-radius: var(--nx-radius, 6px);
+	background: var(--nx-primary, #2563eb);
+	color: #fff;
+	cursor: pointer;
+}
+
+.nx-sale-view:focus-visible,
+.nx-orders-page:focus-visible {
+	outline: 2px solid var(--nx-primary, #2563eb);
+	outline-offset: 2px;
+}
+
+.nx-orders-page[disabled] {
+	background: #9ca3af;
+	cursor: not-allowed;
+}
+
+.nx-orders-pager {
+	margin: 10px 0;
+	text-align: center;
+}
+
+.nx-orders-empty {
+	color: var(--nx-muted, #6b7280);
+}
+
+.nx-sales-totals {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: 8px 16px;
+	margin: 0 0 14px;
+}
+
+.nx-sales-totals dt {
+	font-size: 0.85em;
+	color: var(--nx-muted, #4b5563);
+	margin: 0;
+}
+
+.nx-sales-totals dd {
+	font-size: 1.25em;
+	font-weight: 600;
+	margin: 0 0 6px;
+}
+
+@media (max-width: 600px) {
+	.nx-order-lines {
+		display: block;
+		overflow-x: auto;
+	}
+}

@@ -41,12 +41,12 @@ $a2 = $mk( $A, 'UIA-2' );
 $b1 = $mk( $B, 'UIB-1', array( 'name' => 'Other Vendor Book' ) );
 
 /* ---------- tab rows ---------- */
-nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace' ), $tabs( $render( $cust['user_id'], $cust['login'] ) ), 'customer: the five tabs, with Marketplace' );
-nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace' ), $tabs( $render( $P['user_id'], $P['login'] ) ), 'pending vendor: Marketplace, no My Products' );
-nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-products' ), $tabs( $render( $A['user_id'], $A['login'] ) ), 'approved vendor: Marketplace and My Products' );
-nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace' ), $tabs( $render( $S['user_id'], $S['login'] ) ), 'suspended vendor: Marketplace, no My Products' );
+nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-orders' ), $tabs( $render( $cust['user_id'], $cust['login'] ) ), 'customer: the base tabs, with Marketplace and My Orders' );
+nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-orders' ), $tabs( $render( $P['user_id'], $P['login'] ) ), 'pending vendor: Marketplace and My Orders, no My Products' );
+nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-orders', 'my-products', 'sales' ), $tabs( $render( $A['user_id'], $A['login'] ) ), 'approved vendor: Marketplace, My Orders, My Products and Sales' );
+nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-orders', 'sales' ), $tabs( $render( $S['user_id'], $S['login'] ) ), 'suspended vendor: Marketplace, My Orders and Sales (read-only), no My Products' );
 nx_assert_same( array( 'user-info', 'connections' ), $tabs( $render( $view['user_id'], $A['login'] ) ), 'a visitor on a vendor\'s profile sees only the two public tabs' );
-foreach ( array( 'my-orders', 'sales', 'vendor-status' ) as $later ) {
+foreach ( array( 'vendor-status' ) as $later ) {
 	nx_assert( false === strpos( $render( $A['user_id'], $A['login'] ), 'data-tab="' . $later . '"' ), "the unbuilt tab $later still does not render" );
 }
 

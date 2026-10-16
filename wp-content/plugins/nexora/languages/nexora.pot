@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.0.15\n"
+"Project-Id-Version: Nexora 1.0.16\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-16T08:49:58+00:00\n"
+"POT-Creation-Date: 2026-10-16T10:15:41+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -32,7 +32,7 @@ msgstr ""
 
 #: src/Admin/List_Columns.php:45
 #: src/Admin/List_Columns.php:137
-#: templates/admin/settings.php:115
+#: templates/admin/settings.php:123
 msgid "Name"
 msgstr ""
 
@@ -58,7 +58,7 @@ msgstr ""
 #: src/Admin/Menu.php:74
 #: src/Admin/Menu.php:75
 #: src/Shortcodes/Home.php:164
-#: templates/profile/page.php:33
+#: templates/profile/page.php:37
 msgid "Notifications"
 msgstr ""
 
@@ -168,7 +168,7 @@ msgstr ""
 
 #: src/Auth/Login.php:78
 #: src/Auth/Login.php:154
-#: src/Http/Rate_Limiter.php:219
+#: src/Http/Rate_Limiter.php:220
 msgid "Too many requests. Please try again later."
 msgstr ""
 
@@ -451,6 +451,7 @@ msgstr ""
 #: src/Products/Admin.php:37
 #: templates/admin/metabox-product.php:14
 #: templates/auth/registration-form.php:52
+#: templates/orders/my-orders.php:37
 msgid "Seller"
 msgstr ""
 
@@ -710,7 +711,7 @@ msgid "Address"
 msgstr ""
 
 #: src/Imports/Connection_Admin.php:41
-#: templates/admin/settings.php:126
+#: templates/admin/settings.php:134
 #: templates/imports/api-popup.php:47
 #: templates/imports/connection-box.php:16
 msgid "Authentication"
@@ -1026,6 +1027,55 @@ msgstr ""
 msgid "Not logged in"
 msgstr ""
 
+#: src/Orders/Ajax.php:69
+msgid "Sales counted (Processing and Completed)"
+msgstr ""
+
+#: src/Orders/Ajax.php:73
+#: templates/orders/sales.php:47
+msgid "Commission"
+msgstr ""
+
+#: src/Orders/Ajax.php:77
+msgid "Your earnings"
+msgstr ""
+
+#: src/Orders/Ajax.php:81
+msgid "Awaiting payment (On hold, Pending)"
+msgstr ""
+
+#: src/Orders/Commission.php:46
+msgid "The commission must be a number from 0 to 100, for example 10 or 12.5. The previous value was kept."
+msgstr ""
+
+#. translators: %s: product name.
+#: src/Orders/Placement.php:127
+#, php-format
+msgid "\"%s\" is no longer available, so the order was not placed. Please review your cart."
+msgstr ""
+
+#. translators: %s: product name.
+#: src/Orders/Placement.php:135
+#, php-format
+msgid "The price of \"%s\" changed while you were checking out, so the order was not placed. Please review your cart."
+msgstr ""
+
+#: src/Orders/Placement.php:213
+msgid "Nexora: the order could not be placed."
+msgstr ""
+
+#. translators: %s: product name.
+#: src/Orders/Placement.php:226
+#, php-format
+msgid "Sorry, \"%s\" is no longer in stock in that quantity, so the order was not placed. Please review your cart."
+msgstr ""
+
+#. translators: %s: product names.
+#: src/Orders/Stock.php:179
+#, php-format
+msgid "Nexora: the stock for %s is no longer available, so these units are not reserved for this order. Check it before shipping."
+msgstr ""
+
 #: src/PostTypes/Registrar.php:30
 msgid "User Profiles"
 msgstr ""
@@ -1056,12 +1106,17 @@ msgid "API connections"
 msgstr ""
 
 #: src/Products/Admin.php:36
+#: templates/orders/my-orders.php:36
+#: templates/orders/sale-order.php:25
+#: templates/orders/sales.php:43
 msgid "Product"
 msgstr ""
 
 #: src/Products/Admin.php:38
 #: src/Products/Fields.php:36
 #: templates/admin/metabox-product.php:16
+#: templates/orders/sale-order.php:24
+#: templates/orders/sales.php:42
 #: templates/products/form.php:33
 msgid "SKU"
 msgstr ""
@@ -1069,6 +1124,8 @@ msgstr ""
 #: src/Products/Admin.php:39
 #: src/Products/Fields.php:34
 #: templates/admin/metabox-product.php:17
+#: templates/orders/my-orders.php:39
+#: templates/orders/sales.php:45
 #: templates/products/form.php:23
 msgid "Price"
 msgstr ""
@@ -2071,167 +2128,175 @@ msgid "One category per line. Leave empty to use the defaults. \"Other\" is alwa
 msgstr ""
 
 #: templates/admin/settings.php:76
+msgid "Marketplace commission (%)"
+msgstr ""
+
+#: templates/admin/settings.php:79
+msgid "The share of each sale the marketplace keeps, from 0 to 100 (for example 10 or 12.5). The vendor earns the rest. An order keeps the rate it was placed at: changing this affects new orders only."
+msgstr ""
+
+#: templates/admin/settings.php:84
 msgid "Product API sources"
 msgstr ""
 
-#: templates/admin/settings.php:78
+#: templates/admin/settings.php:86
 msgid "Product catalogs every approved vendor can import from. Only public https addresses work (private, local and cloud-metadata addresses are always refused). Keys are stored encrypted and are never shown again: leave a key field empty to keep the saved key."
 msgstr ""
 
-#: templates/admin/settings.php:112
+#: templates/admin/settings.php:120
 msgid "Add a source"
 msgstr ""
 
-#: templates/admin/settings.php:116
+#: templates/admin/settings.php:124
 #: templates/imports/api-popup.php:45
 msgid "Address (https)"
 msgstr ""
 
-#: templates/admin/settings.php:116
+#: templates/admin/settings.php:124
 msgid "https://"
 msgstr ""
 
-#: templates/admin/settings.php:119
+#: templates/admin/settings.php:127
 msgid "Format"
 msgstr ""
 
-#: templates/admin/settings.php:121
+#: templates/admin/settings.php:129
 msgid "Nexora format"
 msgstr ""
 
-#: templates/admin/settings.php:122
+#: templates/admin/settings.php:130
 msgid "DummyJSON adapter"
 msgstr ""
 
-#: templates/admin/settings.php:123
+#: templates/admin/settings.php:131
 msgid "Fake Store adapter"
 msgstr ""
 
-#: templates/admin/settings.php:128
+#: templates/admin/settings.php:136
 #: templates/imports/api-popup.php:49
 msgid "None"
 msgstr ""
 
-#: templates/admin/settings.php:129
+#: templates/admin/settings.php:137
 #: templates/imports/api-popup.php:50
 msgid "Header key"
 msgstr ""
 
-#: templates/admin/settings.php:130
+#: templates/admin/settings.php:138
 #: templates/imports/api-popup.php:51
 msgid "Bearer token"
 msgstr ""
 
-#: templates/admin/settings.php:133
+#: templates/admin/settings.php:141
 #: templates/imports/api-popup.php:54
 msgid "Header name"
 msgstr ""
 
-#: templates/admin/settings.php:133
+#: templates/admin/settings.php:141
 msgid "X-API-Key"
 msgstr ""
 
-#: templates/admin/settings.php:136
+#: templates/admin/settings.php:144
 msgid "Key / token"
 msgstr ""
 
-#: templates/admin/settings.php:137
+#: templates/admin/settings.php:145
 msgid "saved (leave empty to keep)"
 msgstr ""
 
-#: templates/admin/settings.php:137
+#: templates/admin/settings.php:145
 msgid "No key saved"
 msgstr ""
 
-#: templates/admin/settings.php:140
+#: templates/admin/settings.php:148
 msgid "Remove the saved key"
 msgstr ""
 
-#: templates/admin/settings.php:144
+#: templates/admin/settings.php:152
 msgid "Stock for items without stock"
 msgstr ""
 
-#: templates/admin/settings.php:145
+#: templates/admin/settings.php:153
 msgid "Create missing categories"
 msgstr ""
 
-#: templates/admin/settings.php:148
+#: templates/admin/settings.php:156
 msgid "Enabled (vendors can pick it)"
 msgstr ""
 
-#: templates/admin/settings.php:150
+#: templates/admin/settings.php:158
 msgid "Delete this source"
 msgstr ""
 
-#: templates/admin/settings.php:170
+#: templates/admin/settings.php:178
 msgid "Let vendors import from their own API (\"My own API\")"
 msgstr ""
 
-#: templates/admin/settings.php:174
+#: templates/admin/settings.php:182
 msgid "Allowed hosts for vendors' own APIs (optional, one per line; empty = any public https host)"
 msgstr ""
 
-#: templates/admin/settings.php:175
+#: templates/admin/settings.php:183
 msgid "api.example.com"
 msgstr ""
 
-#: templates/admin/settings.php:181
+#: templates/admin/settings.php:189
 msgid "Admin Notification Email"
 msgstr ""
 
-#: templates/admin/settings.php:188
+#: templates/admin/settings.php:196
 msgid "Enter admin email"
 msgstr ""
 
-#: templates/admin/settings.php:192
+#: templates/admin/settings.php:200
 msgid "All registration notifications will be sent to this email."
 msgstr ""
 
-#: templates/admin/settings.php:197
+#: templates/admin/settings.php:205
 msgid "Google reCAPTCHA Site Key"
 msgstr ""
 
-#: templates/admin/settings.php:204
+#: templates/admin/settings.php:212
 msgid "Enter Site Key"
 msgstr ""
 
-#: templates/admin/settings.php:208
+#: templates/admin/settings.php:216
 msgid "Used on frontend (forms)."
 msgstr ""
 
-#: templates/admin/settings.php:214
+#: templates/admin/settings.php:222
 msgid "Google reCAPTCHA Secret Key"
 msgstr ""
 
-#: templates/admin/settings.php:221
+#: templates/admin/settings.php:229
 msgid "Enter Secret Key"
 msgstr ""
 
-#: templates/admin/settings.php:225
+#: templates/admin/settings.php:233
 msgid "Used for backend verification. Keep it secure."
 msgstr ""
 
-#: templates/admin/settings.php:230
+#: templates/admin/settings.php:238
 msgid "Enable reCAPTCHA"
 msgstr ""
 
-#: templates/admin/settings.php:239
+#: templates/admin/settings.php:247
 msgid "Enable Google reCAPTCHA"
 msgstr ""
 
-#: templates/admin/settings.php:243
+#: templates/admin/settings.php:251
 msgid "Enable captcha protection on login, registration and forms."
 msgstr ""
 
-#: templates/admin/settings.php:248
+#: templates/admin/settings.php:256
 msgid "Delete data on uninstall"
 msgstr ""
 
-#: templates/admin/settings.php:257
+#: templates/admin/settings.php:265
 msgid "Delete all Nexora data when the plugin is deleted"
 msgstr ""
 
-#: templates/admin/settings.php:261
+#: templates/admin/settings.php:269
 msgid "Removes profiles, connections, content, chat, notifications, ID documents and settings. Member accounts and Media Library files are kept. Leave off to keep everything."
 msgstr ""
 
@@ -2292,7 +2357,7 @@ msgid "Go to Profile"
 msgstr ""
 
 #: templates/auth/login-state.php:21
-#: templates/profile/page.php:68
+#: templates/profile/page.php:74
 msgid "Logout"
 msgstr ""
 
@@ -2761,6 +2826,71 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
+#: templates/orders/my-orders.php:10
+msgid "You have no orders yet. Browse the Marketplace to find something you like."
+msgstr ""
+
+#. translators: %s: order number.
+#: templates/orders/my-orders.php:21
+#: templates/orders/sale-order.php:16
+#: templates/orders/sales.php:21
+#, php-format
+msgid "Order #%s"
+msgstr ""
+
+#: templates/orders/my-orders.php:38
+#: templates/orders/sale-order.php:26
+#: templates/orders/sales.php:44
+msgid "Qty"
+msgstr ""
+
+#: templates/orders/my-orders.php:40
+#: templates/orders/sale-order.php:27
+#: templates/orders/sales.php:46
+msgid "Total"
+msgstr ""
+
+#: templates/orders/my-orders.php:57
+msgid "Shipping to"
+msgstr ""
+
+#: templates/orders/sale-order.php:28
+#: templates/orders/sales.php:48
+msgid "Your earning"
+msgstr ""
+
+#: templates/orders/sale-order.php:45
+msgid "Ship to"
+msgstr ""
+
+#: templates/orders/sale-order.php:51
+msgid "Nothing to ship for this order."
+msgstr ""
+
+#: templates/orders/sales.php:10
+msgid "No sales yet. When a customer orders your products they appear here."
+msgstr ""
+
+#: templates/orders/sales.php:31
+msgid "Counted in your earnings"
+msgstr ""
+
+#: templates/orders/sales.php:33
+msgid "Awaiting payment: not counted yet"
+msgstr ""
+
+#: templates/orders/sales.php:35
+msgid "Not counted"
+msgstr ""
+
+#: templates/orders/sales.php:66
+msgid "Your earning on this order:"
+msgstr ""
+
+#: templates/orders/sales.php:69
+msgid "View order"
+msgstr ""
+
 #: templates/products/form.php:40
 msgid "Select category"
 msgstr ""
@@ -2841,6 +2971,16 @@ msgstr ""
 #: templates/profile/page.php:30
 #: templates/profile/tab-my-products.php:15
 msgid "My Products"
+msgstr ""
+
+#: templates/profile/page.php:32
+#: templates/profile/tab-my-orders.php:10
+msgid "My Orders"
+msgstr ""
+
+#: templates/profile/page.php:34
+#: templates/profile/tab-sales.php:10
+msgid "Sales"
 msgstr ""
 
 #: templates/profile/tab-connections.php:10
@@ -2987,6 +3127,10 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
+#: templates/profile/tab-my-orders.php:11
+msgid "What you have bought"
+msgstr ""
+
 #: templates/profile/tab-my-products.php:16
 msgid "Products you sell on the marketplace"
 msgstr ""
@@ -3043,6 +3187,10 @@ msgstr ""
 
 #: templates/profile/tab-notifications.php:79
 msgid "Access restricted"
+msgstr ""
+
+#: templates/profile/tab-sales.php:11
+msgid "Orders for your products and what you earn from them. Only Processing and Completed orders count."
 msgstr ""
 
 #: templates/profile/vendor-card.php:14

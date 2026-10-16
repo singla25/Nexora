@@ -60,6 +60,8 @@ class Plugin {
 		new \Nexora\Marketplace\Cart_Bridge();
 		new \Nexora\Marketplace\Cart_Panel();
 		new \Nexora\Marketplace\Cart_Ajax();
+		new \Nexora\Orders\Module();
+		new \Nexora\Orders\Ajax();
 		new \Nexora\Vendors\Assets();
 		new \Nexora\Connections\Cache();
 

@@ -46,6 +46,9 @@ class Assets {
 			)
 		);
 
+		wp_enqueue_style( 'nexora-orders', NEXORA_URL . 'assets/css/orders.css', array( 'nexora-tokens' ), NEXORA_VERSION );
+		wp_enqueue_script( 'nexora-orders', NEXORA_URL . 'assets/js/orders.js', array( 'jquery', 'sweetalert2', 'nexora-marketplace' ), NEXORA_VERSION, true );
+
 		if ( Account_Types::can_sell( get_current_user_id() ) ) {
 			wp_enqueue_script( 'nexora-products', NEXORA_URL . 'assets/js/products.js', array( 'jquery', 'sweetalert2', 'nexora-marketplace' ), NEXORA_VERSION, true );
 			wp_enqueue_script( 'nexora-imports', NEXORA_URL . 'assets/js/imports.js', array( 'jquery', 'sweetalert2', 'nexora-marketplace' ), NEXORA_VERSION, true );

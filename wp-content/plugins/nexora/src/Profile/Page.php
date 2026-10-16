@@ -21,10 +21,10 @@ class Page {
 
 	/**
 	 * The tabs that exist on the profile page today. Account_Types::tabs_for() decides who sees which; a tab
-	 * that is in the map but not built yet (Marketplace, My Orders, My Products, Sales) is simply not rendered.
+	 * that is in the map but not built yet (none today) is simply not rendered.
 	 * Add a slug here in the phase that builds its content.
 	 */
-	const BUILT_TABS = array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-products' );
+	const BUILT_TABS = array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-products', 'my-orders', 'sales' );
 
 	/**
 	 * Registers the shortcode, assets and the /profile-page/<username> rewrite.

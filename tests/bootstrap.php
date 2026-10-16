@@ -28,7 +28,7 @@ add_filter(
 	1000
 );
 
-$GLOBALS['nx_test'] = array( 'pass' => 0, 'fail' => 0, 'users' => array(), 'posts' => array(), 'threads' => array(), 'mail' => array(), 'opt_snap' => array(), 'ephemera' => null, 'ephemera_aside' => false, 'item_scope' => null );
+$GLOBALS['nx_test'] = array( 'pass' => 0, 'fail' => 0, 'users' => array(), 'posts' => array(), 'threads' => array(), 'mail' => array(), 'orders' => array(), 'opt_snap' => array(), 'ephemera' => null, 'ephemera_aside' => false, 'item_scope' => null );
 
 /* ------------------------------------------------------------------
  * Test isolation. A test may only change or delete what it created itself. Anything of the SITE'S that a test needs to
@@ -91,7 +91,7 @@ function nx_test_options_keep( array $names ) {
 
 /**
  * Known default settings for a test whose output depends on the site's configuration: no API sources saved (so the built-in list),
- * vendor APIs off, no host allow-list, the default product categories, delete-on-uninstall off. $override changes single values.
+ * vendor APIs off, no host allow-list, the default product categories, delete-on-uninstall off, commission at its default of 10%. $override changes single values.
  * The site's own values are put back at the end.
  */
 function nx_test_default_settings( array $override = array() ) {
@@ -102,6 +102,7 @@ function nx_test_default_settings( array $override = array() ) {
 			'nexora_api_host_allowlist'        => null,
 			'nexora_product_categories'        => null,
 			'nexora_delete_data_on_uninstall'  => null,
+			'nexora_commission_rate'           => null,
 		)
 	);
 }
@@ -266,6 +267,111 @@ function nx_test_marketplace_item_scope_restore() {
 	nx_test_write_raw_option( \Nexora\Marketplace\Marketplace_Item::OPTION, $scope['option'] );
 	wp_cache_flush();
 }
+
+/* ------------------------------------------------------------------
+ * Order fixtures (Phase 6b). nx_test_order() builds a REAL WooCommerce order the way checkout does: the buyer's cart (through
+ * Nexora's own Cart_Bridge::add), WC_Checkout::create_order() (which fires woocommerce_checkout_create_order_line_item), then the
+ * woocommerce_checkout_order_processed hook, then the gateway's status. The order is tracked and deleted by nx_test_cleanup(); only
+ * orders made here are ever deleted.
+ * ---------------------------------------------------------------- */
+
+/**
+ * @param array $buyer nx_test_user() / nx_test_vendor() array.
+ * @param array $lines array( array( product post id, quantity ), ... ).
+ * @param array $opts  payment (bacs|cod), status (set after placing; default on-hold for bacs, processing for cod), place (false = do not
+ *                     fire the order-processed hook), billing (array of overrides).
+ * @return array order (WC_Order|null), error (string, '' when placed), id (int).
+ */
+function nx_test_delete_orders() {
+	foreach ( $GLOBALS['nx_test']['orders'] as $oid ) {
+		$o = function_exists( 'wc_get_order' ) ? wc_get_order( $oid ) : null;
+		if ( $o ) {
+			$o->delete( true );
+		}
+	}
+	$GLOBALS['nx_test']['orders'] = array();
+}
+
+function nx_test_order( array $buyer, array $lines, array $opts = array() ) {
+
+	static $hooked = false;
+	if ( ! $hooked ) {
+		register_shutdown_function( 'nx_test_delete_orders' ); // also when the run dies
+		$hooked = true;
+	}
+
+	$opts = $opts + array( 'payment' => 'bacs', 'status' => null, 'place' => true, 'billing' => array() );
+	$was  = get_current_user_id();
+	$out  = array( 'order' => null, 'error' => '', 'id' => 0 );
+
+	wp_set_current_user( $buyer['user_id'] );
+	WC()->initialize_session();
+	WC()->initialize_cart();
+	WC()->cart->empty_cart( true );
+
+	foreach ( $lines as $line ) {
+		$added = \Nexora\Marketplace\Cart_Bridge::add( $buyer['user_id'], $line[0], $line[1] );
+		if ( is_wp_error( $added ) ) {
+			$out['error'] = $added->get_error_message();
+			WC()->cart->empty_cart( true );
+			wp_set_current_user( $was );
+			return $out;
+		}
+	}
+
+	WC()->cart->calculate_totals();
+
+	$data = $opts['billing'] + array(
+		'payment_method' => $opts['payment'],
+		'billing_first_name' => 'Bob', 'billing_last_name' => 'Billing', 'billing_email' => 'bob.billing@example.test', 'billing_phone' => '9800000001',
+		'billing_address_1' => '9 Billing Road', 'billing_city' => 'Mumbai', 'billing_state' => 'MH', 'billing_postcode' => '400001', 'billing_country' => 'IN',
+		'shipping_first_name' => 'Sia', 'shipping_last_name' => 'Shipping', 'shipping_address_1' => '1 Ship Street', 'shipping_city' => 'Delhi',
+		'shipping_state' => 'DL', 'shipping_postcode' => '110001', 'shipping_country' => 'IN', 'ship_to_different_address' => true, 'order_comments' => '',
+	);
+
+	$order_id = WC()->checkout()->create_order( $data );
+
+	if ( is_wp_error( $order_id ) ) {
+		$out['error'] = $order_id->get_error_message();
+		WC()->cart->empty_cart( true );
+		wp_set_current_user( $was );
+		return $out;
+	}
+
+	$GLOBALS['nx_test']['orders'][] = (int) $order_id;
+	$order                          = wc_get_order( $order_id );
+	$out['id']                      = (int) $order_id;
+
+	if ( $opts['place'] ) {
+		try {
+			do_action( 'woocommerce_checkout_order_processed', $order_id, $data, $order );
+		} catch ( \Throwable $e ) {
+			$out['error'] = $e->getMessage();
+		}
+		$order = wc_get_order( $order_id );
+	}
+
+	if ( '' === $out['error'] ) {
+		$status = $opts['status'] ? $opts['status'] : ( 'cod' === $opts['payment'] ? 'processing' : 'on-hold' );
+		$order->update_status( $status );
+		$order = wc_get_order( $order_id );
+	}
+
+	WC()->cart->empty_cart( true );
+	wp_set_current_user( $was );
+	$out['order'] = $order;
+
+	return $out;
+}
+
+/** A published, approved-vendor product for order tests. Returns the post id (cleaned up with the rest). */
+function nx_test_product( array $vendor, $sku, $price = '100', $stock = '5', array $extra = array() ) {
+	$d  = \Nexora\Products\Validator::validate( array_merge( array( 'name' => "Order Test $sku", 'description' => 'd', 'price' => $price, 'stock' => $stock, 'sku' => $sku, 'category' => 'other' ), $extra ) );
+	$id = \Nexora\Products\Repository::create( $vendor['user_id'], $vendor['vendor_id'], $d['data'], 'manual' );
+	$GLOBALS['nx_test']['posts'][] = $id;
+	return $id;
+}
+
 
 function nx_assert( $cond, $label ) {
 	$GLOBALS['nx_test'][ $cond ? 'pass' : 'fail' ]++;
@@ -471,6 +577,7 @@ function nx_test_cleanup() {
 	// counters, import previews, mocked API pages and locks made by this run go; the ones the site had are put back
 	nx_test_ephemera_restore();
 	wp_set_current_user( 0 );
+	nx_test_delete_orders();
 	foreach ( $GLOBALS['nx_test']['posts'] as $id ) {
 		wp_delete_post( $id, true );
 	}

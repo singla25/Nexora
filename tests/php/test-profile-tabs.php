@@ -21,8 +21,8 @@ $tabs = function ( $html ) {
 	return $t[1];
 };
 
-$base = array( 'user-info', 'connections', 'content', 'notifications', 'marketplace' );
-nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-products' ), Page::BUILT_TABS, 'the tabs that exist today' );
+$base = array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-orders' );
+nx_assert_same( array( 'user-info', 'connections', 'content', 'notifications', 'marketplace', 'my-products', 'my-orders', 'sales' ), Page::BUILT_TABS, 'the tabs that exist today' );
 
 $customer = nx_test_user( 'ptcust' );
 $pending  = nx_test_user( 'ptpend' );
@@ -40,8 +40,11 @@ foreach ( array( 'customer' => $customer, 'pending vendor' => $pending, 'approve
 	$html = $render( $u['user_id'], $u['login'] );
 	$got  = $tabs( $html );
 	nx_assert_same( array_values( array_intersect( Account_Types::tabs_for( $u['user_id'] ), Page::BUILT_TABS ) ), $got, "$label: the tab row is tabs_for() limited to the tabs that exist" );
-	nx_assert_same( 'approved vendor' === $label ? array_merge( $base, array( 'my-products' ) ) : $base, $got, "$label: today that is the base tabs (plus My Products for an approved vendor)" );
-	foreach ( array( 'my-orders', 'sales', 'vendor-status' ) as $later ) {
+	$expect = $base;
+	if ( 'approved vendor' === $label ) { $expect = array_merge( $base, array( 'my-products', 'sales' ) ); }
+	if ( 'suspended vendor' === $label ) { $expect = array_merge( $base, array( 'sales' ) ); }
+	nx_assert_same( $expect, $got, "$label: the base tabs plus My Orders (plus My Products and Sales for an approved vendor, Sales alone to read for a suspended one)" );
+	foreach ( array( 'vendor-status' ) as $later ) {
 		nx_assert( false === strpos( $html, 'data-tab="' . $later . '"' ) && false === strpos( $html, 'id="' . $later . '"' ), "$label: the unbuilt tab \"$later\" is not rendered" );
 	}
 	foreach ( $got as $tab ) {
@@ -61,7 +64,7 @@ nx_assert( null === $tabs( $html ) || array() === $tabs( $html ), 'a guest sees 
 // The tab row really comes from the tab list: removing a tab through the filter removes its button.
 add_filter( 'nexora_profile_tabs', function ( $list ) { return array_values( array_diff( $list, array( 'content' ) ) ); } );
 $html = $render( $customer['user_id'], $customer['login'] );
-nx_assert_same( array( 'user-info', 'connections', 'notifications', 'marketplace' ), $tabs( $html ), 'the nexora_profile_tabs filter changes the rendered tab row' );
+nx_assert_same( array( 'user-info', 'connections', 'notifications', 'marketplace', 'my-orders' ), $tabs( $html ), 'the nexora_profile_tabs filter changes the rendered tab row' );
 remove_all_filters( 'nexora_profile_tabs' );
 $html = $render( $customer['user_id'], $customer['login'] );
 nx_assert_same( $base, $tabs( $html ), 'and removing the filter restores it' );
