@@ -123,7 +123,7 @@ Every vendor action rejects with a JSON error for customers, pending/suspended v
 
 ### 6b. Product API sources and the Nexora format (built)
 
-**Sources** (Nexora System > Settings > "Product API sources"). Each source has a name, an https address, an optional authentication (none, header key, or bearer token), an enabled flag and a format: **Nexora format** or the **DummyJSON adapter**. The list is seeded with DummyJSON (`https://dummyjson.com/products`, DummyJSON adapter, no auth, enabled); nothing is hard-coded in `Imports\Api_Source` any more. Keys are encrypted with the site salts (`Core\Secrets`, libsodium secretbox), are never shown back (the field is always empty; a blank field keeps the saved key; "Remove the saved key" clears it) and never appear in logs, history, errors, script data or the database in clear. Two more settings: a **master switch** "Let vendors import from their own API" (off by default) and an optional **host allow-list** for vendors' own APIs (one host per line; a host matches itself and its subdomains; empty = any public https host; it does not restrict the sources the administrator configured).
+**Sources** (Nexora System > Settings > "Product API sources"). Each source has a name, an https address, an optional authentication (none, header key, or bearer token), an enabled flag and a format: **Nexora format**, the **DummyJSON adapter** or the **Fake Store adapter**. The list is seeded with DummyJSON (`https://dummyjson.com/products`, DummyJSON adapter, no auth, enabled) and a **disabled** Fake Store source (`https://fakestoreapi.com/products`, Fake Store adapter); nothing is hard-coded in `Imports\Api_Source` any more. Keys are encrypted with the site salts (`Core\Secrets`, libsodium secretbox), are never shown back (the field is always empty; a blank field keeps the saved key; "Remove the saved key" clears it) and never appear in logs, history, errors, script data or the database in clear. Two more settings: a **master switch** "Let vendors import from their own API" (off by default) and an optional **host allow-list** for vendors' own APIs (one host per line; a host matches itself and its subdomains; empty = any public https host; it does not restrict the sources the administrator configured).
 
 **Vendors** (Import from API popup): pick a platform source, a saved connection, or "My own API" (an address and an optional key, header or bearer). Up to **5 saved connections** per vendor, with edit and delete; "Test my API" reads the first page and explains in plain language, item by item, what would be refused; Preview then Import keep the one-time token and the vendor + external id upsert (a connection's products carry `c-<connection id>:<item id>` so two feeds never collide). A vendor sees and changes only their own connections and can never supply an address for a platform source (the request names a source id; any `url`/key posted with it is ignored). Administrators see all connections under Nexora System > API connections: vendor, address, kind of authentication, last import - never the key.
 
@@ -154,6 +154,26 @@ Every vendor action rejects with a JSON error for customers, pending/suspended v
 | `image` | no | https address | on the API's own host or a subdomain; stays on that server; anything else is ignored (reported as a note by "Test my API") |
 
 Every item goes through the same shared product validator as the manual form and the CSV import; an item without a usable `id` is reported, any other problem is reported on its field in plain words and that item is skipped while the rest import. The DummyJSON adapter maps `title`, `description`, `category` (to the fixed list), `price`, `stock`, `sku` (`DJ-{id}` when missing) and `thumbnail` as in 8b.
+
+### 6c. The Fake Store adapter (built)
+
+A third format for platform sources (`Imports\Api_Source::map_fakestore`). The API (`https://fakestoreapi.com/products`) answers a **bare JSON list** (no `products` wrapper, no `next`), so it is one request; anything that is not a list is a plain fetch error. Each item has `id`, `title`, `price`, `description`, `category`, `image` and `rating`, and **no stock**.
+
+| Fake Store | Nexora | Rule |
+|---|---|---|
+| `id` | external id `<source key>:<id>`, sku `FS-<id>` | prefixed so it can never meet a DummyJSON id; upsert by vendor + external id, so the same id updates |
+| `title` | name | judged by the shared validator (a missing or blank title fails that item: "This field is required.") |
+| `price`, `description` | price, description | as given; description cut to 2,000 |
+| `category` | category | existing slug or label is used; otherwise see below |
+| `image` | `image_url` | https and on the source's own host, else dropped (the product still imports) |
+| `rating` | - | ignored |
+| (none) | stock | the source's **Stock for items without stock** (whole number 0-100,000, default 10); a stock the API happens to send is not trusted |
+
+**Two per-source settings**, shown only for this format: *Stock for items without stock* and *Create missing categories* (on by default for platform sources). With it **off**, an item whose category is not in the list fails in the preview: `The category "jewelery" is not in the category list...`. With it **on**, the category is created **only when the import is applied** (the preview writes nothing and counts the item as valid): the label is the API's name in title case, at most 40 characters, the slug is what `sanitize_title` makes of it; at most 10 new categories per import and never past 50 in the list (items beyond that fail with a message). The new names live in the server-held plan, never in the browser, and are appended to the category setting by `Products\Fields::add_categories()`.
+
+**Security is unchanged.** The adapter goes through the same `Api_Source::page()` and `Url_Guard`: https only, address checks after DNS, pinned address, 10 s timeout, 2 MB cap, no redirects, 500 items, generic errors, keys never returned. Nothing new makes a request.
+
+**Vendor-owned API vs platform source:** a vendor's own API is always the Nexora format (the Fake Store format is refused for it) and can never create categories, and it is limited by the host allow-list and not cached, while a platform source is chosen and configured by the administrator, may use either adapter, may create categories if allowed, and its pages are cached for 10 minutes.
 
 ## 7. Analytics
 

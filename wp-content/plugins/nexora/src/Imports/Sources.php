@@ -19,12 +19,15 @@ class Sources {
 	const SWITCH            = 'nexora_vendor_apis_enabled';
 	const HOSTS             = 'nexora_api_host_allowlist';
 	const MAX               = 20;
-	const FORMATS           = array( 'nexora', 'dummyjson' );
+	const FORMATS           = array( 'nexora', 'dummyjson', 'fakestore' );
+	const STOCK_DEFAULT     = 10;
+	const STOCK_MAX         = 100000;
 	const AUTHS             = array( 'none', 'header', 'bearer' );
 	const FORBIDDEN_HEADERS = array( 'host', 'content-length', 'content-type', 'cookie', 'set-cookie', 'transfer-encoding', 'connection', 'upgrade', 'te', 'trailer', 'expect', 'keep-alive', 'proxy-authorization', 'accept', 'accept-encoding', 'user-agent' );
 
 	/**
-	 * The built-in source: DummyJSON (the sample catalog this project started with).
+	 * The built-in sources: DummyJSON (the sample catalog this project started with, enabled) and Fake Store (disabled
+	 * until an administrator turns it on).
 	 *
 	 * @return array[]
 	 */
@@ -40,8 +43,45 @@ class Sources {
 				'auth_header' => '',
 				'secret'      => '',
 				'enabled'     => true,
-			),
+			) + self::format_defaults(),
+			array(
+				'id'          => 'fakestore',
+				'name'        => 'Fake Store',
+				'url'         => 'https://fakestoreapi.com/products',
+				'format'      => 'fakestore',
+				'auth_type'   => 'none',
+				'auth_header' => '',
+				'secret'      => '',
+				'enabled'     => false,
+			) + self::format_defaults(),
 		);
+	}
+
+	/**
+	 * The two settings of the Fake Store format, at their defaults (every other format keeps these).
+	 *
+	 * @return array
+	 */
+	private static function format_defaults() {
+		return array(
+			'stock_default'     => self::STOCK_DEFAULT,
+			'create_categories' => true,
+		);
+	}
+
+	/**
+	 * "Stock for items without stock": a whole number 0-100,000, else 10.
+	 *
+	 * @param mixed $value Stored or posted value.
+	 * @return int
+	 */
+	public static function stock_default_of( $value ) {
+
+		if ( is_int( $value ) ) {
+			return $value >= 0 && $value <= self::STOCK_MAX ? $value : self::STOCK_DEFAULT;
+		}
+
+		return is_string( $value ) && preg_match( '/^[0-9]{1,6}$/', $value ) && (int) $value <= self::STOCK_MAX ? (int) $value : self::STOCK_DEFAULT;
 	}
 
 	/**
@@ -62,11 +102,20 @@ class Sources {
 		foreach ( $stored as $row ) {
 
 			if ( is_array( $row ) && isset( $row['id'], $row['url'] ) ) {
-				$out[] = array(
+
+				$format = in_array( $row['format'] ?? '', self::FORMATS, true ) ? $row['format'] : 'nexora';
+				$extra  = 'fakestore' === $format
+					? array(
+						'stock_default'     => self::stock_default_of( $row['stock_default'] ?? self::STOCK_DEFAULT ),
+						'create_categories' => ! array_key_exists( 'create_categories', $row ) || ! empty( $row['create_categories'] ),
+					)
+					: self::format_defaults();
+
+				$out[] = $extra + array(
 					'id'          => (string) $row['id'],
 					'name'        => (string) ( $row['name'] ?? $row['id'] ),
 					'url'         => (string) $row['url'],
-					'format'      => in_array( $row['format'] ?? '', self::FORMATS, true ) ? $row['format'] : 'nexora',
+					'format'      => $format,
 					'auth_type'   => in_array( $row['auth_type'] ?? '', self::AUTHS, true ) ? $row['auth_type'] : 'none',
 					'auth_header' => (string) ( $row['auth_header'] ?? '' ),
 					'secret'      => (string) ( $row['secret'] ?? '' ),
@@ -210,11 +259,19 @@ class Sources {
 			$auth        = isset( $row['auth_type'] ) && in_array( $row['auth_type'], self::AUTHS, true ) ? $row['auth_type'] : 'none';
 			$existing    = $known[ $id ]['secret'] ?? '';
 
-			$out[] = array(
+			$format = isset( $row['format'] ) && in_array( $row['format'], self::FORMATS, true ) ? $row['format'] : 'nexora';
+			$extra  = 'fakestore' === $format
+				? array(
+					'stock_default'     => self::stock_default_of( $row['stock_default'] ?? '' ),
+					'create_categories' => ! empty( $row['create_categories'] ),
+				)
+				: self::format_defaults();
+
+			$out[] = $extra + array(
 				'id'          => $id,
 				'name'        => $name,
 				'url'         => $syntax['url'],
-				'format'      => isset( $row['format'] ) && in_array( $row['format'], self::FORMATS, true ) ? $row['format'] : 'nexora',
+				'format'      => $format,
 				'auth_type'   => $auth,
 				'auth_header' => 'header' === $auth ? self::header_name( $row['auth_header'] ?? '' ) : '',
 				'secret'      => 'none' === $auth ? '' : self::secret( $row, $existing, $name ),

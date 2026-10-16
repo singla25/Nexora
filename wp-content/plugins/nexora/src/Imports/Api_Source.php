@@ -12,13 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Fetches and maps a product API: the published "Nexora format" or the DummyJSON adapter. Every request goes through
+ * Fetches and maps a product API: the published "Nexora format", the DummyJSON adapter or the Fake Store adapter. Every request goes through
  * Url_Guard (https, public addresses only, checked after DNS, pinned to the checked address), follows no redirect, has
  * a 10 second timeout and a 2 MB response cap, reads at most 10 pages and 500 items, and reports only generic errors:
  * an upstream body, the address or the key never reach the caller.
  *
  * A source is an array: key, name, url, format, auth_type, auth_header, secret (PLAIN text, only here in memory),
- * kind (platform | vendor), host_allowlist.
+ * kind (platform | vendor), host_allowlist, and for the Fake Store format stock_default and create_categories.
  */
 class Api_Source {
 
@@ -27,6 +27,11 @@ class Api_Source {
 	const MAX_PAGES = 10;
 	const MAX_BYTES = 2 * MB_IN_BYTES;
 	const CACHE     = 10 * MINUTE_IN_SECONDS;
+
+	// Fake Store adapter: categories it may ask to create in one import, the size at which the list is "full", and the longest label.
+	const NEW_CATEGORIES_MAX = 10;
+	const CATEGORIES_MAX     = 50;
+	const CATEGORY_LABEL_MAX = 40;
 
 	/**
 	 * DummyJSON category => category slug of the fixed list (anything else becomes "other").
@@ -70,15 +75,17 @@ class Api_Source {
 	public static function from_platform( array $row ) {
 
 		return array(
-			'key'            => 'p-' . $row['id'],
-			'name'           => $row['name'],
-			'url'            => $row['url'],
-			'format'         => $row['format'],
-			'auth_type'      => $row['auth_type'],
-			'auth_header'    => $row['auth_header'],
-			'secret'         => Secrets::decrypt( $row['secret'] ),
-			'kind'           => 'platform',
-			'host_allowlist' => array(),
+			'key'               => 'p-' . $row['id'],
+			'name'              => $row['name'],
+			'url'               => $row['url'],
+			'format'            => $row['format'],
+			'auth_type'         => $row['auth_type'],
+			'auth_header'       => $row['auth_header'],
+			'secret'            => Secrets::decrypt( $row['secret'] ),
+			'kind'              => 'platform',
+			'host_allowlist'    => array(),
+			'stock_default'     => Sources::stock_default_of( $row['stock_default'] ?? Sources::STOCK_DEFAULT ),
+			'create_categories' => ! isset( $row['create_categories'] ) || ! empty( $row['create_categories'] ),
 		);
 	}
 
@@ -112,6 +119,12 @@ class Api_Source {
 			return $out;
 		}
 
+		// A vendor's own API is always the Nexora format; the adapters (and creating categories) are the administrator's.
+		if ( 'vendor' === $source['kind'] && 'nexora' !== $source['format'] ) {
+			$out['fetch_error'] = __( 'This kind of product source is not available.', 'nexora' );
+			return $out;
+		}
+
 		$opts  = 'vendor' === $source['kind'] ? array( 'host_allowlist' => (array) $source['host_allowlist'] ) : array();
 		$first = Url_Guard::check( $source['url'], $opts );
 
@@ -128,6 +141,10 @@ class Api_Source {
 			),
 			$first['url']
 		) : $first['url'];
+		$state   = array(
+			'known' => Fields::categories(),
+			'new'   => array(),
+		);
 		$seen    = array();
 		$pages   = 0;
 		$skip    = 0;
@@ -159,7 +176,14 @@ class Api_Source {
 
 			foreach ( $page['products'] as $product ) {
 
-				$mapped = 'dummyjson' === $source['format'] ? self::map_dummyjson( $product, $host ) : self::map_nexora( $product, $source['key'], $host );
+				if ( 'dummyjson' === $source['format'] ) {
+					$mapped = self::map_dummyjson( $product, $host );
+				} elseif ( 'fakestore' === $source['format'] ) {
+					$mapped = self::map_fakestore( $product, $source, $host, $state );
+				} else {
+					$mapped = self::map_nexora( $product, $source['key'], $host );
+				}
+
 				++$counted;
 
 				if ( isset( $mapped['error'] ) ) {
@@ -300,6 +324,26 @@ class Api_Source {
 
 		$json = json_decode( $body, true );
 
+		// The Fake Store answer is a bare list: no wrapper, no total, no next page.
+		if ( 'fakestore' === $source['format'] ) {
+
+			if ( ! is_array( $json ) || ! array_is_list( $json ) ) {
+				return $fail( __( 'The product source did not answer in the expected format: a JSON list of products.', 'nexora' ) );
+			}
+
+			$page = array(
+				'products' => $json,
+				'total'    => count( $json ),
+				'next'     => null,
+			);
+
+			if ( $cacheable ) {
+				set_transient( $key, $page, self::CACHE );
+			}
+
+			return $page + array( 'error' => '' );
+		}
+
 		if ( ! is_array( $json ) || array_is_list( $json ) || ! isset( $json['products'] ) || ! is_array( $json['products'] ) || ! array_is_list( $json['products'] ) ) {
 			return $fail( __( 'The product source did not answer in the expected format: a JSON object with a "products" list.', 'nexora' ) );
 		}
@@ -401,6 +445,131 @@ class Api_Source {
 				'image_id'    => '0',
 			),
 			'image_url'   => Products::external_image_ok( $thumb, $host ) ? $thumb : '',
+		);
+	}
+
+	/**
+	 * Maps one Fake Store product (the adapter): id, title (the name), price, description, category and image pass through;
+	 * the rating is ignored. The API has no stock, so the source's "stock for items without stock" is used (never a number from
+	 * the API); there is no sku either, so FS-{id}. A category that is not in the list is created later (only when the source
+	 * says so, and only when the import is applied) or fails the item with a plain message. Everything else is judged by the
+	 * shared product validator, like every other format.
+	 *
+	 * @param mixed  $product One entry of the list.
+	 * @param array  $source  The source.
+	 * @param string $host    The source host (the image must be on it).
+	 * @param array  $state   Categories known and categories asked for so far in this fetch (by reference).
+	 * @return array external_id, raw, image_url (and new_category) - or error [ ref, message ].
+	 */
+	private static function map_fakestore( $product, array $source, $host, array &$state ) {
+
+		if ( ! is_array( $product ) || array_is_list( $product ) ) {
+			return self::item_error( '?', __( 'This entry is not an object.', 'nexora' ) );
+		}
+
+		$id = self::id_of( $product );
+
+		if ( '' === $id ) {
+			return self::item_error( '?', __( 'This product has no usable "id".', 'nexora' ) );
+		}
+
+		$text  = function ( $field, $max ) use ( $product ) {
+			$value = $product[ $field ] ?? null;
+			$value = is_int( $value ) || is_float( $value ) ? (string) $value : $value;
+			return is_string( $value ) ? mb_substr( trim( $value ), 0, $max ) : '';
+		};
+		$image = $text( 'image', 300 );
+		$cat   = self::fakestore_category( $product['category'] ?? null, $id, ! empty( $source['create_categories'] ), $state );
+
+		if ( isset( $cat['error'] ) ) {
+			return $cat;
+		}
+
+		$item = array(
+			'external_id' => $source['key'] . ':' . $id,
+			'ref'         => $id,
+			'raw'         => array(
+				'name'        => $text( 'title', 500 ),
+				'description' => $text( 'description', Validator::DESCRIPTION_MAX ),
+				'price'       => self::num( $product, 'price' ),
+				'stock'       => (string) Sources::stock_default_of( $source['stock_default'] ?? Sources::STOCK_DEFAULT ),
+				'sku'         => 'FS-' . $id,
+				'category'    => $cat['slug'],
+				'image_id'    => '0',
+			),
+			'image_url'   => Products::external_image_ok( $image, $host ) ? $image : '',
+		);
+
+		if ( $cat['new'] ) {
+			$item['new_category'] = array(
+				'slug'  => $cat['slug'],
+				'label' => $cat['label'],
+			);
+		}
+
+		return $item;
+	}
+
+	/**
+	 * The category of a Fake Store item: an existing one (by slug or label), a new one to create, or an error.
+	 *
+	 * @param mixed  $value  The category field.
+	 * @param string $ref    Item reference.
+	 * @param bool   $create Whether this source may ask for missing categories.
+	 * @param array  $state  Categories known and asked for so far in this fetch (by reference).
+	 * @return array slug, label, new - or error [ ref, message ].
+	 */
+	private static function fakestore_category( $value, $ref, $create, array &$state ) {
+
+		$label = is_string( $value ) ? mb_substr( sanitize_text_field( $value ), 0, 60 ) : '';
+
+		if ( '' === $label ) {
+			return self::item_error( $ref, __( 'This product has no category.', 'nexora' ) );
+		}
+
+		foreach ( $state['known'] + $state['new'] as $slug => $known_label ) {
+
+			if ( 0 === strcasecmp( $label, $slug ) || 0 === strcasecmp( $label, $known_label ) || sanitize_title( $label ) === $slug ) {
+				return array(
+					'slug'  => $slug,
+					'label' => $known_label,
+					'new'   => isset( $state['new'][ $slug ] ),
+				);
+			}
+		}
+
+		if ( ! $create ) {
+			/* translators: %s: the category name the source gave. */
+			return self::item_error( $ref, sprintf( __( 'The category "%s" is not in the category list. Add it in Settings, or let this source create missing categories.', 'nexora' ), $label ) );
+		}
+
+		$new_label = trim( mb_substr( mb_convert_case( $label, MB_CASE_TITLE, 'UTF-8' ), 0, self::CATEGORY_LABEL_MAX ) );
+		$new_slug  = sanitize_title( $new_label );
+
+		if ( '' === $new_slug ) {
+			/* translators: %s: the category name the source gave. */
+			return self::item_error( $ref, sprintf( __( 'The category "%s" cannot be used as a category name.', 'nexora' ), $label ) );
+		}
+
+		if ( isset( $state['known'][ $new_slug ] ) || isset( $state['new'][ $new_slug ] ) ) {
+			return array(
+				'slug'  => $new_slug,
+				'label' => $state['known'][ $new_slug ] ?? $state['new'][ $new_slug ],
+				'new'   => isset( $state['new'][ $new_slug ] ),
+			);
+		}
+
+		if ( count( $state['new'] ) >= self::NEW_CATEGORIES_MAX || count( $state['known'] ) + count( $state['new'] ) >= self::CATEGORIES_MAX ) {
+			/* translators: %s: the category name the source gave. */
+			return self::item_error( $ref, sprintf( __( 'The category "%s" was not created: too many new categories in one import, or the category list is full.', 'nexora' ), $label ) );
+		}
+
+		$state['new'][ $new_slug ] = $new_label;
+
+		return array(
+			'slug'  => $new_slug,
+			'label' => $new_label,
+			'new'   => true,
 		);
 	}
 

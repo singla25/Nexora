@@ -99,8 +99,13 @@ class Importer {
 		}
 
 		$entries = array();
+		$new     = array();
 
 		foreach ( (array) ( $fetched['items'] ?? array() ) as $item ) {
+
+			if ( ! empty( $item['new_category']['slug'] ) && ! empty( $item['new_category']['label'] ) ) {
+				$new[ (string) $item['new_category']['slug'] ] = (string) $item['new_category']['label'];
+			}
 
 			$entries[] = array(
 				'line'        => 0,
@@ -112,7 +117,19 @@ class Importer {
 			);
 		}
 
-		$plan = self::plan( (int) $user_id, 'api', $entries, (string) ( $fetched['label'] ?? '' ), (string) ( $fetched['fetch_error'] ?? '' ) );
+		// The categories the source asked for count as valid while planning, but nothing is written until apply().
+		$pending = function ( $categories ) use ( $new ) {
+			return (array) $categories + $new;
+		};
+		add_filter( 'nexora_product_categories', $pending, 99 );
+
+		try {
+			$plan = self::plan( (int) $user_id, 'api', $entries, (string) ( $fetched['label'] ?? '' ), (string) ( $fetched['fetch_error'] ?? '' ) );
+		} finally {
+			remove_filter( 'nexora_product_categories', $pending, 99 );
+		}
+
+		$plan['new_categories'] = $new;
 
 		foreach ( (array) ( $fetched['errors'] ?? array() ) as $error ) {
 			$plan['rows'][] = array(
@@ -155,6 +172,11 @@ class Importer {
 			'skipped'   => 0,
 		);
 		$errors  = array();
+
+		// Categories an API source asked for are created first (they come from the server-held plan, never from the browser).
+		if ( ! empty( $plan['new_categories'] ) && is_array( $plan['new_categories'] ) ) {
+			\Nexora\Products\Fields::add_categories( $plan['new_categories'] );
+		}
 
 		foreach ( $plan['rows'] as $row ) {
 
