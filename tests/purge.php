@@ -8,7 +8,23 @@ require_once ABSPATH . 'wp-admin/includes/user.php';
 $user_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->users} WHERE user_login LIKE 'nxtest\\_%'" ) );
 $post_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'user_profile' AND post_title LIKE 'nxtest\\_%'" ) );
 
-$removed = array( 'users' => 0, 'posts' => 0, 'threads' => 0, 'notifications' => 0 );
+$removed = array( 'users' => 0, 'posts' => 0, 'threads' => 0, 'notifications' => 0, 'orders' => 0 );
+
+// Orders made by the test fixtures (tests/bootstrap.php nx_test_order): the fixture billing e-mail is their signature (an example.test address
+// no real customer can have), or the buyer is an nxtest_ user. Real orders are never matched.
+if ( function_exists( 'wc_get_orders' ) ) {
+	$fixture_orders = wc_get_orders( array( 'limit' => -1, 'return' => 'ids', 'status' => array_keys( wc_get_order_statuses() ), 'billing_email' => 'bob.billing@example.test' ) );
+	if ( $user_ids ) {
+		$fixture_orders = array_merge( $fixture_orders, wc_get_orders( array( 'limit' => -1, 'return' => 'ids', 'status' => array_keys( wc_get_order_statuses() ), 'customer_id' => $user_ids ) ) );
+	}
+	foreach ( array_unique( $fixture_orders ) as $oid ) {
+		$o = wc_get_order( $oid );
+		if ( $o ) {
+			$o->delete( true );
+			$removed['orders']++;
+		}
+	}
+}
 
 if ( $user_ids ) {
 	$in = implode( ',', $user_ids );

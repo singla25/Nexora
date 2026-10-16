@@ -73,6 +73,14 @@
 					</tr>
 
 					<tr>
+						<th><label for="nexora_commission_rate"><?php esc_html_e( 'Marketplace commission (%)', 'nexora' ); ?></label></th>
+						<td>
+							<input type="text" inputmode="decimal" id="nexora_commission_rate" name="nexora_commission_rate" value="<?php echo esc_attr( $v['commission'] ); ?>" class="small-text" maxlength="6"> %
+							<p class="description"><?php esc_html_e( 'The share of each sale the marketplace keeps, from 0 to 100 (for example 10 or 12.5). The vendor earns the rest. An order keeps the rate it was placed at: changing this affects new orders only.', 'nexora' ); ?></p>
+						</td>
+					</tr>
+
+					<tr>
 						<th><?php esc_html_e( 'Product API sources', 'nexora' ); ?></th>
 						<td>
 							<p class="description"><?php esc_html_e( 'Product catalogs every approved vendor can import from. Only public https addresses work (private, local and cloud-metadata addresses are always refused). Keys are stored encrypted and are never shown again: leave a key field empty to keep the saved key.', 'nexora' ); ?></p>

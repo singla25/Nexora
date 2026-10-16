@@ -28,6 +28,10 @@
 							<button class="tab-btn" data-tab="marketplace"><?php esc_html_e( 'Marketplace', 'nexora' ); ?></button>
 						<?php elseif ( 'my-products' === $nx_tab ) : ?>
 							<button class="tab-btn" data-tab="my-products"><?php esc_html_e( 'My Products', 'nexora' ); ?></button>
+						<?php elseif ( 'my-orders' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="my-orders"><?php esc_html_e( 'My Orders', 'nexora' ); ?></button>
+						<?php elseif ( 'sales' === $nx_tab ) : ?>
+							<button class="tab-btn" data-tab="sales"><?php esc_html_e( 'Sales', 'nexora' ); ?></button>
 						<?php elseif ( 'notifications' === $nx_tab ) : ?>
 							<button class="tab-btn" data-tab="notifications">
 								<?php esc_html_e( 'Notifications', 'nexora' ); ?>
@@ -51,6 +55,8 @@
 foreach ( array(
 	'marketplace' => 'tab-marketplace',
 	'my-products' => 'tab-my-products',
+	'my-orders'   => 'tab-my-orders',
+	'sales'       => 'tab-sales',
 ) as $nx_tab => $nx_partial ) :
 	?>
 	<?php if ( in_array( $nx_tab, $tabs, true ) ) : ?>

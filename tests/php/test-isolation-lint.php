@@ -21,6 +21,7 @@ $constants = array(
 	'Marketplace_Item::OPTION'                   => "'nexora_marketplace_item_id'",
 	'Fields::OPTION'                             => "'nexora_product_categories'",
 	'Account_Types::OPTION'                      => "'nexora_accounts_version'",
+	'Commission::OPTION'                         => "'nexora_commission_rate'",
 );
 
 $own_prefixes = array( 'nx_test_', 'nxtest_', 'nx_iso_', 'nexora_vendor_lock_' );
@@ -45,7 +46,7 @@ foreach ( $files as $file ) {
 	}
 
 	// tests/bootstrap.php scopes these five for every test file (nx_test_default_settings()).
-	$scoped .= "\n'nexora_api_sources' 'nexora_vendor_apis_enabled' 'nexora_api_host_allowlist' 'nexora_product_categories' 'nexora_delete_data_on_uninstall'";
+	$scoped .= "\n'nexora_api_sources' 'nexora_vendor_apis_enabled' 'nexora_api_host_allowlist' 'nexora_product_categories' 'nexora_delete_data_on_uninstall' 'nexora_commission_rate'";
 
 	if ( false !== strpos( $code, 'nx_test_marketplace_item_scope()' ) ) {
 		$scoped .= "\n'nexora_marketplace_item_id'";
