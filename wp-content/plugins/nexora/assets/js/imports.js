@@ -64,6 +64,10 @@
             $('<p>', { 'class': 'nx-import-bad', role: 'alert' }).text(d.fetch_error).appendTo($r);
         }
 
+        if (d.feed_note) {
+            $('<p>', { 'class': 'nx-import-feed', role: 'status' }).text(d.feed_note).appendTo($r);
+        }
+
         $('<p>', { 'class': 'nx-import-summary' }).text(
             (s.create || 0) + ' to create, ' + (s.update || 0) + ' to update, ' + (s.unchanged || 0) + ' unchanged, ' + (s.error || 0) + ' with errors'
         ).appendTo($r);
@@ -132,6 +136,18 @@
         syncAuth($popup);
         token = '';
     }
+
+    // "How many products": the server checks the value against its own list; the import must use the same count as the preview.
+    function limitOf($popup) {
+        return $popup.find('.nx-api-limit').val() || '20';
+    }
+
+    $(document).on('change', '.nx-api-limit', function () {
+        var $popup = $(this).closest('.nx-import-popup');
+        token = '';
+        $popup.find('.nx-import-confirm').prop('hidden', true);
+        $popup.find('.nx-import-report').empty();
+    });
 
     $(document).on('change', '.nx-api-source', function () {
         var $popup = $(this).closest('.nx-import-popup');
@@ -268,6 +284,7 @@
             data.append('file', file.files[0]);
         } else {
             $.each(sourceFields($popup), function (k, v) { data.append(k, v); });
+            data.append('limit', limitOf($popup));
         }
 
         data.append('action', ACTIONS[kind].preview);
@@ -297,7 +314,10 @@
         var kind = $popup.data('kind');
         var $button = $(this).prop('disabled', true);
 
-        $.post(cfg.ajaxUrl, { action: ACTIONS[kind].apply, nonce: cfg.nonce, token: token })
+        var payload = { action: ACTIONS[kind].apply, nonce: cfg.nonce, token: token };
+        if (kind === 'api') { payload.limit = limitOf($popup); }
+
+        $.post(cfg.ajaxUrl, payload)
             .done(function (res) {
                 if (res && res.success) {
                     var s = res.data.summary || {};

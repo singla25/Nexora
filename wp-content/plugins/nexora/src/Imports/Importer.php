@@ -23,6 +23,10 @@ class Importer {
 	const TOKEN_TTL = 15 * MINUTE_IN_SECONDS;
 	const SHOW_ROWS = 100;
 
+	// "How many products" in the API popup: the allowed counts (the last is "All, up to 500") and the default.
+	const LIMITS        = array( 20, 40, 100, 500 );
+	const DEFAULT_LIMIT = 20;
+
 	/**
 	 * Plans a CSV import.
 	 *
@@ -86,13 +90,29 @@ class Importer {
 	}
 
 	/**
+	 * The count the vendor asked for: exactly one of the allowed values written as plain digits, anything else is 20.
+	 *
+	 * @param mixed $value Posted value.
+	 * @return int 20, 40, 100 or 500.
+	 */
+	public static function limit_of( $value ) {
+
+		if ( is_int( $value ) ) {
+			return in_array( $value, self::LIMITS, true ) ? $value : self::DEFAULT_LIMIT;
+		}
+
+		return is_string( $value ) && in_array( $value, array_map( 'strval', self::LIMITS ), true ) ? (int) $value : self::DEFAULT_LIMIT;
+	}
+
+	/**
 	 * Plans an API import.
 	 *
 	 * @param int   $user_id The vendor's user ID.
-	 * @param array $fetched Api_Source::fetch() result: items, errors, fetch_error.
+	 * @param array $fetched Api_Source::fetch() result: items, errors, fetch_error, feed.
+	 * @param int   $limit   The count the preview was made for (bound to the token).
 	 * @return array|\WP_Error
 	 */
-	public static function plan_api( $user_id, array $fetched ) {
+	public static function plan_api( $user_id, array $fetched, $limit = self::DEFAULT_LIMIT ) {
 
 		if ( ! Product_Service::vendor_for( (int) $user_id ) ) {
 			return self::forbidden();
@@ -130,6 +150,13 @@ class Importer {
 		}
 
 		$plan['new_categories'] = $new;
+		$plan['limit']          = self::limit_of( $limit );
+		$plan['feed']           = array(
+			'taken' => (int) ( $fetched['feed']['taken'] ?? 0 ),
+			'seen'  => (int) ( $fetched['feed']['seen'] ?? 0 ),
+			'total' => isset( $fetched['feed']['total'] ) ? (int) $fetched['feed']['total'] : null,
+			'more'  => ! empty( $fetched['feed']['more'] ),
+		);
 
 		foreach ( (array) ( $fetched['errors'] ?? array() ) as $error ) {
 			$plan['rows'][] = array(
@@ -230,6 +257,7 @@ class Importer {
 			array(
 				'user_id' => (int) $user_id,
 				'source'  => $plan['source'],
+				'limit'   => isset( $plan['limit'] ) ? (int) $plan['limit'] : 0,
 				'plan'    => $plan,
 			),
 			self::TOKEN_TTL
@@ -245,14 +273,20 @@ class Importer {
 	 * @param mixed  $token   Token from the request.
 	 * @param int    $user_id The member using it.
 	 * @param string $source  csv | api.
+	 * @param mixed  $limit   API only: the "How many products" value sent with the import. It must be the count the preview
+	 *                        was made for, so a preview of 20 can never import 100 (a refusal leaves the token usable).
 	 * @return array|\WP_Error
 	 */
-	public static function take( $token, $user_id, $source ) {
+	public static function take( $token, $user_id, $source, $limit = null ) {
 
 		$stored = is_string( $token ) && preg_match( '/^[a-f0-9]{32}$/', $token ) ? get_transient( 'nexora_import_' . $token ) : false;
 
 		if ( ! is_array( $stored ) || (int) $stored['user_id'] !== (int) $user_id || $stored['source'] !== $source ) {
 			return new \WP_Error( 'nexora_token', __( 'This preview has expired. Please preview again.', 'nexora' ) );
+		}
+
+		if ( 'api' === $source && self::limit_of( $limit ) !== (int) ( $stored['limit'] ?? 0 ) ) {
+			return new \WP_Error( 'nexora_limit_changed', __( 'The number of products was changed after the preview. Please preview again.', 'nexora' ) );
 		}
 
 		delete_transient( 'nexora_import_' . $token );
@@ -286,7 +320,55 @@ class Importer {
 			'truncated'   => count( $plan['rows'] ) > self::SHOW_ROWS,
 			'fetch_error' => $plan['fetch_error'],
 			'label'       => $plan['label'],
+			'feed'        => self::feed_of( $plan ),
+			'feed_note'   => self::feed_note( $plan ),
 		);
+	}
+
+	/**
+	 * What the preview knows about the feed (API only): valid items taken, entries read, the feed's total (null when
+	 * unknown) and whether it has more than was taken.
+	 *
+	 * @param array $plan A plan.
+	 * @return array|null
+	 */
+	private static function feed_of( array $plan ) {
+
+		if ( empty( $plan['feed'] ) ) {
+			return null;
+		}
+
+		return array(
+			'taken'    => $plan['feed']['taken'],
+			'total'    => $plan['feed']['total'],
+			'at_least' => $plan['feed']['seen'],
+			'more'     => $plan['feed']['more'],
+			'limit'    => $plan['limit'] ?? self::DEFAULT_LIMIT,
+		);
+	}
+
+	/**
+	 * "Showing the first N of M." when the feed has more than was taken; "of at least M" when the stop came early and the
+	 * feed's total is unknown. Empty when everything was taken.
+	 *
+	 * @param array $plan A plan.
+	 * @return string
+	 */
+	private static function feed_note( array $plan ) {
+
+		if ( empty( $plan['feed']['more'] ) ) {
+			return '';
+		}
+
+		$taken = (int) $plan['feed']['taken'];
+
+		if ( null === $plan['feed']['total'] ) {
+			/* translators: 1: products taken, 2: products the feed is known to have (at least). */
+			return sprintf( __( 'Showing the first %1$d of at least %2$d.', 'nexora' ), $taken, (int) $plan['feed']['seen'] );
+		}
+
+		/* translators: 1: products taken, 2: products in the feed. */
+		return sprintf( __( 'Showing the first %1$d of %2$d.', 'nexora' ), $taken, (int) $plan['feed']['total'] );
 	}
 
 	/**

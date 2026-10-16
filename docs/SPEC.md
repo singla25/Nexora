@@ -175,6 +175,17 @@ A third format for platform sources (`Imports\Api_Source::map_fakestore`). The A
 
 **Vendor-owned API vs platform source:** a vendor's own API is always the Nexora format (the Fake Store format is refused for it) and can never create categories, and it is limited by the host allow-list and not cached, while a platform source is chosen and configured by the administrator, may use either adapter, may create categories if allowed, and its pages are cached for 10 minutes.
 
+### 6d. "How many products" (built)
+
+The "Import from API" popup has a dropdown **How many products**: 20, 40, 100 or **All (up to 500)**, default 20. It applies to platform sources, saved connections and "My own API" alike (all go through `nexora_api_preview`).
+
+- **Server-side allow-list.** `Importer::limit_of()` accepts only the plain digits `20`, `40`, `100` or `500`; anything else (missing, `25`, `-40`, `1e2`, ` 40`, an array, `all`...) reads as 20.
+- **Stops early.** `Api_Source::fetch( $source, [ 'valid' => N ] )` counts **valid** items (the entry maps, and the shared product validator accepts it) and requests no further page once N are collected, even in the middle of a page. A count of 20 on a 500-item feed downloads one page. All existing hard limits still apply: 10 s timeout, 2 MB, 500 entries, 10 pages, no redirects, the preview rate limit.
+- **Counting.** Invalid items (and entries that are not products) are still returned and shown in the preview as errors, but they do not use up the count: with 5 invalid items at the front and a count of 20 the preview has 20 valid and 5 invalid rows.
+- **Preview line.** When the feed has more than was taken: `Showing the first N of M.` (the feed says its total, or the whole feed was read to its end); when the stop came early and the total is unknown: `Showing the first N of at least M.` (M = entries read so far). Nothing is shown when everything was taken. The report carries `feed` (taken, total or null, at_least, more, limit) and `feed_note`.
+- **Token.** The one-time token stores the count it was made for. The import request sends the dropdown value again and `Importer::take()` refuses a different count ("The number of products was changed after the preview. Please preview again."); a refusal does not use the token up. A preview of 20 cannot import 100, and a request with no or an invalid count counts as 20. Changing the dropdown in the popup hides Import until a new preview is made.
+- **Later larger imports.** Upsert is by vendor + external id as before, so importing 20 and later 100 leaves the first 20 unchanged (or updated if the feed changed) and creates the other 80, with no duplicates.
+
 ## 7. Analytics
 
 Aggregated from order-item snapshots. Only processing and completed orders count; refunds and cancels are excluded. Reported: total sales, commission, net, order count, unique buyers, top products, per-order list (buyer name, date, qty, amount only). Date filter. A vendor can only ever query their own `vendor_id`. Commission is rounded half-up to 2 decimals per line.

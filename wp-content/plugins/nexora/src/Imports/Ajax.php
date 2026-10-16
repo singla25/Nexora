@@ -101,7 +101,8 @@ class Ajax extends Vendor_Ajax {
 		$this->throttle( 'api_import', $member['user_id'] );
 
 		$resolved = $this->source( $member['user_id'] );
-		$plan     = Importer::plan_api( $member['user_id'], Api_Source::fetch( $resolved['source'] ) );
+		$limit    = $this->limit();
+		$plan     = Importer::plan_api( $member['user_id'], Api_Source::fetch( $resolved['source'], array( 'valid' => $limit ) ), $limit );
 
 		if ( is_wp_error( $plan ) ) {
 			$this->forbid();
@@ -212,7 +213,7 @@ class Ajax extends Vendor_Ajax {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the token is matched against a strict 32 hex pattern in Importer::take().
 		$token = isset( $_POST['token'] ) && is_string( $_POST['token'] ) ? wp_unslash( $_POST['token'] ) : '';
-		$plan  = Importer::take( $token, $member['user_id'], $source );
+		$plan  = Importer::take( $token, $member['user_id'], $source, 'api' === $source ? $this->limit() : null );
 
 		if ( is_wp_error( $plan ) ) {
 			$this->fail( $plan->get_error_message() );
@@ -227,6 +228,18 @@ class Ajax extends Vendor_Ajax {
 		$this->record_use( $member['user_id'], $plan );
 
 		wp_send_json_success( array( 'summary' => $result['summary'] ) );
+	}
+
+	/**
+	 * The posted "How many products": one of the allowed counts, else 20. Anything that is not a plain string is ignored.
+	 *
+	 * @return int
+	 */
+	private function limit() {
+
+		// Nonce checked in seller(); Importer::limit_of() accepts only the allowed digits.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		return Importer::limit_of( isset( $_POST['limit'] ) ? wp_unslash( $_POST['limit'] ) : null );
 	}
 
 	/**
