@@ -6,6 +6,17 @@ Every test is written first and shown RED, then GREEN. Files go in `tests/php/te
 
 Note: an earlier report said "1,084 of 1,088"; that was a miscount.
 
+## Test isolation (rules for every test)
+The suite runs against the site's own database, so a test must never depend on, or damage, what the site has saved. Rules, enforced by `test-isolation-lint.php` and proved by `tests/guard.sh`:
+- **Known settings.** `tests/bootstrap.php` puts every test on the same default settings (no API sources saved, vendor APIs off, no host allow-list, default product categories, delete-on-uninstall off) with `nx_test_default_settings()`. A test that needs other values sets them with `nx_test_options( [ name => value ] )` (null = the option does not exist).
+- **Exact restore.** `nx_test_options()`, `nx_test_options_keep()` (edit it yourself, it is restored) and the Marketplace Item scope remember the RAW database rows (value, autoload flag, or "absent") and put them back byte for byte at `nx_test_finish()` and from a shutdown function, so also after a failed assertion, an exception, a fatal error or `exit`. Restores bypass sanitize callbacks.
+- **Only what the test created.** A test may only delete a user, post, option or table it made itself (fixtures from `nx_test_user()` / `nx_test_vendor()`, tracked ids, scratch names `nx_test_*` / `nxtest_*` / `nx_iso_*`, the `nxtest_` scratch table prefix). Anything else it needs to change goes through the helpers above. No `TRUNCATE`; `DROP TABLE` only on the scratch prefix.
+- **The Marketplace Item** (real orders point at it) is never edited or deleted: `nx_test_marketplace_item_scope()` makes the test work on a scratch item and puts the real item's flag and option back.
+- **Ephemeral rows** (rate-limit counters, API page caches, import previews, locks, OTP references, the home-stats cache): the first `nx_test_reset_limits()` sets the site's own aside, the test sees a clean slate, the end removes what the run made and puts the originals back. `tests/purge.php` removes only `nxtest_*` fixtures.
+- **Golden snapshots** render with the fixed default settings and give the auto-increment counters back exactly as the site had them.
+- **Commands.** `tests/run.sh` (all) or `tests/run.sh tests/php/test-foo.php`; `NX_TEST_DB=<copy of the database>` runs everything (child processes included) on a copy; `NX_SKIP_LIVE=1` skips the tests that make real web requests (the web server only sees the live database); `tests/guard.sh` sets hostile non-default values (Fake Store enabled, category creation off, vendor APIs on, host allow-list, custom categories, "coming soon" and guest checkout on), runs the whole suite, expects 0 failures and checks that the originals are exactly back. While a test runs against the live database the site briefly uses the test's known values: run it on a development site or on a copy.
+- **New tests:** `test-isolation-helper.php` (exact restore incl. crash modes, the Marketplace Item scope, ephemera), `test-isolation-lint.php` (the rules above, read from the test files).
+
 ## Phase 0
 Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 
