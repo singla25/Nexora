@@ -93,13 +93,17 @@ class Api_Source {
 	 * Fetches up to 500 products.
 	 *
 	 * @param array|null $source A source (see the class comment); null = the first enabled platform source.
-	 * @param array      $limits Optional smaller limits: pages, items (the "Test my API" button reads one page).
-	 * @return array items [ external_id, raw, image_url ], errors [ ref, message ], fetch_error ('' when fine), label
+	 * @param array      $limits Optional smaller limits: pages, items (the "Test my API" button reads one page) and valid (the
+	 *                           import's "How many products": stop as soon as this many VALID items are collected; invalid
+	 *                           ones are still returned, to be reported, but are not counted).
+	 * @return array items [ external_id, raw, image_url ], errors [ ref, message ], fetch_error ('' when fine), label,
+	 *               feed [ taken, seen, total (null when unknown), more ]
 	 */
 	public static function fetch( $source = null, array $limits = array() ) {
 
 		$max_pages = isset( $limits['pages'] ) ? max( 1, min( self::MAX_PAGES, (int) $limits['pages'] ) ) : self::MAX_PAGES;
 		$max_items = isset( $limits['items'] ) ? max( 1, min( self::MAX_ITEMS, (int) $limits['items'] ) ) : self::MAX_ITEMS;
+		$want      = isset( $limits['valid'] ) ? max( 1, min( self::MAX_ITEMS, (int) $limits['valid'] ) ) : self::MAX_ITEMS;
 
 		if ( null === $source ) {
 
@@ -112,6 +116,12 @@ class Api_Source {
 			'errors'      => array(),
 			'fetch_error' => '',
 			'label'       => $source ? (string) $source['name'] : '',
+			'feed'        => array(
+				'taken' => 0,
+				'seen'  => 0,
+				'total' => null,
+				'more'  => false,
+			),
 		);
 
 		if ( ! $source ) {
@@ -149,6 +159,11 @@ class Api_Source {
 		$pages   = 0;
 		$skip    = 0;
 		$counted = 0;
+		$valid   = 0;
+		$entries = 0;
+		$more    = false;
+		$stopped = false;
+		$total   = null;
 
 		while ( '' !== $url && $counted < $max_items ) {
 
@@ -174,7 +189,19 @@ class Api_Source {
 				break;
 			}
 
+			$entries += count( $page['products'] );
+
+			if ( 'dummyjson' === $source['format'] || ! empty( $page['total_known'] ) ) {
+				$total = (int) $page['total'];
+			}
+
 			foreach ( $page['products'] as $product ) {
+
+				// Enough valid items: the rest of the page is left alone.
+				if ( $valid >= $want ) {
+					$more = true;
+					break;
+				}
 
 				if ( 'dummyjson' === $source['format'] ) {
 					$mapped = self::map_dummyjson( $product, $host );
@@ -192,7 +219,20 @@ class Api_Source {
 					$out['errors'][]            = $mapped['error'];
 				} else {
 					$out['items'][] = $mapped;
+
+					if ( ! Validator::validate( $mapped['raw'] )['errors'] ) {
+						++$valid;
+					}
 				}
+			}
+
+			// Enough valid items: no later page is requested. Whether the feed has more is read from this page alone.
+			if ( $valid >= $want ) {
+
+				$stopped = true;
+				$more    = $more || ( 'dummyjson' === $source['format'] ? ( $page['products'] && $skip + self::PAGE < $page['total'] ) : null !== $page['next'] );
+				$url     = '';
+				break;
 			}
 
 			$url = '';
@@ -222,6 +262,18 @@ class Api_Source {
 		}
 
 		$out['items'] = array_slice( $out['items'], 0, $max_items );
+
+		// The loop left a next page unread because of the 500 entry limit: the feed has more.
+		if ( ! $stopped && '' !== $url && '' === $out['fetch_error'] ) {
+			$more = true;
+		}
+
+		$out['feed'] = array(
+			'taken' => $valid,
+			'seen'  => $entries,
+			'total' => $more ? $total : $entries,
+			'more'  => $more,
+		);
 
 		return $out;
 	}
@@ -349,9 +401,10 @@ class Api_Source {
 		}
 
 		$page = array(
-			'products' => $json['products'],
-			'total'    => isset( $json['total'] ) && is_numeric( $json['total'] ) ? (int) $json['total'] : count( $json['products'] ),
-			'next'     => array_key_exists( 'next', $json ) && null !== $json['next'] && '' !== $json['next'] ? $json['next'] : null,
+			'products'    => $json['products'],
+			'total'       => isset( $json['total'] ) && is_numeric( $json['total'] ) ? (int) $json['total'] : count( $json['products'] ),
+			'total_known' => isset( $json['total'] ) && is_numeric( $json['total'] ),
+			'next'        => array_key_exists( 'next', $json ) && null !== $json['next'] && '' !== $json['next'] ? $json['next'] : null,
 		);
 
 		if ( $cacheable ) {

@@ -29,6 +29,14 @@ $nx_own = ! empty( $api_import['own'] );
 		<?php endif; ?>
 	</select>
 
+	<label for="nx-api-limit" class="nx-import-label"><?php esc_html_e( 'How many products', 'nexora' ); ?></label>
+	<select id="nx-api-limit" class="nx-api-limit">
+		<option value="20" selected>20</option>
+		<option value="40">40</option>
+		<option value="100">100</option>
+		<option value="500"><?php esc_html_e( 'All (up to 500)', 'nexora' ); ?></option>
+	</select>
+
 	<?php if ( $nx_own ) : ?>
 		<div class="nx-api-own" hidden>
 			<input type="hidden" class="nx-api-conn-id" value="">

@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.0.13\n"
+"Project-Id-Version: Nexora 1.0.14\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-16T06:31:25+00:00\n"
+"POT-Creation-Date: 2026-10-16T06:46:41+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -442,7 +442,7 @@ msgid "Permission denied"
 msgstr ""
 
 #: src/Imports/Admin.php:35
-#: templates/imports/api-popup.php:80
+#: templates/imports/api-popup.php:88
 #: templates/imports/csv-popup.php:15
 msgid "Import"
 msgstr ""
@@ -499,110 +499,110 @@ msgstr ""
 msgid "The upload could not be verified."
 msgstr ""
 
-#: src/Imports/Ajax.php:164
+#: src/Imports/Ajax.php:165
 msgid "Connection saved."
 msgstr ""
 
-#: src/Imports/Ajax.php:187
+#: src/Imports/Ajax.php:188
 msgid "Connection deleted."
 msgstr ""
 
-#: src/Imports/Ajax.php:312
+#: src/Imports/Ajax.php:325
 #: src/Products/Ajax.php:72
 #: src/Products/Ajax.php:104
 #: src/Vendors/Admin.php:237
 msgid "Invalid request."
 msgstr ""
 
-#: src/Imports/Api_Source.php:118
+#: src/Imports/Api_Source.php:128
 #: src/Imports/Connections.php:119
 msgid "No product source is available."
 msgstr ""
 
-#: src/Imports/Api_Source.php:124
+#: src/Imports/Api_Source.php:134
 msgid "This kind of product source is not available."
 msgstr ""
 
-#: src/Imports/Api_Source.php:156
-#: src/Imports/Api_Source.php:162
+#: src/Imports/Api_Source.php:171
+#: src/Imports/Api_Source.php:177
 msgid "The product source has too many pages, or its pages repeat."
 msgstr ""
 
 #. translators: 1: position of the entry in the answer, 2: what is wrong.
-#: src/Imports/Api_Source.php:191
+#: src/Imports/Api_Source.php:218
 #, php-format
 msgid "Entry %1$d: %2$s"
 msgstr ""
 
-#: src/Imports/Api_Source.php:305
+#: src/Imports/Api_Source.php:357
 msgid "Could not reach the product source. Please try again later."
 msgstr ""
 
-#: src/Imports/Api_Source.php:311
+#: src/Imports/Api_Source.php:363
 msgid "The product source sent us somewhere else. Redirects are not followed: use its final address."
 msgstr ""
 
 #. translators: %d: HTTP status code.
-#: src/Imports/Api_Source.php:316
+#: src/Imports/Api_Source.php:368
 #, php-format
 msgid "The product source answered with an error (HTTP %d)."
 msgstr ""
 
-#: src/Imports/Api_Source.php:322
+#: src/Imports/Api_Source.php:374
 msgid "The product source sent an unusable answer (empty, or larger than 2 MB)."
 msgstr ""
 
-#: src/Imports/Api_Source.php:331
+#: src/Imports/Api_Source.php:383
 msgid "The product source did not answer in the expected format: a JSON list of products."
 msgstr ""
 
-#: src/Imports/Api_Source.php:348
+#: src/Imports/Api_Source.php:400
 msgid "The product source did not answer in the expected format: a JSON object with a \"products\" list."
 msgstr ""
 
-#: src/Imports/Api_Source.php:377
-#: src/Imports/Api_Source.php:467
+#: src/Imports/Api_Source.php:430
+#: src/Imports/Api_Source.php:520
 msgid "This entry is not an object."
 msgstr ""
 
-#: src/Imports/Api_Source.php:383
+#: src/Imports/Api_Source.php:436
 msgid "This product has no usable \"id\" (1-64 letters, numbers, dot, dash, colon or underscore)."
 msgstr ""
 
-#: src/Imports/Api_Source.php:403
+#: src/Imports/Api_Source.php:456
 msgid "the image was ignored: use an https address on your API's own domain"
 msgstr ""
 
-#: src/Imports/Api_Source.php:418
+#: src/Imports/Api_Source.php:471
 msgid "Not a product."
 msgstr ""
 
-#: src/Imports/Api_Source.php:424
+#: src/Imports/Api_Source.php:477
 msgid "A product without a usable id."
 msgstr ""
 
-#: src/Imports/Api_Source.php:473
+#: src/Imports/Api_Source.php:526
 msgid "This product has no usable \"id\"."
 msgstr ""
 
-#: src/Imports/Api_Source.php:527
+#: src/Imports/Api_Source.php:580
 msgid "This product has no category."
 msgstr ""
 
 #. translators: %s: the category name the source gave.
-#: src/Imports/Api_Source.php:543
+#: src/Imports/Api_Source.php:596
 #, php-format
 msgid "The category \"%s\" is not in the category list. Add it in Settings, or let this source create missing categories."
 msgstr ""
 
 #. translators: %s: the category name the source gave.
-#: src/Imports/Api_Source.php:551
+#: src/Imports/Api_Source.php:604
 #, php-format
 msgid "The category \"%s\" cannot be used as a category name."
 msgstr ""
 
 #. translators: %s: the category name the source gave.
-#: src/Imports/Api_Source.php:564
+#: src/Imports/Api_Source.php:617
 #, php-format
 msgid "The category \"%s\" was not created: too many new categories in one import, or the category list is full."
 msgstr ""
@@ -676,7 +676,7 @@ msgid "The key must be 1-512 visible characters without spaces."
 msgstr ""
 
 #: src/Imports/Connections.php:276
-#: src/Imports/Importer.php:434
+#: src/Imports/Importer.php:516
 #: src/Products/Service.php:322
 #: src/Vendors/Admin.php:227
 #: src/Vendors/Service.php:163
@@ -711,7 +711,7 @@ msgstr ""
 
 #: src/Imports/Connection_Admin.php:41
 #: templates/admin/settings.php:126
-#: templates/imports/api-popup.php:39
+#: templates/imports/api-popup.php:47
 #: templates/imports/connection-box.php:16
 msgid "Authentication"
 msgstr ""
@@ -873,17 +873,33 @@ msgid "If your API needs a key, it is sent in a header you choose (for example X
 msgstr ""
 
 #. translators: %d: line number of the first row with this SKU.
-#: src/Imports/Importer.php:60
+#: src/Imports/Importer.php:64
 #, php-format
 msgid "Repeats the SKU of line %d."
 msgstr ""
 
-#: src/Imports/Importer.php:71
+#: src/Imports/Importer.php:75
 msgid "Use the address of an image in your own Media Library."
 msgstr ""
 
-#: src/Imports/Importer.php:255
+#: src/Imports/Importer.php:285
 msgid "This preview has expired. Please preview again."
+msgstr ""
+
+#: src/Imports/Importer.php:289
+msgid "The number of products was changed after the preview. Please preview again."
+msgstr ""
+
+#. translators: 1: products taken, 2: products the feed is known to have (at least).
+#: src/Imports/Importer.php:367
+#, php-format
+msgid "Showing the first %1$d of at least %2$d."
+msgstr ""
+
+#. translators: 1: products taken, 2: products in the feed.
+#: src/Imports/Importer.php:371
+#, php-format
+msgid "Showing the first %1$d of %2$d."
 msgstr ""
 
 #. translators: %s: source name.
@@ -1959,7 +1975,7 @@ msgid "Add a source"
 msgstr ""
 
 #: templates/admin/settings.php:116
-#: templates/imports/api-popup.php:37
+#: templates/imports/api-popup.php:45
 msgid "Address (https)"
 msgstr ""
 
@@ -1984,22 +2000,22 @@ msgid "Fake Store adapter"
 msgstr ""
 
 #: templates/admin/settings.php:128
-#: templates/imports/api-popup.php:41
+#: templates/imports/api-popup.php:49
 msgid "None"
 msgstr ""
 
 #: templates/admin/settings.php:129
-#: templates/imports/api-popup.php:42
+#: templates/imports/api-popup.php:50
 msgid "Header key"
 msgstr ""
 
 #: templates/admin/settings.php:130
-#: templates/imports/api-popup.php:43
+#: templates/imports/api-popup.php:51
 msgid "Bearer token"
 msgstr ""
 
 #: templates/admin/settings.php:133
-#: templates/imports/api-popup.php:46
+#: templates/imports/api-popup.php:54
 msgid "Header name"
 msgstr ""
 
@@ -2304,44 +2320,52 @@ msgstr ""
 msgid "My own API..."
 msgstr ""
 
-#: templates/imports/api-popup.php:36
+#: templates/imports/api-popup.php:32
+msgid "How many products"
+msgstr ""
+
+#: templates/imports/api-popup.php:37
+msgid "All (up to 500)"
+msgstr ""
+
+#: templates/imports/api-popup.php:44
 msgid "Connection name (to save it)"
 msgstr ""
 
-#: templates/imports/api-popup.php:47
+#: templates/imports/api-popup.php:55
 msgid "Key or token"
 msgstr ""
 
-#: templates/imports/api-popup.php:50
+#: templates/imports/api-popup.php:58
 msgid "Test my API"
 msgstr ""
 
-#: templates/imports/api-popup.php:51
+#: templates/imports/api-popup.php:59
 msgid "Save connection"
 msgstr ""
 
 #. translators: %d: how many connections can be saved.
-#: templates/imports/api-popup.php:59
+#: templates/imports/api-popup.php:67
 #, php-format
 msgid "Saved connections (up to %d)"
 msgstr ""
 
-#: templates/imports/api-popup.php:67
+#: templates/imports/api-popup.php:75
 #: templates/profile/tab-my-products.php:39
 #: templates/profile/vendor-card.php:57
 msgid "Edit"
 msgstr ""
 
-#: templates/imports/api-popup.php:68
+#: templates/imports/api-popup.php:76
 #: templates/profile/tab-my-products.php:40
 msgid "Delete"
 msgstr ""
 
-#: templates/imports/api-popup.php:72
+#: templates/imports/api-popup.php:80
 msgid "No saved connections yet. Choose \"My own API...\" to add one."
 msgstr ""
 
-#: templates/imports/api-popup.php:79
+#: templates/imports/api-popup.php:87
 #: templates/imports/csv-popup.php:14
 msgid "Preview"
 msgstr ""
