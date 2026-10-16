@@ -53,7 +53,11 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - Image: only attachment IDs owned by the vendor.
 - Rate limit `product_save`.
 
-## Phase 5: Imports (`test-csv-import.php`, `test-api-import.php`)
+**Phase 5b (DONE) - product API sources**: `test-url-guard.php` (SSRF: schemes, ports, credentials, IP literals in every spelling, local names, resolved addresses incl. IPv6/mapped/NAT64/6to4/metadata, allow-list, one generic message, DNS pin), `test-secrets.php` (encryption, tamper, salts, never in the DB), `test-api-sources.php` (seed, sanitising, keys kept/replaced/cleared, master switch, allow-list, the Settings screen never shows a key), `test-api-format.php` (Nexora format, pagination on the same host, auth headers, no redirects, limits, generic errors, cache, adapter, guide vs code vs SPEC), `test-api-connections.php` (switch, save/edit/delete, limit 5, ownership, keys, test/preview/import, platform address not controllable, rate limits, admin list), UI/matrix updates.
+
+**Phase 5 (DONE)**: `test-csv-import.php` (parser, formula neutralising, plan/apply, idempotence, vendor+sku, images, limit), `test-api-import.php` (mocked HTTP: request, mapping, partial failure, cache, URL control, no leakage), `test-import-ajax.php` (gating, tokens, rate limits, history guard), `test-import-http.php` (real multipart uploads: wrong extension/MIME/size/rows/encoding, dry run, import, other vendor, customer, CSV still refused by the media uploader), `test-import-ui.php`; kses regression in `test-product-service.php`.
+
+## Phase 5 (original plan): Imports (`test-csv-import.php`, `test-api-import.php`)
 - CSV: wrong extension and wrong MIME rejected; oversize and over-row-limit; non-UTF-8; bad rows give line numbers; formula injection neutralised; dry run writes nothing; re-import is idempotent; the member MIME allow-list is unchanged (assert `restrict_member_mimes` still blocks CSV in the uploader).
 - API mapping (SPEC 8b): each field mapped, price/stock out of bounds skipped, unknown category becomes Other, missing sku becomes `DJ-{id}`, image host other than `cdn.dummyjson.com` or non-https dropped, paging stops at the row limit.
 - API: HTTP failure, timeout, non-JSON, wrong schema, partial failure report, upsert by `external_id`, transient cache hit, owner = Platform vendor, no credential in any response.

@@ -30,7 +30,7 @@ $member = nx_test_user( 'amember' );
 $a = $build( $admin );
 nx_assert( in_array( 'nexora-system', $a['top'], true ), 'admin: "Nexora System" is in the menu' );
 nx_assert( in_array( 'edit.php?post_type=nexora_vendor', $a['slugs'], true ), 'admin: Vendors is listed under Nexora System' );
-foreach ( array( 'user_profile', 'user_connections', 'user_content', 'nexora_product' ) as $cpt ) {
+foreach ( array( 'user_profile', 'user_connections', 'user_content', 'nexora_product', 'nexora_import_log' ) as $cpt ) {
 	nx_assert( in_array( 'edit.php?post_type=' . $cpt, $a['slugs'], true ), "admin: $cpt is still listed under Nexora System" );
 }
 foreach ( array( 'nexora-notifications', 'nexora-chat' ) as $page ) {

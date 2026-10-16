@@ -83,6 +83,160 @@ class Service {
 	}
 
 	/**
+	 * One row of an import (CSV or API): the same rules as the manual form, plus the upsert. The key is the VENDOR plus
+	 * the SKU (CSV) or the vendor plus the external id (API): another vendor's product is never a match.
+	 *
+	 * @param int    $user_id     The vendor's user ID.
+	 * @param array  $raw         Product fields (see Validator).
+	 * @param string $source      csv | api.
+	 * @param string $external_id The id in the source system (API only).
+	 * @param bool   $apply       False for a dry run: nothing is written.
+	 * @param int    $reserved    Products already planned for creation in this run (counts against the limit).
+	 * @param string $image_url   An external image URL (API only; never downloaded).
+	 * @return array|\WP_Error array( 'action' => create|update|unchanged, 'product_id' => int, 'data' => validated fields )
+	 */
+	public static function import_row( $user_id, array $raw, $source, $external_id = '', $apply = false, $reserved = 0, $image_url = '' ) {
+
+		$user_id   = (int) $user_id;
+		$vendor_id = self::vendor_for( $user_id );
+
+		if ( ! $vendor_id ) {
+			return self::forbidden();
+		}
+
+		$checked = Validator::validate( $raw );
+		$errors  = $checked['errors'];
+		$data    = $checked['data'];
+
+		if ( ! isset( $errors['image_id'] ) && $data['image_id'] && ! self::owns_image( $user_id, $data['image_id'] ) ) {
+			$errors['image_id'] = __( 'Choose one of your own uploaded images.', 'nexora' );
+		}
+
+		if ( $errors ) {
+			return self::invalid( $errors );
+		}
+
+		if ( '' !== $image_url ) {
+			$data['image_url'] = $image_url;
+		}
+
+		$lock = $vendor_id . '|' . $data['sku'];
+
+		if ( $apply && ! Lock::take( $lock ) ) {
+			return new \WP_Error( 'nexora_busy', __( 'This product is being saved right now. Please try again in a moment.', 'nexora' ) );
+		}
+
+		$result = self::import_store( $user_id, $vendor_id, $data, $source, (string) $external_id, $apply, (int) $reserved );
+
+		if ( $apply ) {
+			Lock::release( $lock );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Finds the existing product, decides create / update / unchanged and (when applying) writes it.
+	 *
+	 * @param int    $user_id     Vendor's user ID.
+	 * @param int    $vendor_id   Vendor's application post.
+	 * @param array  $data        Validated fields.
+	 * @param string $source      csv | api.
+	 * @param string $external_id External id (API).
+	 * @param bool   $apply       Write it.
+	 * @param int    $reserved    Creates already planned.
+	 * @return array|\WP_Error
+	 */
+	private static function import_store( $user_id, $vendor_id, array $data, $source, $external_id, $apply, $reserved ) {
+
+		$existing = 'api' === $source && '' !== $external_id
+			? Repository::find_by_external( $vendor_id, $external_id, 'api' )
+			: Repository::find_by_sku( $vendor_id, $data['sku'] );
+
+		// Another of this vendor's products already uses the SKU (an imported item must not take over a manual product).
+		$sku_owner = Repository::find_by_sku( $vendor_id, $data['sku'], $existing );
+
+		if ( $sku_owner ) {
+			return self::invalid( array( 'sku' => __( 'You already have a different product with this SKU.', 'nexora' ) ) );
+		}
+
+		if ( ! $existing ) {
+
+			if ( Repository::count_for_vendor( $vendor_id ) + $reserved >= self::max_products() ) {
+				return new \WP_Error( 'nexora_limit', __( 'You have reached the maximum number of products.', 'nexora' ), array( 'fields' => array( 'sku' => __( 'You have reached the maximum number of products.', 'nexora' ) ) ) );
+			}
+
+			if ( ! $apply ) {
+				return array(
+					'action'     => 'create',
+					'product_id' => 0,
+					'data'       => $data,
+				);
+			}
+
+			$id = Repository::create( $user_id, $vendor_id, $data, $source, $external_id );
+
+			if ( is_wp_error( $id ) ) {
+				return new \WP_Error( 'nexora_save_failed', __( 'Could not save the product.', 'nexora' ), array( 'fields' => array( 'sku' => __( 'Could not save the product.', 'nexora' ) ) ) );
+			}
+
+			return array(
+				'action'     => 'create',
+				'product_id' => $id,
+				'data'       => $data,
+			);
+		}
+
+		if ( self::same_as( $existing, $data ) ) {
+			return array(
+				'action'     => 'unchanged',
+				'product_id' => $existing,
+				'data'       => $data,
+			);
+		}
+
+		if ( $apply ) {
+			// A blank image in an import never removes the product's existing image.
+			if ( ! $data['image_id'] ) {
+				unset( $data['image_id'] );
+			}
+
+			Repository::update( $existing, $data );
+		}
+
+		return array(
+			'action'     => 'update',
+			'product_id' => $existing,
+			'data'       => $data,
+		);
+	}
+
+	/**
+	 * Whether an existing product already holds exactly these values (an import then leaves it alone).
+	 *
+	 * @param int   $id   Product ID.
+	 * @param array $data Validated fields.
+	 * @return bool
+	 */
+	private static function same_as( $id, array $data ) {
+
+		$have = Repository::data( $id );
+
+		foreach ( array( 'name', 'description', 'price', 'stock', 'category' ) as $key ) {
+
+			if ( (string) $have[ $key ] !== (string) $data[ $key ] ) {
+				return false;
+			}
+		}
+
+		if ( $data['image_id'] && (int) $have['image_id'] !== (int) $data['image_id'] ) {
+			return false;
+		}
+
+		return ! isset( $data['image_url'] ) || $have['image_url'] === $data['image_url'];
+	}
+
+	/**
 	 * The most products one vendor may have.
 	 *
 	 * @return int
@@ -132,7 +286,7 @@ class Service {
 	 * @param int $user_id User ID.
 	 * @return int 0 when they may not sell.
 	 */
-	private static function vendor_for( $user_id ) {
+	public static function vendor_for( $user_id ) {
 		return $user_id && Account_Types::can_sell( $user_id ) ? Vendors::id_for_user( $user_id ) : 0;
 	}
 

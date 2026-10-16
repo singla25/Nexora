@@ -227,6 +227,8 @@ class Page {
 			'tabs'              => $tabs,
 			// Marketplace and My Products are only prepared for the owner's own profile.
 			'categories'        => in_array( 'marketplace', $tabs, true ) || in_array( 'my-products', $tabs, true ) ? \Nexora\Products\Fields::categories() : array(),
+			'api_import'        => in_array( 'my-products', $tabs, true ) ? \Nexora\Imports\Connections_View::for_popup( \Nexora\Vendors\Repository::id_for_user( $current_user_id ) ) : array(),
+			'import_history'    => in_array( 'my-products', $tabs, true ) ? \Nexora\Imports\Log_Repository::for_vendor( \Nexora\Vendors\Repository::id_for_user( $current_user_id ), 10 ) : array(),
 			'my_products'       => in_array( 'my-products', $tabs, true ) ? \Nexora\Products\Presenter::mine( $current_user_id, \Nexora\Vendors\Repository::id_for_user( $current_user_id ) ) : array(),
 			'profile_id'        => $profile_id,
 			'is_owner'          => $is_owner,

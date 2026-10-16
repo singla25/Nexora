@@ -47,6 +47,11 @@ foreach ( $user_ids as $uid ) {
 	$removed['users']++;
 }
 
+// mocked API pages and import tokens left by a crashed import test
+foreach ( array( '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%', '\\_transient\\_nexora\\_import\\_%', '\\_transient\\_timeout\\_nexora\\_import\\_%' ) as $like ) {
+	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+}
+
 // GSTIN locks left by a crashed application test
 $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'nexora\\_vendor\\_lock\\_%'" );
 

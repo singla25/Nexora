@@ -209,6 +209,10 @@ function nx_test_cleanup() {
 		}
 	}
 	nx_test_reset_limits();
+	// import previews, mocked API pages and GSTIN/product locks made by tests
+	foreach ( array( '\\_transient\\_nexora\\_import\\_%', '\\_transient\\_timeout\\_nexora\\_import\\_%', '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%', 'nexora\\_lock\\_%' ) as $like ) {
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+	}
 	wp_set_current_user( 0 );
 	foreach ( $GLOBALS['nx_test']['posts'] as $id ) {
 		wp_delete_post( $id, true );

@@ -39,10 +39,23 @@ trait Internal_Writes {
 		$before         = self::$internal;
 		self::$internal = true;
 
+		// The text was already reduced to plain text by the validator and is always escaped when printed. WordPress's
+		// post filters (kses, for users without unfiltered_html) would rewrite it into HTML entities ("&" to "&amp;"),
+		// so what was stored would never equal what was validated.
+		$kses = false !== has_filter( 'title_save_pre', 'wp_filter_kses' ) || false !== has_filter( 'content_save_pre', 'wp_filter_post_kses' );
+
+		if ( $kses ) {
+			kses_remove_filters();
+		}
+
 		try {
 			return $write();
 		} finally {
 			self::$internal = $before;
+
+			if ( $kses ) {
+				kses_init_filters();
+			}
 		}
 	}
 }
