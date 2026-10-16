@@ -13,7 +13,259 @@ if ( ! defined( 'ABSPATH' ) ) {
 // CLI has no headers to send; keep auth-cookie calls from emitting warnings.
 add_filter( 'send_auth_cookies', '__return_false' );
 
-$GLOBALS['nx_test'] = array( 'pass' => 0, 'fail' => 0, 'users' => array(), 'posts' => array(), 'threads' => array(), 'mail' => array() );
+// After an uncaught exception or fatal error WordPress' own handler ends the request with wp_die() inside a shutdown function, and that
+// would stop the isolation restore (a later shutdown function) from running. While a fatal error is being handled, wp_die() does
+// nothing so the remaining shutdown functions run; in every other situation wp_die() behaves as usual.
+add_filter(
+	'wp_die_handler',
+	function ( $handler ) {
+		$error = error_get_last();
+		if ( $error && in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
+			return function () {};
+		}
+		return $handler;
+	},
+	1000
+);
+
+$GLOBALS['nx_test'] = array( 'pass' => 0, 'fail' => 0, 'users' => array(), 'posts' => array(), 'threads' => array(), 'mail' => array(), 'opt_snap' => array(), 'ephemera' => null, 'ephemera_aside' => false, 'item_scope' => null );
+
+/* ------------------------------------------------------------------
+ * Test isolation. A test may only change or delete what it created itself. Anything of the SITE'S that a test needs to
+ * control (a saved setting, the Marketplace Item, rate-limit counters, API caches...) goes through the helpers below: they
+ * remember the exact raw database rows, set known values, and put the originals back byte for byte, also when the test
+ * fails, throws, dies or exits (the restore is a shutdown function as well as part of nx_test_finish()).
+ * tests/php/test-isolation-lint.php fails when a test file bypasses them; tests/guard.sh proves it end to end.
+ * ---------------------------------------------------------------- */
+
+/** The raw row of an option, array( 'value' => ..., 'autoload' => ... ), or null when it does not exist. No filters, no cache. */
+function nx_test_raw_option( $name ) {
+	global $wpdb;
+	$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value, autoload FROM {$wpdb->options} WHERE option_name = %s", $name ), ARRAY_A );
+	return $row ? array( 'value' => $row['option_value'], 'autoload' => $row['autoload'] ) : null;
+}
+
+/** Writes (or removes, for null) the raw option row and forgets WordPress' cached copy. */
+function nx_test_write_raw_option( $name, $row ) {
+	global $wpdb;
+	$wpdb->delete( $wpdb->options, array( 'option_name' => $name ) );
+	if ( null !== $row ) {
+		$wpdb->insert( $wpdb->options, array( 'option_name' => $name, 'option_value' => $row['value'], 'autoload' => $row['autoload'] ) );
+	}
+	wp_cache_delete( $name, 'options' );
+	wp_cache_delete( 'alloptions', 'options' );
+	wp_cache_delete( 'notoptions', 'options' );
+}
+
+/**
+ * Sets known values for site options for the rest of the test; null = the option does not exist. The first time a name is
+ * scoped its original raw row is remembered; nx_test_options_restore() (called by nx_test_finish() and at shutdown) puts it back.
+ * Values are written as given (arrays are serialised); no sanitize callback or filter runs.
+ */
+function nx_test_options( array $set ) {
+	static $hooked = false;
+	if ( ! $hooked ) {
+		register_shutdown_function( 'nx_test_options_restore' );
+		$hooked = true;
+	}
+	foreach ( $set as $name => $value ) {
+		if ( ! array_key_exists( $name, $GLOBALS['nx_test']['opt_snap'] ) ) {
+			$GLOBALS['nx_test']['opt_snap'][ $name ] = nx_test_raw_option( $name );
+		}
+		nx_test_write_raw_option( $name, null === $value ? null : array( 'value' => maybe_serialize( $value ), 'autoload' => 'auto' ) );
+	}
+}
+
+/**
+ * Remembers the exact raw rows of options WITHOUT changing them, for a test that edits them itself (update_option, a role change...).
+ * The restore puts the originals back, so the edits never outlive the test.
+ */
+function nx_test_options_keep( array $names ) {
+	foreach ( $names as $name ) {
+		if ( ! array_key_exists( $name, $GLOBALS['nx_test']['opt_snap'] ) ) {
+			$GLOBALS['nx_test']['opt_snap'][ $name ] = nx_test_raw_option( $name );
+		}
+	}
+	nx_test_options( array() ); // registers the shutdown restore
+}
+
+/**
+ * Known default settings for a test whose output depends on the site's configuration: no API sources saved (so the built-in list),
+ * vendor APIs off, no host allow-list, the default product categories, delete-on-uninstall off. $override changes single values.
+ * The site's own values are put back at the end.
+ */
+function nx_test_default_settings( array $override = array() ) {
+	nx_test_options(
+		$override + array(
+			'nexora_api_sources'               => null,
+			'nexora_vendor_apis_enabled'       => null,
+			'nexora_api_host_allowlist'        => null,
+			'nexora_product_categories'        => null,
+			'nexora_delete_data_on_uninstall'  => null,
+		)
+	);
+}
+
+/** Puts every scoped option back exactly as it was. Safe to call more than once. */
+function nx_test_options_restore() {
+	global $wpdb;
+	$roles_changed = array_key_exists( $wpdb->prefix . 'user_roles', $GLOBALS['nx_test']['opt_snap'] );
+	foreach ( $GLOBALS['nx_test']['opt_snap'] as $name => $row ) {
+		nx_test_write_raw_option( $name, $row );
+	}
+	$GLOBALS['nx_test']['opt_snap'] = array();
+	if ( $roles_changed && function_exists( 'wp_roles' ) ) {
+		wp_roles()->for_site(); // re-read the role list from the restored option
+	}
+	nx_test_ephemera_restore();
+	nx_test_marketplace_item_scope_restore();
+}
+
+/**
+ * Ephemeral rows (rate-limit counters, API page caches, import previews, locks, OTP references) belong to whoever is using the
+ * site. nx_test_ephemera_begin() sets the ones that exist aside (when $set_aside) so the test sees a clean slate; the matching
+ * restore removes what the run created and puts the originals back. Only the run's own rows are ever deleted.
+ */
+function nx_test_ephemera_patterns() {
+	return array( '\\_transient\\_nx\\_%', '\\_transient\\_timeout\\_nx\\_%', 'nexora\\_rl\\_%', '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%', '\\_transient\\_nexora\\_import\\_%', '\\_transient\\_timeout\\_nexora\\_import\\_%', 'nexora\\_lock\\_%', 'nexora\\_vendor\\_lock\\_%', '\\_transient\\_nexora\\_otp%', '\\_transient\\_timeout\\_nexora\\_otp%' );
+}
+
+function nx_test_ephemera_names() {
+	global $wpdb;
+	$names = array();
+	foreach ( nx_test_ephemera_patterns() as $like ) {
+		foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) ) as $n ) {
+			$names[ $n ] = true;
+		}
+	}
+	return $names;
+}
+
+function nx_test_ephemera_begin( $set_aside = false ) {
+	static $hooked = false;
+	if ( ! $hooked ) {
+		register_shutdown_function( 'nx_test_ephemera_restore' );
+		$hooked = true;
+	}
+	if ( null === $GLOBALS['nx_test']['ephemera'] ) {
+		$kept = array();
+		foreach ( array_keys( nx_test_ephemera_names() ) as $name ) {
+			$kept[ $name ] = nx_test_raw_option( $name );
+		}
+		$GLOBALS['nx_test']['ephemera'] = $kept;
+		$GLOBALS['nx_test']['ephemera_aside'] = false;
+	}
+	// Set aside (once) the rows the site already has, so the test sees a clean slate. They are put back by the restore.
+	if ( $set_aside && empty( $GLOBALS['nx_test']['ephemera_aside'] ) ) {
+		foreach ( array_keys( $GLOBALS['nx_test']['ephemera'] ) as $name ) {
+			nx_test_write_raw_option( $name, null );
+		}
+		$GLOBALS['nx_test']['ephemera_aside'] = true;
+	}
+}
+
+function nx_test_ephemera_restore() {
+	if ( null === $GLOBALS['nx_test']['ephemera'] ) {
+		return;
+	}
+	$kept = $GLOBALS['nx_test']['ephemera'];
+	$GLOBALS['nx_test']['ephemera'] = null;
+	$GLOBALS['nx_test']['ephemera_aside'] = false;
+	foreach ( array_keys( nx_test_ephemera_names() ) as $name ) {
+		if ( ! array_key_exists( $name, $kept ) ) {
+			nx_test_write_raw_option( $name, null ); // made by this run
+		}
+	}
+	foreach ( $kept as $name => $row ) {
+		nx_test_write_raw_option( $name, $row );
+	}
+}
+
+/** Ids of the Marketplace Items made inside nx_test_marketplace_item_scope() (every flagged item except the real ones set aside). */
+function nx_test_marketplace_item_scratch_ids() {
+	global $wpdb;
+	if ( null === $GLOBALS['nx_test']['item_scope'] ) {
+		return array();
+	}
+	$real = array_map( 'intval', array_column( $GLOBALS['nx_test']['item_scope']['meta'], 'post_id' ) );
+	$all  = array_map( 'intval', $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s", \Nexora\Marketplace\Marketplace_Item::META ) ) );
+	return array_values( array_diff( $all, $real ) );
+}
+
+/** Clears the API page caches the test itself made (and, via the begin snapshot, nothing else). */
+function nx_test_flush_api_cache() {
+	global $wpdb;
+	nx_test_ephemera_begin( true );
+	foreach ( array( '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%' ) as $like ) {
+		foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) ) as $name ) {
+			if ( ! array_key_exists( $name, (array) $GLOBALS['nx_test']['ephemera'] ) ) {
+				nx_test_write_raw_option( $name, null );
+			}
+		}
+	}
+	wp_cache_flush();
+}
+
+/**
+ * The site has ONE Marketplace Item and real orders point at it. A test that needs the item (or its absence) works on a scratch
+ * item instead: the real one is un-flagged for the duration (only its flag meta row and the option are set aside), the test's
+ * Marketplace_Item::id() then makes a scratch item, and the restore removes every scratch item and puts the real one's meta row
+ * (same meta id) and the option back. The real product post is never edited or deleted.
+ */
+function nx_test_marketplace_item_scope() {
+	global $wpdb;
+	if ( null !== $GLOBALS['nx_test']['item_scope'] || ! class_exists( '\Nexora\Marketplace\Marketplace_Item' ) ) {
+		return;
+	}
+	static $hooked = false;
+	if ( ! $hooked ) {
+		register_shutdown_function( 'nx_test_marketplace_item_scope_restore' );
+		$hooked = true;
+	}
+	$meta = \Nexora\Marketplace\Marketplace_Item::META;
+	$rows = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s", $meta ), ARRAY_A );
+	$GLOBALS['nx_test']['item_scope'] = array(
+		'meta'   => $rows,
+		'option' => nx_test_raw_option( \Nexora\Marketplace\Marketplace_Item::OPTION ),
+	);
+	$wpdb->delete( $wpdb->postmeta, array( 'meta_key' => $meta ) );
+	nx_test_write_raw_option( \Nexora\Marketplace\Marketplace_Item::OPTION, null );
+	foreach ( $rows as $r ) {
+		clean_post_cache( (int) $r['post_id'] );
+		wp_cache_delete( (int) $r['post_id'], 'post_meta' );
+	}
+	wp_cache_flush();
+}
+
+function nx_test_marketplace_item_scope_restore() {
+	global $wpdb;
+	if ( null === $GLOBALS['nx_test']['item_scope'] ) {
+		return;
+	}
+	$scope = $GLOBALS['nx_test']['item_scope'];
+	$GLOBALS['nx_test']['item_scope'] = null;
+	$meta = \Nexora\Marketplace\Marketplace_Item::META;
+	$real = array_map( 'intval', array_column( $scope['meta'], 'post_id' ) );
+
+	// Scratch items: everything flagged now that was not flagged before. Healing is switched off while they are removed.
+	remove_action( 'deleted_post', array( '\Nexora\Marketplace\Marketplace_Item', 'after_delete' ) );
+	nx_test_write_raw_option( \Nexora\Marketplace\Marketplace_Item::OPTION, null );
+	foreach ( array_map( 'intval', $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s", $meta ) ) ) as $id ) {
+		if ( ! in_array( $id, $real, true ) ) {
+			wp_delete_post( $id, true );
+		}
+	}
+	add_action( 'deleted_post', array( '\Nexora\Marketplace\Marketplace_Item', 'after_delete' ) );
+
+	foreach ( $scope['meta'] as $r ) {
+		$wpdb->delete( $wpdb->postmeta, array( 'meta_id' => $r['meta_id'] ) );
+		$wpdb->insert( $wpdb->postmeta, array( 'meta_id' => $r['meta_id'], 'post_id' => $r['post_id'], 'meta_key' => $r['meta_key'], 'meta_value' => $r['meta_value'] ) );
+		clean_post_cache( (int) $r['post_id'] );
+		wp_cache_delete( (int) $r['post_id'], 'post_meta' );
+	}
+	nx_test_write_raw_option( \Nexora\Marketplace\Marketplace_Item::OPTION, $scope['option'] );
+	wp_cache_flush();
+}
 
 function nx_assert( $cond, $label ) {
 	$GLOBALS['nx_test'][ $cond ? 'pass' : 'fail' ]++;
@@ -147,8 +399,13 @@ function nx_test_thread( array $a, array $b, $connection_id, $status = 'active',
 /** Clear every rate-limit transient the plugin sets (nx_rl_*, nx_reg_*, nx_contact_*). */
 function nx_test_reset_limits() {
 	global $wpdb;
+	// The first call sets aside whatever the site already has (counters, caches, previews, locks); after that everything matching
+	// is this run's own, and is cleared here. The originals come back at the end (nx_test_ephemera_restore()).
+	nx_test_ephemera_begin( true );
 	foreach ( array( '\\_transient\\_nx\\_%', '\\_transient\\_timeout\\_nx\\_%', 'nexora\\_rl\\_%' ) as $like ) {
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+		foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) ) as $name ) {
+			nx_test_write_raw_option( $name, null );
+		}
 	}
 	wp_cache_flush();
 }
@@ -194,8 +451,11 @@ function nx_assert_guard_matrix( $action, array $valid_post, array $member, $non
 /** Drop OTP reference transients (kept separate: resetting rate limits must not break a flow in progress). */
 function nx_test_reset_otp_refs() {
 	global $wpdb;
+	nx_test_ephemera_begin( true );
 	foreach ( array( '\\_transient\\_nexora\\_otp%', '\\_transient\\_timeout\\_nexora\\_otp%' ) as $like ) {
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+		foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) ) as $name ) {
+			nx_test_write_raw_option( $name, null );
+		}
 	}
 }
 
@@ -208,11 +468,8 @@ function nx_test_cleanup() {
 			$wpdb->query( sprintf( "DELETE FROM {$wpdb->prefix}$t WHERE " . $where, $wpdb->prefix, (int) $tid ) );
 		}
 	}
-	nx_test_reset_limits();
-	// import previews, mocked API pages and GSTIN/product locks made by tests
-	foreach ( array( '\\_transient\\_nexora\\_import\\_%', '\\_transient\\_timeout\\_nexora\\_import\\_%', '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%', 'nexora\\_lock\\_%' ) as $like ) {
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
-	}
+	// counters, import previews, mocked API pages and locks made by this run go; the ones the site had are put back
+	nx_test_ephemera_restore();
 	wp_set_current_user( 0 );
 	foreach ( $GLOBALS['nx_test']['posts'] as $id ) {
 		wp_delete_post( $id, true );
@@ -226,6 +483,7 @@ function nx_test_cleanup() {
 
 function nx_test_finish() {
 	nx_test_cleanup();
+	nx_test_options_restore(); // scoped options, ephemera and the Marketplace Item scope: the site's originals, exactly
 	$t = $GLOBALS['nx_test'];
 	echo sprintf( "%d passed, %d failed\n", $t['pass'], $t['fail'] );
 	if ( $t['fail'] ) {
@@ -269,3 +527,13 @@ function nx_assert_golden( $name, $html ) {
 	}
 	nx_assert( $ok, "golden output: $name" . ( $ok ? '' : $detail ) );
 }
+
+/* Every test starts from the same known settings, whatever the site has saved. The site's own values are put back at the end. */
+if ( ! getenv( 'NX_TEST_KEEP_SETTINGS' ) ) {
+	nx_test_default_settings();
+}
+// From the start, remember which rate-limit counters, caches, previews and locks the site already has: whatever the run creates (also
+// through real web requests) is removed at the end, and the site's own are never deleted.
+nx_test_ephemera_begin( false );
+// The home-page numbers cache is set and cleared by some tests; the site's own cached copy is put back at the end.
+nx_test_options_keep( array( '_transient_nexora_home_stats', '_transient_timeout_nexora_home_stats' ) );

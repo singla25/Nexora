@@ -14,9 +14,7 @@ global $wpdb;
 nx_test_reset_limits();
 add_filter( 'nexora_resolve_host', function () { return array( '93.184.216.34' ); } ); // no real DNS in tests
 
-$saved = array( get_option( 'nexora_api_sources', '__unset__' ), get_option( Fields::OPTION, '__unset__' ) );
-delete_option( 'nexora_api_sources' );
-delete_option( Fields::OPTION );
+nx_test_options( array( 'nexora_api_sources' => null, Fields::OPTION => null ) );
 
 $A       = nx_test_vendor( 'fsa', 'approved' );
 $fixture = json_decode( file_get_contents( __DIR__ . '/../fixtures/fakestore-products.json' ), true );
@@ -37,7 +35,7 @@ $mock = function ( $body, $code = 200 ) {
 	return $f;
 };
 $unmock = function ( $f ) { remove_filter( 'pre_http_request', $f, 10 ); };
-$flush  = function () use ( $wpdb ) { $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_nexora\\_api\\_%' OR option_name LIKE '\\_transient\\_timeout\\_nexora\\_api\\_%'" ); wp_cache_flush(); };
+$flush = function () { nx_test_flush_api_cache(); };
 $fetch  = function ( $body, array $over = array(), $code = 200 ) use ( $mock, $unmock, $flush, $row ) {
 	$f = $mock( $body, $code ); $flush();
 	$r = Api_Source::fetch( Api_Source::from_platform( $row( $over ) ) );
@@ -279,8 +277,4 @@ $unmock( $f );
 nx_assert( array() === $rv['items'] && '' !== $rv['fetch_error'] && 0 === count( $GLOBALS['nx_http'] ), 'a vendor-owned API cannot use the Fake Store format (and can never create categories): refused before any request' );
 nx_assert( 1 === preg_match( "/'format'\\s*=>\\s*'nexora'/", file_get_contents( NEXORA_PATH . 'src/Imports/Connections.php' ) ), 'vendor-owned connections are built with the Nexora format only' );
 
-// restore
-foreach ( array( 'nexora_api_sources', Fields::OPTION ) as $i => $opt ) {
-	if ( '__unset__' === $saved[ $i ] ) { delete_option( $opt ); } else { update_option( $opt, $saved[ $i ] ); }
-}
 nx_test_finish();

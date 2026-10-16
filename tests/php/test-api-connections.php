@@ -11,10 +11,7 @@ use Nexora\Products\Repository as Products;
 global $wpdb;
 nx_test_capture_mail();
 nx_test_reset_limits();
-$saved = array( get_option( 'nexora_api_sources', '__unset__' ), get_option( 'nexora_vendor_apis_enabled', '__unset__' ), get_option( 'nexora_api_host_allowlist', '__unset__' ) );
-delete_option( 'nexora_api_sources' );
-update_option( 'nexora_vendor_apis_enabled', 1 );
-delete_option( 'nexora_api_host_allowlist' );
+nx_test_options( array( 'nexora_api_sources' => null, 'nexora_vendor_apis_enabled' => 1, 'nexora_api_host_allowlist' => null ) );
 
 $dns = array( 'api.acme.example' => array( '93.184.216.34' ), 'api.b.example' => array( '93.184.216.40' ), 'other.example' => array( '93.184.216.36' ), 'private.acme.example' => array( '10.0.0.7' ) );
 add_filter( 'nexora_resolve_host', function ( $null, $host ) use ( $dns ) { return $dns[ $host ] ?? array( '93.184.216.34' ); }, 10, 2 );
@@ -30,7 +27,7 @@ $count = function () use ( $wpdb ) { return (int) $wpdb->get_var( "SELECT COUNT(
 $logs  = function () use ( $wpdb ) { return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'nexora_import_log'" ); };
 $conns = function () use ( $wpdb ) { return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'nexora_api_conn'" ); };
 $track = function ( $v ) { foreach ( Products::ids_for_vendor( $v['vendor_id'] ) as $id ) { $GLOBALS['nx_test']['posts'][] = $id; } foreach ( Conns::for_vendor( $v['vendor_id'] ) as $c ) { $GLOBALS['nx_test']['posts'][] = $c['id']; } };
-$flush = function () use ( $wpdb ) { $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_nexora\\_api\\_%' OR option_name LIKE '\\_transient\\_timeout\\_nexora\\_api\\_%'" ); wp_cache_flush(); };
+$flush = function () { nx_test_flush_api_cache(); };
 
 $call = function ( $uid, $action, array $post = array(), $nonce = true ) {
 	nx_test_reset_limits();
@@ -324,8 +321,5 @@ $gid = (int) $g['data']['id'];
 wp_delete_user( $gone['user_id'] );
 nx_assert_same( null, get_post( $gid ), 'deleting the vendor deletes their connections' );
 
-foreach ( array( 'nexora_api_sources', 'nexora_vendor_apis_enabled', 'nexora_api_host_allowlist' ) as $i => $opt ) {
-	if ( '__unset__' === $saved[ $i ] ) { delete_option( $opt ); } else { update_option( $opt, $saved[ $i ] ); }
-}
 $flush();
 nx_test_finish();

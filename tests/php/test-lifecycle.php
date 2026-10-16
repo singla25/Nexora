@@ -12,6 +12,7 @@ global $wpdb;
 
 $tables = array( 'nexora_notifications', 'nexora_threads', 'nexora_thread_participants', 'nexora_messages', 'nexora_message_meta' );
 
+nx_test_options_keep( array( 'nexora_db_version', 'nexora_delete_data_on_uninstall', 'rewrite_rules' ) ); // edited below; the site's own values come back at the end
 $original_version = get_option( 'nexora_db_version' );
 
 // Sentinels for the isolation check at the end: this suite must never change the live dev site.
@@ -83,9 +84,6 @@ delete_option( 'nexora_db_version' );
 Installer::activate();
 nx_assert_same( Migrations::DB_VERSION, get_option( 'nexora_db_version' ), 'activation records the db version' );
 
-if ( false !== $original_version ) {
-	update_option( 'nexora_db_version', $original_version );
-}
 
 /* ---------- deactivation ---------- */
 
@@ -136,7 +134,7 @@ nx_assert_same( '', get_user_meta( $a['user_id'], 'nxtest_meta', true ), 'user m
 nx_assert_same( null, get_post( $post_id ), 'custom post type posts are removed' );
 nx_assert_same( false, file_exists( $scratch_dir ), 'private files are removed' );
 nx_assert_same( null, $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $scratch_table ) ), 'tables are dropped' );
-if ( '__unset__' === $real_setting ) { delete_option( 'nexora_delete_data_on_uninstall' ); } else { update_option( 'nexora_delete_data_on_uninstall', $real_setting ); }
+if ( '__unset__' === $real_setting ) { delete_option( 'nexora_delete_data_on_uninstall' ); } else { update_option( 'nexora_delete_data_on_uninstall', $real_setting ); } // back to this test's starting value (the site's own comes back at the end)
 
 // The real lists must cover what the plugin stores.
 $real = Uninstaller::defaults();

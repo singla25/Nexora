@@ -1,6 +1,7 @@
 <?php
 // Marketplace Phase 6a: the read-only "Add to cart" button on the product card, and the script behind it.
 require_once __DIR__ . '/../bootstrap.php';
+nx_test_marketplace_item_scope(); // the cart goes through a scratch Marketplace Item; the real one (real orders point at it) is never touched
 
 use Nexora\Core\View;
 use Nexora\Products\Presenter;

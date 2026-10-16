@@ -20,9 +20,8 @@ $http = function ( $url, array $opts = array() ) {
 if ( ! $http( $base . '/wp-login.php', array( CURLOPT_NOBODY => true ) )['status'] ) { echo "site not reachable from the CLI: skipped\n"; nx_test_finish(); return; }
 
 // WooCommerce's "Coming soon" mode hides the cart and checkout from everyone but administrators; switch it off for this run only.
-$coming_soon = get_option( 'woocommerce_coming_soon', null );
-update_option( 'woocommerce_coming_soon', 'no' );
-register_shutdown_function( function () use ( $coming_soon ) { if ( null === $coming_soon ) { delete_option( 'woocommerce_coming_soon' ); } else { update_option( 'woocommerce_coming_soon', $coming_soon ); } } );
+nx_test_options( array( 'woocommerce_coming_soon' => 'no', 'woocommerce_store_pages_only' => 'no' ) ); // the site's own values come back at the end, even on a crash
+nx_test_marketplace_item_scope(); // the web requests below use a scratch Marketplace Item, not the real one
 
 $seller = nx_test_vendor( 'chs', 'approved' );
 $buyer  = nx_test_vendor( 'chb', 'approved' );

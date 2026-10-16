@@ -19,7 +19,7 @@ $src = function ( array $o = array() ) {
 $item = function ( $id, array $over = array() ) {
 	return array_merge( array( 'id' => $id, 'name' => "Item $id", 'price' => 100, 'stock' => 5, 'category' => 'fashion' ), $over );
 };
-$flush = function () use ( $wpdb ) { $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_nexora\\_api\\_%' OR option_name LIKE '\\_transient\\_timeout\\_nexora\\_api\\_%'" ); wp_cache_flush(); };
+$flush = function () { nx_test_flush_api_cache(); };
 
 /** Mock HTTP: $routes maps a full URL to array( code, body[, headers] ) or WP_Error. Records every request. */
 $mock = function ( array $routes ) {
