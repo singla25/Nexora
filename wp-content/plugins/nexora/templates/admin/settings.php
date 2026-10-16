@@ -80,26 +80,30 @@
 							$nx_index  = 0;
 							$nx_rows   = $v['sources'];
 							$nx_rows[] = array(
-								'id'          => '',
-								'name'        => '',
-								'url'         => '',
-								'format'      => 'nexora',
-								'auth_type'   => 'none',
-								'auth_header' => '',
-								'enabled'     => true,
-								'has_secret'  => false,
-								'blank'       => true,
+								'id'                => '',
+								'name'              => '',
+								'url'               => '',
+								'format'            => 'nexora',
+								'auth_type'         => 'none',
+								'auth_header'       => '',
+								'enabled'           => true,
+								'stock_default'     => 10,
+								'create_categories' => true,
+								'has_secret'        => false,
+								'blank'             => true,
 							);
 							$nx_rows[] = array(
-								'id'          => '',
-								'name'        => '',
-								'url'         => '',
-								'format'      => 'nexora',
-								'auth_type'   => 'none',
-								'auth_header' => '',
-								'enabled'     => true,
-								'has_secret'  => false,
-								'blank'       => true,
+								'id'                => '',
+								'name'              => '',
+								'url'               => '',
+								'format'            => 'nexora',
+								'auth_type'         => 'none',
+								'auth_header'       => '',
+								'enabled'           => true,
+								'stock_default'     => 10,
+								'create_categories' => true,
+								'has_secret'        => false,
+								'blank'             => true,
 							);
 							?>
 							<?php foreach ( $nx_rows as $nx_src ) : ?>
@@ -116,6 +120,7 @@
 											<select name="<?php echo esc_attr( $nx_n ); ?>[format]">
 												<option value="nexora" <?php selected( $nx_src['format'], 'nexora' ); ?>><?php esc_html_e( 'Nexora format', 'nexora' ); ?></option>
 												<option value="dummyjson" <?php selected( $nx_src['format'], 'dummyjson' ); ?>><?php esc_html_e( 'DummyJSON adapter', 'nexora' ); ?></option>
+												<option value="fakestore" <?php selected( $nx_src['format'], 'fakestore' ); ?>><?php esc_html_e( 'Fake Store adapter', 'nexora' ); ?></option>
 											</select>
 										</label>
 										<label><?php esc_html_e( 'Authentication', 'nexora' ); ?>
@@ -135,6 +140,10 @@
 											<label><input type="checkbox" name="<?php echo esc_attr( $nx_n ); ?>[clear_secret]" value="1"> <?php esc_html_e( 'Remove the saved key', 'nexora' ); ?></label>
 										<?php endif; ?>
 									</p>
+									<p class="nx-fakestore-only" <?php echo 'fakestore' === $nx_src['format'] ? '' : 'hidden'; ?>>
+										<label><?php esc_html_e( 'Stock for items without stock', 'nexora' ); ?> <input type="number" name="<?php echo esc_attr( $nx_n ); ?>[stock_default]" value="<?php echo esc_attr( (string) ( $nx_src['stock_default'] ?? 10 ) ); ?>" min="0" max="100000" step="1" class="small-text"></label>
+										<label><input type="checkbox" name="<?php echo esc_attr( $nx_n ); ?>[create_categories]" value="1" <?php checked( ! isset( $nx_src['create_categories'] ) || ! empty( $nx_src['create_categories'] ) ); ?>> <?php esc_html_e( 'Create missing categories', 'nexora' ); ?></label>
+									</p>
 									<p>
 										<label><input type="checkbox" name="<?php echo esc_attr( $nx_n ); ?>[enabled]" value="1" <?php checked( ! empty( $nx_src['enabled'] ) ); ?>> <?php esc_html_e( 'Enabled (vendors can pick it)', 'nexora' ); ?></label>
 										<?php if ( empty( $nx_src['blank'] ) ) : ?>
@@ -144,6 +153,16 @@
 								</fieldset>
 								<?php ++$nx_index; ?>
 							<?php endforeach; ?>
+
+							<script>
+							document.querySelectorAll('.nx-source-row').forEach(function (row) {
+								var format = row.querySelector('select[name$="[format]"]');
+								var only = row.querySelector('.nx-fakestore-only');
+								if (format && only) {
+									format.addEventListener('change', function () { only.hidden = format.value !== 'fakestore'; });
+								}
+							});
+							</script>
 
 							<p>
 								<label>

@@ -14,7 +14,7 @@ delete_option( 'nexora_api_host_allowlist' );
 
 /* ---------- seeded with DummyJSON, vendor APIs off ---------- */
 $all = Sources::all();
-nx_assert_same( 1, count( $all ), 'out of the box there is one source' );
+nx_assert_same( 2, count( $all ), 'out of the box there are two sources: DummyJSON (enabled) and Fake Store (disabled)' );
 nx_assert( 'dummyjson' === $all[0]['id'] && 'DummyJSON' === $all[0]['name'] && 'https://dummyjson.com/products' === $all[0]['url'] && 'dummyjson' === $all[0]['format'] && 'none' === $all[0]['auth_type'] && true === $all[0]['enabled'], 'it is DummyJSON: https://dummyjson.com/products, the DummyJSON adapter, no auth, enabled' );
 nx_assert_same( false, Sources::vendor_apis_enabled(), 'vendors may NOT use their own APIs until an administrator switches it on' );
 nx_assert_same( array(), Sources::host_allowlist(), 'there is no host allow-list by default' );
