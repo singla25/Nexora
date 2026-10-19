@@ -7,30 +7,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Single source of truth for the account type of a member: customer or vendor.
+ * Single source of truth for the account type of a member: customer or seller.
  *
- * A "customer" is any member who is not a vendor; the WordPress role is never consulted
- * for that. A vendor is a customer plus the additive `nexora_vendor` role (added with
- * add_role(), so the original role stays). The vendor status lives in user meta and is
- * only ever changed here; nothing the browser sends can choose it.
+ * Three roles: the core `subscriber` (shown as "Customer"), `nexora_seller` (registered as a seller) and
+ * `nexora_customer_seller` (a customer who became a seller). No code asks for a role slug: it asks
+ * has_seller_record() (a seller record in any status) or can_sell() (approved). The role changes only when a
+ * seller is approved and when a seller record is deleted; suspension keeps it, the status decides what the
+ * seller may do. The status lives in user meta and is only ever changed here; nothing the browser sends can
+ * choose it.
  *
  * Not to be confused with Profile\Privacy::role(), which is a visitor's relationship to a
  * profile (guest / viewer / owner).
  */
 class Account_Types {
 
-	const ROLE        = 'nexora_vendor';
-	const STATUS_META = '_nexora_vendor_status';
-	const OPTION      = 'nexora_accounts_version';
-	const VERSION     = '1.0.0';
+	const ROLE_SELLER          = 'nexora_seller';
+	const ROLE_CUSTOMER_SELLER = 'nexora_customer_seller';
+	const LEGACY_ROLE          = 'nexora_vendor'; // The pre-7a role: only Migration removes it.
+	const STATUS_META          = '_nexora_vendor_status';
+	const SELLER_META          = '_seller_post_id'; // User meta: the seller record (also set for a direct seller).
+	const OPTION               = 'nexora_accounts_version';
+	const VERSION              = '2.0.0';
 
 	const NONE      = 'none';
 	const PENDING   = 'pending';
 	const APPROVED  = 'approved';
 	const SUSPENDED = 'suspended';
-
-	const CAP_PRODUCTS  = 'nexora_manage_own_products';
-	const CAP_ANALYTICS = 'nexora_view_own_analytics';
+	const REJECTED  = 'rejected';
 
 	/**
 	 * True only while set_status() is writing the status meta.
@@ -44,6 +47,7 @@ class Account_Types {
 	 */
 	public function __construct() {
 		add_action( 'plugins_loaded', array( __CLASS__, 'maybe_register' ) );
+		add_filter( 'gettext_with_context', array( __CLASS__, 'role_label' ), 10, 4 );
 
 		// The status is a permission: nothing but set_status() may write it (not a form, a hook or another plugin).
 		add_filter( 'add_user_metadata', array( __CLASS__, 'guard_status_meta' ), 10, 3 );
@@ -92,7 +96,40 @@ class Account_Types {
 	}
 
 	/**
-	 * Registers the vendor role when the stored version is older than the code.
+	 * How a role name is shown (role dropdowns, the Users list): the core subscriber role reads "Customer" and the two
+	 * seller roles are translated. Display only: nothing is written to the roles table, and nothing here runs before init.
+	 *
+	 * @param string $translated Text as translated so far.
+	 * @param string $name       Stored role name (the original text).
+	 * @param string $context    Gettext context; role names use "User role".
+	 * @param string $domain     Text domain of the name.
+	 * @return string
+	 */
+	public static function role_label( $translated, $name, $context = '', $domain = '' ) {
+
+		unset( $domain );
+
+		if ( 'User role' !== $context ) {
+			return $translated;
+		}
+
+		if ( 'Subscriber' === $name ) {
+			return __( 'Customer', 'nexora' );
+		}
+
+		if ( 'Seller' === $name ) {
+			return __( 'Seller', 'nexora' );
+		}
+
+		if ( 'Customer & Seller' === $name ) {
+			return __( 'Customer & Seller', 'nexora' );
+		}
+
+		return $translated;
+	}
+
+	/**
+	 * Registers the two seller roles when the stored version is older than the code.
 	 */
 	public static function maybe_register() {
 
@@ -100,47 +137,56 @@ class Account_Types {
 			return;
 		}
 
-		self::register_role();
+		self::register_roles();
 		update_option( self::OPTION, self::VERSION );
 	}
 
 	/**
-	 * Creates the vendor role, or brings an existing one back to exactly the two narrow caps. Safe to repeat.
+	 * The two seller roles and the name each is stored with (English, like any role name; role_label() translates it for display).
+	 *
+	 * @return string[] Role slug => stored name.
 	 */
-	public static function register_role() {
-
-		$caps = array(
-			self::CAP_PRODUCTS  => true,
-			self::CAP_ANALYTICS => true,
+	public static function seller_roles() {
+		return array(
+			self::ROLE_SELLER          => 'Seller',
+			self::ROLE_CUSTOMER_SELLER => 'Customer & Seller',
 		);
+	}
 
-		$role = get_role( self::ROLE );
+	/**
+	 * Creates the seller roles, or brings an existing one back to exactly `read`. Safe to repeat.
+	 * Selling is never a capability: it is the status (can_sell()).
+	 */
+	public static function register_roles() {
 
-		if ( null === $role ) {
-			add_role( self::ROLE, 'Nexora Vendor', $caps );
-			return;
-		}
+		foreach ( self::seller_roles() as $slug => $name ) {
 
-		foreach ( $caps as $cap => $grant ) {
-			if ( ! $role->has_cap( $cap ) ) {
-				$role->add_cap( $cap, $grant );
+			$role = get_role( $slug );
+
+			if ( null === $role ) {
+				add_role( $slug, $name, array( 'read' => true ) );
+				continue;
 			}
-		}
 
-		foreach ( array_keys( $role->capabilities ) as $cap ) {
-			if ( ! isset( $caps[ $cap ] ) ) {
-				$role->remove_cap( $cap );
+			if ( ! $role->has_cap( 'read' ) ) {
+				$role->add_cap( 'read' );
+			}
+
+			foreach ( array_keys( $role->capabilities ) as $cap ) {
+				if ( 'read' !== $cap ) {
+					$role->remove_cap( $cap );
+				}
 			}
 		}
 	}
 
 	/**
-	 * Every status a vendor can have.
+	 * Every status a seller can have.
 	 *
 	 * @return string[]
 	 */
 	public static function statuses() {
-		return array( self::NONE, self::PENDING, self::APPROVED, self::SUSPENDED );
+		return array( self::NONE, self::PENDING, self::APPROVED, self::SUSPENDED, self::REJECTED );
 	}
 
 	/**
@@ -173,17 +219,21 @@ class Account_Types {
 	}
 
 	/**
-	 * True for anyone who applied: pending, approved or suspended.
+	 * True when the user has a seller record, in ANY status (pending, approved, rejected, suspended).
 	 *
 	 * @param int|\WP_User $user User or ID.
 	 * @return bool
 	 */
-	public static function is_vendor( $user ) {
-		return self::NONE !== self::vendor_status( $user );
+	public static function has_seller_record( $user ) {
+
+		$id = self::user_id( $user );
+
+		return $id && \Nexora\Vendors\Repository::id_for_user( $id ) > 0;
 	}
 
 	/**
-	 * True only for an approved vendor who really holds the vendor role (both are required).
+	 * True only for an approved seller who holds a seller role (both are required). Pending, rejected and
+	 * suspended sellers can buy but cannot sell.
 	 *
 	 * @param int|\WP_User $user User or ID.
 	 * @return bool
@@ -192,11 +242,17 @@ class Account_Types {
 
 		$id = self::user_id( $user );
 
-		return $id && self::APPROVED === self::vendor_status( $id ) && user_can( $id, self::CAP_PRODUCTS );
+		if ( ! $id || self::APPROVED !== self::vendor_status( $id ) ) {
+			return false;
+		}
+
+		$account = get_userdata( $id );
+
+		return $account && (bool) array_intersect( array( self::ROLE_SELLER, self::ROLE_CUSTOMER_SELLER ), (array) $account->roles );
 	}
 
 	/**
-	 * Approved and suspended vendors may read their earnings (suspended ones read-only).
+	 * Approved and suspended sellers may read their earnings (suspended ones read-only).
 	 *
 	 * @param int|\WP_User $user User or ID.
 	 * @return bool
@@ -216,17 +272,19 @@ class Account_Types {
 
 		$map = array(
 			self::NONE      => array( self::PENDING ),
-			self::PENDING   => array( self::APPROVED, self::NONE ),
+			self::PENDING   => array( self::APPROVED, self::REJECTED ),
 			self::APPROVED  => array( self::SUSPENDED ),
 			self::SUSPENDED => array( self::APPROVED ),
+			self::REJECTED  => array( self::PENDING ),
 		);
 
 		return isset( $map[ $from ] ) && in_array( $to, $map[ $from ], true );
 	}
 
 	/**
-	 * Changes a vendor status and keeps the vendor role in step (only approved vendors hold it).
-	 * Callers are responsible for the permission check (admin approval, or the applicant's own form).
+	 * Changes a seller status. The role changes only on approval (a customer is promoted to Customer & Seller; a
+	 * direct seller already has the Seller role); suspension and rejection keep it. Callers are responsible for the
+	 * permission check (admin decision, or the applicant's own form).
 	 *
 	 * @param int|\WP_User $user User or ID.
 	 * @param string       $to   New status.
@@ -246,27 +304,115 @@ class Account_Types {
 			return new \WP_Error( 'nexora_bad_transition', 'That status change is not allowed.' );
 		}
 
-		self::$writing = true;
-
-		if ( self::NONE === $to ) {
-			delete_user_meta( $id, self::STATUS_META );
-		} else {
-			update_user_meta( $id, self::STATUS_META, $to );
-		}
-
-		self::$writing = false;
-
-		$account = get_userdata( $id );
+		self::write_status( $id, $to );
 
 		if ( self::APPROVED === $to ) {
-			$account->add_role( self::ROLE );
-		} else {
-			$account->remove_role( self::ROLE );
+			self::promote( $id );
 		}
 
 		do_action( 'nexora_vendor_status_changed', $id, $from, $to );
 
 		return true;
+	}
+
+	/**
+	 * Takes a user's seller standing away because their seller record was deleted: status none, back to the
+	 * plain customer role. The one other place a role changes.
+	 *
+	 * @param int|\WP_User $user User or ID.
+	 */
+	public static function clear( $user ) {
+
+		$id = self::user_id( $user );
+
+		if ( ! $id || ! get_userdata( $id ) ) {
+			return;
+		}
+
+		$from = self::vendor_status( $id );
+
+		self::write_status( $id, self::NONE );
+		self::demote( $id );
+
+		if ( self::NONE !== $from ) {
+			do_action( 'nexora_vendor_status_changed', $id, $from, self::NONE );
+		}
+	}
+
+	/**
+	 * Stores a status (the only code allowed to write the meta).
+	 *
+	 * @param int    $id     User ID.
+	 * @param string $status New status (none removes the meta).
+	 */
+	private static function write_status( $id, $status ) {
+
+		self::$writing = true;
+
+		if ( self::NONE === $status ) {
+			delete_user_meta( $id, self::STATUS_META );
+		} else {
+			update_user_meta( $id, self::STATUS_META, $status );
+		}
+
+		self::$writing = false;
+	}
+
+	/**
+	 * A member who registers directly as a seller gets the Seller role at once (the customer role is replaced).
+	 * The role is not permission to sell: that is the approved status.
+	 *
+	 * @param int|\WP_User $user User or ID.
+	 */
+	public static function assign_seller_role( $user ) {
+
+		$id      = self::user_id( $user );
+		$account = $id ? get_userdata( $id ) : false;
+
+		if ( ! $account ) {
+			return;
+		}
+
+		$account->remove_role( 'subscriber' );
+		$account->add_role( self::ROLE_SELLER );
+	}
+
+	/**
+	 * Approval: a customer becomes a Customer & Seller (the subscriber role is replaced; any other role stays).
+	 *
+	 * @param int $id User ID.
+	 */
+	private static function promote( $id ) {
+
+		$account = get_userdata( $id );
+
+		if ( in_array( self::ROLE_SELLER, (array) $account->roles, true ) || in_array( self::ROLE_CUSTOMER_SELLER, (array) $account->roles, true ) ) {
+			return;
+		}
+
+		$account->remove_role( 'subscriber' );
+		$account->add_role( self::ROLE_CUSTOMER_SELLER );
+	}
+
+	/**
+	 * Record deleted: every seller role (and the old vendor role) goes, and the user is a plain customer again.
+	 *
+	 * @param int $id User ID.
+	 */
+	private static function demote( $id ) {
+
+		$account = get_userdata( $id );
+
+		foreach ( array( self::ROLE_SELLER, self::ROLE_CUSTOMER_SELLER, self::LEGACY_ROLE ) as $role ) {
+			$account->remove_role( $role );
+		}
+
+		clean_user_cache( $id );
+
+		// A user left with no role at all is a customer; one who also holds another role (an administrator, say) keeps just that.
+		if ( ! get_userdata( $id )->roles ) {
+			$account->add_role( 'subscriber' );
+		}
 	}
 
 	/**
@@ -286,6 +432,7 @@ class Account_Types {
 
 		switch ( self::vendor_status( $user ) ) {
 			case self::PENDING:
+			case self::REJECTED:
 				$tabs[] = 'vendor-status';
 				break;
 			case self::APPROVED:

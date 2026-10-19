@@ -105,8 +105,8 @@ foreach ( $files as $file ) {
 			$violations[] = "$name:$n deletes products found by a sweep (could include real ones)";
 		}
 
-		if ( ! $keeps_roles && ( preg_match( '/(?<!->)\b(remove_role|add_role)\s*\(\s*(Account_Types::ROLE|\'nexora_vendor\'|"nexora_vendor")/', $line ) || preg_match( "/'roles'\s*=>\s*array\(\s*Account_Types::ROLE/", $line ) ) ) {
-			$violations[] = "$name:$n touches the real vendor role (use a scratch role)";
+		if ( ! $keeps_roles && ( preg_match( '/(?<!->)\b(remove_role|add_role)\s*\(\s*(Account_Types::(?:ROLE_SELLER|ROLE_CUSTOMER_SELLER|LEGACY_ROLE)|\'nexora_(?:vendor|seller|customer_seller)\'|"nexora_(?:vendor|seller|customer_seller)")/', $line ) || preg_match( "/'roles'\s*=>\s*array\(\s*Account_Types::(?:ROLE_SELLER|ROLE_CUSTOMER_SELLER|LEGACY_ROLE)/", $line ) ) ) {
+			$violations[] = "$name:$n touches a real seller role (use a scratch role)";
 		}
 
 		if ( preg_match( '/\$wpdb->query\(\s*"DELETE FROM \{\$wpdb->options\}/', $line ) && 'bootstrap.php' !== $name ) {

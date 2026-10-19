@@ -38,12 +38,16 @@ $state = function () use ( $wpdb, $names ) {
 		);
 	}
 
-	$role = get_role( 'nexora_vendor' );
+	$seller_roles = array();
+	foreach ( array( 'nexora_vendor', 'nexora_seller', 'nexora_customer_seller' ) as $slug ) {
+		$role                 = get_role( $slug );
+		$seller_roles[ $slug ] = $role ? $role->capabilities : null;
+	}
 
 	return array(
 		'options'      => $options,
 		'items'        => $items,
-		'vendor_role'  => $role ? $role->capabilities : null,
+		'vendor_role'  => $seller_roles,
 		'orders'       => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type IN ('shop_order','shop_order_placehold')" ),
 		'product_count'=> (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'product'" ),
 	);

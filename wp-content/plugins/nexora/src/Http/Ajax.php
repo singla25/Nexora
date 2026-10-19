@@ -44,10 +44,10 @@ class Ajax {
 
 	/**
 	 * Guard for logged-in member endpoints: nonce, login, 'read' capability and
-	 * (optionally) a linked user_profile post. Ends the request on failure.
+	 * (optionally) a linked profile post (a customer's or a direct seller's). Ends the request on failure.
 	 *
 	 * @param string      $nonce_action Nonce action the page localized.
-	 * @param bool        $require_profile Require a user_profile post for the current user.
+	 * @param bool        $require_profile Require a profile post (customer or direct seller) for the current user.
 	 * @param string|null $unauth_message Error text for logged-out callers (a generic one when omitted).
 	 * @return array user_id and profile_id.
 	 */
@@ -67,7 +67,7 @@ class Ajax {
 
 		$profile_id = (int) get_user_meta( $user_id, '_profile_id', true );
 
-		if ( $require_profile && ( ! $profile_id || get_post_type( $profile_id ) !== 'user_profile' ) ) {
+		if ( $require_profile && ( ! $profile_id || ! \Nexora\Core\Post_Types::is_profile( $profile_id ) ) ) {
 			wp_send_json_error( __( 'Profile not found', 'nexora' ) );
 		}
 

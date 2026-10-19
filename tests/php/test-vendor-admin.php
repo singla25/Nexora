@@ -35,12 +35,12 @@ $member   = nx_test_user( 'vadmmember' );
 $admin    = new Admin();
 
 /* ---------- wiring ---------- */
-nx_assert( has_filter( 'manage_nexora_vendor_posts_columns' ) && has_action( 'manage_nexora_vendor_posts_custom_column' ), 'list-column hooks are registered' );
+nx_assert( has_filter( 'manage_nexora_cust_seller_posts_columns' ) && has_action( 'manage_nexora_cust_seller_posts_custom_column' ), 'list-column hooks are registered' );
 nx_assert( has_action( 'admin_post_nexora_vendor_status' ) && false === has_action( 'admin_post_nopriv_nexora_vendor_status' ), 'the status action is admin-post for logged-in users only (no nopriv)' );
 nx_assert( has_action( 'add_meta_boxes' ), 'meta boxes hook exists' );
 
 /* ---------- list columns ---------- */
-$cols = apply_filters( 'manage_nexora_vendor_posts_columns', array( 'cb' => 'x', 'title' => 'Title', 'date' => 'Date' ) );
+$cols = apply_filters( 'manage_nexora_cust_seller_posts_columns', array( 'cb' => 'x', 'title' => 'Title', 'date' => 'Date' ) );
 nx_assert( isset( $cols['cb'], $cols['title'], $cols['gstin'], $cols['owner'], $cols['vendor_status'] ), 'list has checkbox, business, GSTIN, owner and status columns' );
 $col = function ( $name, $vid ) use ( $admin ) { ob_start(); $admin->column( $name, $vid ); return ob_get_clean(); };
 nx_assert_same( '27AAPFU0939F1ZV', trim( $col( 'gstin', $v0 ) ), 'GSTIN column shows the GSTIN' );
@@ -66,7 +66,7 @@ $register = function ( $uid ) use ( $admin ) {
 	wp_set_current_user( $uid );
 	$admin->add_meta_boxes();
 	wp_set_current_user( 0 );
-	return $wp_meta_boxes['nexora_vendor'] ?? array();
+	return $wp_meta_boxes['nexora_cust_seller'] ?? array();
 };
 $boxes = $register( $admin_id );
 nx_assert( isset( $boxes['side']['high']['nexora_vendor_decision'] ), 'admin: the decision box is in the side column at high priority (top right)' );
@@ -145,8 +145,8 @@ $sent = count( $mail );
 $out  = $run( $admin_id, $v0, 'approve' );
 nx_assert( 0 === strpos( $out, 'redirect:' ), 'admin: approve redirects back' );
 nx_assert_same( 'approved', $status( $u0 ), 'approve: pending becomes approved' );
-nx_assert( Account_Types::can_sell( $u0['user_id'] ) && in_array( Account_Types::ROLE, (array) get_userdata( $u0['user_id'] )->roles, true ), 'approve: the vendor role is added' );
-nx_assert( in_array( 'subscriber', (array) get_userdata( $u0['user_id'] )->roles, true ), 'approve: the original role stays' );
+nx_assert( Account_Types::can_sell( $u0['user_id'] ) && in_array( Account_Types::ROLE_CUSTOMER_SELLER, (array) get_userdata( $u0['user_id'] )->roles, true ), 'approve: the vendor role is added' );
+nx_assert( ! in_array( 'subscriber', (array) get_userdata( $u0['user_id'] )->roles, true ), 'approve: the customer role is replaced by Customer & Seller (promotion)' );
 $m = array_slice( $mail, $sent );
 nx_assert( 1 === count( $m ) && get_userdata( $u0['user_id'] )->user_email === ( is_array( $m[0]['to'] ) ? $m[0]['to'][0] : $m[0]['to'] ), 'approve: the applicant is told by mail' );
 nx_assert( false === strpbrk( $m[0]['subject'] ?? "\n", "\r\n" ), 'approve: mail subject is one line' );
@@ -187,11 +187,12 @@ nx_assert( 0 === strpos( $run( $admin_id, $v1, 'suspend' ), 'redirect:' ) && 'pe
 nx_assert( 0 === strpos( $run( $admin_id, $v1, 'reactivate' ), 'redirect:' ) && 'pending' === $status( $u1 ), 'a pending application cannot be reactivated' );
 $sent = count( $mail );
 $run( $admin_id, $v1, 'reject' );
-nx_assert_same( 'none', $status( $u1 ), 'reject: pending goes back to none' );
+nx_assert_same( 'rejected', $status( $u1 ), 'reject: pending becomes rejected (stored)' );
 nx_assert( count( $mail ) === $sent + 1, 'reject: the applicant is told by mail' );
-nx_assert( 'trash' === get_post_status( $v1 ), 'reject: the application moves to the trash' );
-nx_assert_same( array(), $buttons( $decide( $v1 ) ), 'a rejected (trashed) application offers no decision links' );
-nx_assert( 0 === strpos( $run( $admin_id, $v1, 'approve' ), 'die:' ) || 'none' === $status( $u1 ), 'a trashed application cannot be approved' );
+nx_assert( 'publish' === get_post_status( $v1 ) && $v1 === Repository::id_for_user( $u1['user_id'] ), 'reject: the application is kept (not trashed) and stays linked' );
+nx_assert_same( array( 'subscriber' ), array_values( (array) get_userdata( $u1['user_id'] )->roles ), 'reject: the applicant stays a customer' );
+nx_assert_same( array(), $buttons( $decide( $v1 ) ), 'a rejected application offers no decision links (the applicant re-applies instead)' );
+nx_assert( 0 === strpos( $run( $admin_id, $v1, 'approve' ), 'redirect:' ) && 'rejected' === $status( $u1 ), 'a rejected application cannot be approved by the admin (the applicant must re-apply)' );
 
 /* ---------- the edit screen cannot be used to change a status ---------- */
 $_POST = array( 'vendor_status' => 'approved', 'status' => 'approved', 'post_status' => 'publish', 'role' => 'administrator' );
@@ -199,7 +200,7 @@ wp_set_current_user( $admin_id );
 do_action( 'save_post', $v1, get_post( $v1 ), true );
 wp_set_current_user( 0 );
 $_POST = array();
-nx_assert_same( 'none', $status( $u1 ), 'saving the vendor post cannot change the status or role' );
+nx_assert_same( 'rejected', $status( $u1 ), 'saving the vendor post cannot change the status or role' );
 
 
 nx_test_finish();

@@ -9,8 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * The vendor application rules: apply, edit details, and the administrator's decisions. The only caller of
- * Account_Types::set_status() outside Account_Types itself.
+ * The seller application rules: register as a seller, become a seller (and re-apply after a rejection), edit details,
+ * and the administrator's decisions. The only caller of Account_Types::set_status() outside Account_Types itself.
+ * One code path for both seller record types (Core\Post_Types::sellers()).
  */
 class Service {
 
@@ -26,12 +27,14 @@ class Service {
 			'approve'    => array( array( Account_Types::PENDING ), Account_Types::APPROVED ),
 			'suspend'    => array( array( Account_Types::APPROVED ), Account_Types::SUSPENDED ),
 			'reactivate' => array( array( Account_Types::SUSPENDED ), Account_Types::APPROVED ),
-			'reject'     => array( array( Account_Types::PENDING ), Account_Types::NONE ),
+			'reject'     => array( array( Account_Types::PENDING ), Account_Types::REJECTED ),
 		);
 	}
 
 	/**
-	 * Records a seller application. The result is ALWAYS "pending": nothing in $raw can choose a status or a role.
+	 * Records a seller application from an existing member: "Become a seller" (a new `nexora_cust_seller` record linked
+	 * to their customer profile) or a re-application after a rejection (the same record, new details). The result is
+	 * ALWAYS "pending": nothing in $raw can choose a status or a role, and the role changes only on approval.
 	 *
 	 * @param int   $user_id Applicant.
 	 * @param array $raw     Unslashed form values (only the business fields are read).
@@ -45,7 +48,9 @@ class Service {
 			return new \WP_Error( 'nexora_no_user', __( 'Account not found.', 'nexora' ) );
 		}
 
-		if ( Account_Types::NONE !== Account_Types::vendor_status( $user_id ) ) {
+		$status = Account_Types::vendor_status( $user_id );
+
+		if ( ! in_array( $status, array( Account_Types::NONE, Account_Types::REJECTED ), true ) ) {
 			return new \WP_Error( 'nexora_already_applied', __( 'You have already applied to sell.', 'nexora' ) );
 		}
 
@@ -55,30 +60,97 @@ class Service {
 			return self::invalid( $checked['errors'] );
 		}
 
-		$data = $checked['data'];
+		$existing  = Account_Types::REJECTED === $status ? Repository::id_for_user( $user_id ) : 0;
+		$vendor_id = self::register( $user_id, $checked['data'], $existing, null );
+
+		if ( is_wp_error( $vendor_id ) ) {
+			return $vendor_id;
+		}
+
+		return array( 'vendor_id' => $vendor_id );
+	}
+
+	/**
+	 * Registers a new member directly as a seller: ONE `nexora_seller` record holding their personal and business
+	 * details (it is their profile; there is no customer post), the Seller role, status pending.
+	 *
+	 * @param int   $user_id  The new user (already created).
+	 * @param array $personal Personal details (Repository::personal_keys()).
+	 * @param array $raw      Unslashed business form values.
+	 * @return array|\WP_Error array( 'vendor_id' => int )
+	 */
+	public static function register_seller( $user_id, array $personal, array $raw ) {
+
+		$user_id = (int) $user_id;
+
+		if ( ! $user_id || ! get_userdata( $user_id ) ) {
+			return new \WP_Error( 'nexora_no_user', __( 'Account not found.', 'nexora' ) );
+		}
+
+		if ( Account_Types::NONE !== Account_Types::vendor_status( $user_id ) || Repository::id_for_user( $user_id ) ) {
+			return new \WP_Error( 'nexora_already_applied', __( 'You have already applied to sell.', 'nexora' ) );
+		}
+
+		$checked = Validator::validate( $raw );
+
+		if ( $checked['errors'] ) {
+			return self::invalid( $checked['errors'] );
+		}
+
+		$vendor_id = self::register( $user_id, $checked['data'], 0, $personal );
+
+		if ( is_wp_error( $vendor_id ) ) {
+			return $vendor_id;
+		}
+
+		return array( 'vendor_id' => $vendor_id );
+	}
+
+	/**
+	 * The part both entry points share: the GSTIN lock and check, the record (new, or the rejected one being
+	 * reused), the pending status, the mails.
+	 *
+	 * @param int        $user_id  Applicant.
+	 * @param array      $data     Validated business details.
+	 * @param int        $existing A rejected record to reuse (0 for a new one).
+	 * @param array|null $personal Personal details for a NEW direct seller (null: a customer becoming a seller).
+	 * @return int|\WP_Error Seller record ID.
+	 */
+	private static function register( $user_id, array $data, $existing, $personal ) {
 
 		if ( ! self::lock( $data['gstin'] ) ) {
 			return new \WP_Error( 'nexora_busy', __( 'This GSTIN is being registered right now. Please try again in a moment.', 'nexora' ) );
 		}
 
-		$vendor_id = 0;
-
-		if ( Repository::find_by_gstin( $data['gstin'] ) ) {
+		if ( Repository::find_by_gstin( $data['gstin'], $existing ) ) {
 			self::unlock( $data['gstin'] );
 			return self::invalid( array( 'gstin' => self::duplicate_message() ) );
 		}
 
-		$vendor_id = Repository::create( $user_id, $data );
+		if ( $existing ) {
+			Repository::save( $existing, $data );
+			$vendor_id = $existing;
+		} elseif ( null !== $personal ) {
+			$vendor_id = Repository::create_direct( $user_id, $personal, $data );
+		} else {
+			$vendor_id = Repository::create( $user_id, $data );
+		}
 
 		if ( is_wp_error( $vendor_id ) ) {
 			self::unlock( $data['gstin'] );
 			return new \WP_Error( 'nexora_save_failed', __( 'Could not save your application. Please try again.', 'nexora' ) );
 		}
 
+		if ( null !== $personal ) {
+			Account_Types::assign_seller_role( $user_id );
+		}
+
 		$status = Account_Types::set_status( $user_id, Account_Types::PENDING );
 
 		if ( is_wp_error( $status ) ) {
-			Repository::delete( $vendor_id );
+			if ( ! $existing ) {
+				Repository::delete( $vendor_id );
+			}
 			self::unlock( $data['gstin'] );
 			return new \WP_Error( 'nexora_save_failed', __( 'Could not save your application. Please try again.', 'nexora' ) );
 		}
@@ -89,7 +161,7 @@ class Service {
 
 		do_action( 'nexora_vendor_applied', $vendor_id, $user_id );
 
-		return array( 'vendor_id' => $vendor_id );
+		return (int) $vendor_id;
 	}
 
 	/**
@@ -108,6 +180,10 @@ class Service {
 
 		if ( Account_Types::NONE === $status || ! $vendor_id ) {
 			return new \WP_Error( 'nexora_not_vendor', __( 'You have no seller application.', 'nexora' ) );
+		}
+
+		if ( Account_Types::REJECTED === $status ) {
+			return new \WP_Error( 'nexora_rejected', __( 'Your application was not approved. Send a new application instead.', 'nexora' ) );
 		}
 
 		$allowed = Account_Types::PENDING === $status ? Fields::keys() : Fields::editable_after_review();
@@ -179,7 +255,7 @@ class Service {
 		list( $from, $to ) = $actions[ $action ];
 		$current           = Account_Types::vendor_status( $user_id );
 
-		if ( $current === $to && Account_Types::NONE !== $to ) {
+		if ( $current === $to ) {
 			return true;
 		}
 
@@ -192,10 +268,6 @@ class Service {
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
-		}
-
-		if ( 'reject' === $action ) {
-			Repository::trash( $vendor_id );
 		}
 
 		Notifier::status_changed( $user_id, $action, $business );
@@ -218,7 +290,7 @@ class Service {
 			'status' => $status,
 			'data'   => $vendor_id ? Repository::data( $vendor_id ) : array_fill_keys( Fields::keys(), '' ),
 			'types'  => Fields::business_types(),
-			'locked' => Account_Types::PENDING !== $status ? array_diff( Fields::keys(), Fields::editable_after_review() ) : array(),
+			'locked' => in_array( $status, array( Account_Types::APPROVED, Account_Types::SUSPENDED ), true ) ? array_diff( Fields::keys(), Fields::editable_after_review() ) : array(),
 		);
 	}
 

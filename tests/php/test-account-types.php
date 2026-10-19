@@ -8,51 +8,60 @@ global $wpdb;
 // This test removes and re-creates the vendor role and edits two settings; the site's originals (the roles table included) come back at the end.
 nx_test_options_keep( array( $wpdb->prefix . 'user_roles', 'nexora_accounts_version', 'nexora_delete_data_on_uninstall' ) );
 
-/* ---------- role registration: idempotent, self-upgrading ---------- */
-remove_role( Account_Types::ROLE );
+/* ---------- role registration: idempotent, self-upgrading, two roles with read only ---------- */
+$seller_roles = array( Account_Types::ROLE_SELLER => 'Seller', Account_Types::ROLE_CUSTOMER_SELLER => 'Customer & Seller' );
+foreach ( array_keys( $seller_roles ) as $slug ) { remove_role( $slug ); }
+remove_role( Account_Types::LEGACY_ROLE );
 delete_option( 'nexora_accounts_version' );
-nx_assert( null === get_role( Account_Types::ROLE ), 'setup: vendor role removed' );
+nx_assert( null === get_role( Account_Types::ROLE_SELLER ) && null === get_role( Account_Types::ROLE_CUSTOMER_SELLER ), 'setup: both seller roles removed' );
 
 Account_Types::maybe_register();
-$role = get_role( Account_Types::ROLE );
-nx_assert( null !== $role, 'maybe_register creates the vendor role when the stored version is old' );
-nx_assert( $role && $role->has_cap( 'nexora_manage_own_products' ) && $role->has_cap( 'nexora_view_own_analytics' ), 'vendor role carries the two narrow caps' );
-nx_assert( $role && ! $role->has_cap( 'upload_files' ) && ! $role->has_cap( 'edit_posts' ) && ! $role->has_cap( 'manage_options' ), 'vendor role carries nothing broader' );
+foreach ( $seller_roles as $slug => $name ) {
+	$role = get_role( $slug );
+	nx_assert( null !== $role, "maybe_register creates $slug when the stored version is old" );
+	nx_assert_same( array( 'read' => true ), $role ? $role->capabilities : null, "$slug carries read and nothing else" );
+	nx_assert_same( $name, wp_roles()->get_names()[ $slug ] ?? '', "$slug is stored as \"$name\"" );
+}
+nx_assert_same( 'Customer', translate_user_role( wp_roles()->get_names()['subscriber'] ?? '' ), 'the core subscriber role is shown as "Customer"' );
+nx_assert_same( 'Subscriber', get_option( 'wp_user_roles' )['subscriber']['name'] ?? '', 'the stored name of the core role is untouched (the label is display only)' );
+nx_assert_same( 'Seller', translate_user_role( wp_roles()->get_names()[ Account_Types::ROLE_SELLER ] ?? '' ), 'the seller role is shown as "Seller"' );
+nx_assert_same( 'Customer & Seller', translate_user_role( wp_roles()->get_names()[ Account_Types::ROLE_CUSTOMER_SELLER ] ?? '' ), 'the customer-seller role is shown as "Customer & Seller"' );
+nx_assert( null === get_role( Account_Types::LEGACY_ROLE ), 'the old nexora_vendor role is not (re)created' );
 nx_assert_same( Account_Types::VERSION, get_option( 'nexora_accounts_version' ), 'the registered version is stored' );
 
-$before = wp_json_encode( get_role( Account_Types::ROLE )->capabilities );
-Account_Types::register_role();
-Account_Types::register_role();
-nx_assert_same( $before, wp_json_encode( get_role( Account_Types::ROLE )->capabilities ), 'register_role is idempotent' );
+$before = wp_json_encode( array( get_role( Account_Types::ROLE_SELLER )->capabilities, get_role( Account_Types::ROLE_CUSTOMER_SELLER )->capabilities ) );
+Account_Types::register_roles();
+Account_Types::register_roles();
+nx_assert_same( $before, wp_json_encode( array( get_role( Account_Types::ROLE_SELLER )->capabilities, get_role( Account_Types::ROLE_CUSTOMER_SELLER )->capabilities ) ), 'register_roles is idempotent' );
 
-get_role( Account_Types::ROLE )->remove_cap( 'nexora_view_own_analytics' );
-Account_Types::register_role();
-nx_assert( get_role( Account_Types::ROLE )->has_cap( 'nexora_view_own_analytics' ), 'register_role restores a drifted capability' );
+get_role( Account_Types::ROLE_SELLER )->add_cap( 'edit_posts' );
+Account_Types::register_roles();
+nx_assert_same( array( 'read' => true ), get_role( Account_Types::ROLE_SELLER )->capabilities, 'register_roles strips a drifted capability' );
 
 update_option( 'nexora_accounts_version', '0' );
-remove_role( Account_Types::ROLE );
+remove_role( Account_Types::ROLE_CUSTOMER_SELLER );
 Account_Types::maybe_register();
-nx_assert( null !== get_role( Account_Types::ROLE ), 'an upgrade re-creates a deleted role without reactivation' );
+nx_assert( null !== get_role( Account_Types::ROLE_CUSTOMER_SELLER ), 'an upgrade re-creates a deleted role without reactivation' );
 
-remove_role( Account_Types::ROLE );
+remove_role( Account_Types::ROLE_CUSTOMER_SELLER );
 Account_Types::maybe_register();
-nx_assert( null === get_role( Account_Types::ROLE ), 'maybe_register does nothing when the stored version is current' );
-Account_Types::register_role();
+nx_assert( null === get_role( Account_Types::ROLE_CUSTOMER_SELLER ), 'maybe_register does nothing when the stored version is current' );
+Account_Types::register_roles();
 
 /* ---------- existing members are customers, untouched ---------- */
 $alice = nx_test_user( 'atalice' );
 $uid   = $alice['user_id'];
 nx_assert_same( 'none', Account_Types::vendor_status( $uid ), 'an existing member has vendor status none' );
-nx_assert( ! Account_Types::is_vendor( $uid ), 'an existing member is not a vendor' );
 nx_assert( ! Account_Types::can_sell( $uid ), 'an existing member cannot sell' );
-nx_assert( ! in_array( Account_Types::ROLE, (array) get_userdata( $uid )->roles, true ), 'an existing member does not carry the vendor role' );
-nx_assert( ! Account_Types::is_vendor( 0 ) && 'none' === Account_Types::vendor_status( 0 ) && ! Account_Types::can_sell( 0 ), 'a guest is not a vendor' );
+nx_assert( ! in_array( Account_Types::ROLE_CUSTOMER_SELLER, (array) get_userdata( $uid )->roles, true ) && ! in_array( Account_Types::ROLE_SELLER, (array) get_userdata( $uid )->roles, true ), 'an existing member does not carry a seller role' );
+nx_assert( ! Account_Types::has_seller_record( $uid ) && ! Account_Types::has_seller_record( 0 ), 'an existing member and a guest have no seller record' );
+nx_assert( 'none' === Account_Types::vendor_status( 0 ) && ! Account_Types::can_sell( 0 ), 'a guest is not a seller' );
 nx_assert( array() === Account_Types::tabs_for( 0 ), 'a guest has no owner tabs' );
 
 /* ---------- status transitions ---------- */
-$allowed = array( 'none>pending', 'pending>approved', 'pending>none', 'approved>suspended', 'suspended>approved');
-foreach ( array( 'none', 'pending', 'approved', 'suspended' ) as $from ) {
-	foreach ( array( 'none', 'pending', 'approved', 'suspended' ) as $to ) {
+$allowed = array( 'none>pending', 'pending>approved', 'pending>rejected', 'approved>suspended', 'suspended>approved', 'rejected>pending' );
+foreach ( array( 'none', 'pending', 'approved', 'suspended', 'rejected' ) as $from ) {
+	foreach ( array( 'none', 'pending', 'approved', 'suspended', 'rejected' ) as $to ) {
 		nx_assert_same( in_array( "$from>$to", $allowed, true ), Account_Types::transition_allowed( $from, $to ), "transition $from > $to" );
 	}
 }
@@ -65,30 +74,30 @@ nx_assert( is_wp_error( $r ), 'an unknown status is refused' );
 
 nx_assert( true === Account_Types::set_status( $uid, 'pending' ), 'none > pending works' );
 nx_assert_same( 'pending', Account_Types::vendor_status( $uid ), 'status is stored' );
-nx_assert( Account_Types::is_vendor( $uid ) && ! Account_Types::can_sell( $uid ), 'pending: a vendor applicant who cannot sell' );
-nx_assert( ! user_can( $uid, 'nexora_manage_own_products' ), 'pending: no vendor caps' );
+nx_assert( ! Account_Types::can_sell( $uid ), 'pending: an applicant who cannot sell' );
+nx_assert( ! in_array( Account_Types::ROLE_CUSTOMER_SELLER, (array) get_userdata( $uid )->roles, true ), 'pending: the role has not changed yet (it changes on approval)' );
 
 nx_assert( true === Account_Types::set_status( $uid, 'approved' ), 'pending > approved works' );
 $u = get_userdata( $uid );
-nx_assert( Account_Types::can_sell( $uid ) && user_can( $uid, 'nexora_manage_own_products' ) && user_can( $uid, 'nexora_view_own_analytics' ), 'approved: can sell, has both caps' );
-nx_assert( in_array( 'subscriber', (array) $u->roles, true ) && in_array( Account_Types::ROLE, (array) $u->roles, true ), 'approved: vendor role is ADDED, the original role stays' );
+nx_assert( Account_Types::can_sell( $uid ), 'approved: can sell' );
+nx_assert_same( array( Account_Types::ROLE_CUSTOMER_SELLER ), array_values( (array) $u->roles ), 'approved: the customer is promoted to Customer & Seller' );
 nx_assert( user_can( $uid, 'read' ), 'approved: customer abilities are kept' );
 $twin = nx_test_user( 'attwin' );
-nx_assert_same( user_can( $twin['user_id'], 'upload_files' ), user_can( $uid, 'upload_files' ), 'approved: upload rights are exactly a customer\'s (the vendor role adds none)' );
+nx_assert( ! user_can( $uid, 'upload_files' ) || user_can( $twin['user_id'], 'upload_files' ), 'approved: the seller role adds no upload right a customer lacks (uploads are granted in the profile page context only)' );
 nx_assert( ! user_can( $uid, 'manage_options' ) && ! user_can( $uid, 'edit_posts' ), 'approved: no admin or editor abilities' );
 
 nx_assert( true === Account_Types::set_status( $uid, 'suspended' ), 'approved > suspended works' );
-nx_assert( ! Account_Types::can_sell( $uid ) && ! user_can( $uid, 'nexora_manage_own_products' ), 'suspended: cannot sell and has no caps' );
-nx_assert( in_array( 'subscriber', (array) get_userdata( $uid )->roles, true ) && user_can( $uid, 'read' ), 'suspended: still a normal member' );
-nx_assert( Account_Types::is_vendor( $uid ), 'suspended: still known as a vendor (history stays)' );
+nx_assert( ! Account_Types::can_sell( $uid ), 'suspended: cannot sell' );
+nx_assert( in_array( Account_Types::ROLE_CUSTOMER_SELLER, (array) get_userdata( $uid )->roles, true ) && user_can( $uid, 'read' ), 'suspended: SUSPENSION KEEPS THE ROLE, still a normal member' );
+nx_assert_same( 'suspended', Account_Types::vendor_status( $uid ), 'suspended: the status, not the role, is what stops selling' );
 
 nx_assert( true === Account_Types::set_status( $uid, 'approved' ), 'suspended > approved works' );
 nx_assert( Account_Types::can_sell( $uid ), 're-approved: can sell again' );
 
-// A status written straight into user meta without the role cannot sell.
-get_userdata( $uid )->remove_role( Account_Types::ROLE );
+// An approved status without any seller role cannot sell (both are required).
+get_userdata( $uid )->remove_role( Account_Types::ROLE_CUSTOMER_SELLER );
 clean_user_cache( $uid );
-nx_assert( ! Account_Types::can_sell( $uid ), 'approved status without the role cannot sell (both are required)' );
+nx_assert( ! Account_Types::can_sell( $uid ), 'approved status without a seller role cannot sell (both are required)' );
 $wpdb->update( $wpdb->usermeta, array( 'meta_value' => 'garbage' ), array( 'user_id' => $uid, 'meta_key' => Account_Types::STATUS_META ) ); // phpcs:ignore
 clean_user_cache( $uid ); wp_cache_delete( $uid, 'user_meta' );
 nx_assert_same( 'none', Account_Types::vendor_status( $uid ), 'a corrupt stored status reads as none' );
@@ -148,10 +157,10 @@ Account_Types::set_status( $e['user_id'], 'approved' );
 nx_assert( Account_Types::can_view_earnings( $e['user_id'] ) && Account_Types::can_sell( $e['user_id'] ), 'earnings: approved can view and sell' );
 Account_Types::set_status( $e['user_id'], 'suspended' );
 $eu = get_userdata( $e['user_id'] );
-nx_assert( ! in_array( Account_Types::ROLE, (array) $eu->roles, true ), 'earnings: suspension removes the vendor role' );
-nx_assert( Account_Types::can_view_earnings( $e['user_id'] ), 'earnings: a suspended vendor keeps read-only access to history even without the role' );
+nx_assert( in_array( Account_Types::ROLE_CUSTOMER_SELLER, (array) $eu->roles, true ), 'earnings: suspension keeps the role' );
+nx_assert( Account_Types::can_view_earnings( $e['user_id'] ), 'earnings: a suspended vendor keeps read-only access to history' );
 nx_assert( Account_Types::can_view_earnings( new WP_User( $e['user_id'] ) ), 'earnings: works with a WP_User object too' );
-nx_assert( ! Account_Types::can_sell( $e['user_id'] ) && ! user_can( $e['user_id'], Account_Types::CAP_PRODUCTS ), 'earnings: a suspended vendor still cannot sell or list' );
+nx_assert( ! Account_Types::can_sell( $e['user_id'] ), 'earnings: a suspended vendor still cannot sell or list' );
 nx_assert( in_array( 'sales', Account_Types::tabs_for( $e['user_id'] ), true ) && ! in_array( 'my-products', Account_Types::tabs_for( $e['user_id'] ), true ), 'earnings: suspended sees Sales but not My Products' );
 Account_Types::set_status( $e['user_id'], 'approved' );
 nx_assert( Account_Types::can_view_earnings( $e['user_id'] ), 'earnings: re-approved vendor views earnings' );
@@ -196,18 +205,19 @@ nx_assert( false === strpos( do_shortcode( '[profile_login]' ), 'marketplace' ),
 $defaults = \Nexora\Database\Uninstaller::defaults();
 nx_assert( in_array( Account_Types::STATUS_META, $defaults['user_meta'], true ), 'uninstall lists the vendor status user meta' );
 nx_assert( in_array( Account_Types::OPTION, $defaults['options'], true ), 'uninstall lists the accounts version option' );
-nx_assert( in_array( Account_Types::ROLE, $defaults['roles'] ?? array(), true ), 'uninstall lists the vendor role' );
+nx_assert( in_array( Account_Types::ROLE_CUSTOMER_SELLER, $defaults['roles'] ?? array(), true ) && in_array( Account_Types::ROLE_SELLER, $defaults['roles'] ?? array(), true ) && in_array( Account_Types::LEGACY_ROLE, $defaults['roles'] ?? array(), true ), 'uninstall lists both seller roles and the old vendor role' );
+nx_assert( in_array( Account_Types::SELLER_META, $defaults['user_meta'], true ) && in_array( \Nexora\Core\Post_Types::SELLER, $defaults['post_types'], true ) && in_array( \Nexora\Core\Post_Types::CUST_SELLER, $defaults['post_types'], true ) && in_array( \Nexora\Core\Post_Types::CUSTOMER, $defaults['post_types'], true ), 'uninstall lists the new user meta and the three record types' );
 $setting = get_option( \Nexora\Database\Uninstaller::SETTING );
-$scratch = array( 'tables' => array(), 'options' => array(), 'user_meta' => array(), 'post_types' => array(), 'dirs' => array(), 'transient_prefixes' => array(), 'roles' => array( Account_Types::ROLE ) );
+$scratch = array( 'tables' => array(), 'options' => array(), 'user_meta' => array(), 'post_types' => array(), 'dirs' => array(), 'transient_prefixes' => array(), 'roles' => array( Account_Types::ROLE_CUSTOMER_SELLER ) );
 update_option( \Nexora\Database\Uninstaller::SETTING, 0 );
 ( new \Nexora\Database\Uninstaller( $scratch ) )->run();
-nx_assert( null !== get_role( Account_Types::ROLE ), 'uninstall keeps the role while the setting is off' );
+nx_assert( null !== get_role( Account_Types::ROLE_CUSTOMER_SELLER ), 'uninstall keeps the role while the setting is off' );
 update_option( \Nexora\Database\Uninstaller::SETTING, 1 );
 ( new \Nexora\Database\Uninstaller( $scratch ) )->run();
-nx_assert( null === get_role( Account_Types::ROLE ), 'uninstall removes the role when the setting is on' );
+nx_assert( null === get_role( Account_Types::ROLE_CUSTOMER_SELLER ), 'uninstall removes the role when the setting is on' );
 update_option( \Nexora\Database\Uninstaller::SETTING, $setting );
 
 // restore shared state
-Account_Types::register_role();
+Account_Types::register_roles();
 update_option( 'nexora_accounts_version', Account_Types::VERSION );
 nx_test_finish();

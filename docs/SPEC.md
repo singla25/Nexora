@@ -296,7 +296,7 @@ Payouts, per-vendor shipping and tax, live GST lookup, multi-currency, product v
 
 ## 11. Accounts and records (Phase 7a)
 
-Status: **specified, not built.** Recorded from the owner's requirement and answers (2026-10-19).
+Status: **built (Phase 7a), awaiting the owner's review.** Recorded from the owner's requirement and answers (2026-10-19). Where the build had to choose: the roles are `read` only and selling is never a capability; a rejected record is kept (post status `publish`, user status `rejected`) and re-applying reuses it; a rejected record gives its GSTIN back; record deletion runs through `Vendors\Repository::delete()` (the one deletion path, which 7b's admin deletion must call); the conversion is `wp nexora migrate-accounts [--dry-run]` (`Accounts\Migration`), run by hand, never automatically.
 
 **Roles.** Three: `subscriber` (customer), `nexora_seller` (registered as a seller) and `nexora_customer_seller` (a customer who became a seller). No code asks for a role slug.
 

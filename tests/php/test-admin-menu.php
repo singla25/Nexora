@@ -29,19 +29,19 @@ $member = nx_test_user( 'amember' );
 
 $a = $build( $admin );
 nx_assert( in_array( 'nexora-system', $a['top'], true ), 'admin: "Nexora System" is in the menu' );
-nx_assert( in_array( 'edit.php?post_type=nexora_vendor', $a['slugs'], true ), 'admin: Vendors is listed under Nexora System' );
-foreach ( array( 'user_profile', 'user_connections', 'user_content', 'nexora_product', 'nexora_import_log' ) as $cpt ) {
+nx_assert( in_array( 'edit.php?post_type=nexora_cust_seller', $a['slugs'], true ), 'admin: Vendors is listed under Nexora System' );
+foreach ( array( 'nexora_customer', 'user_connections', 'user_content', 'nexora_product', 'nexora_import_log' ) as $cpt ) {
 	nx_assert( in_array( 'edit.php?post_type=' . $cpt, $a['slugs'], true ), "admin: $cpt is still listed under Nexora System" );
 }
 foreach ( array( 'nexora-notifications', 'nexora-chat' ) as $page ) {
 	nx_assert( in_array( $page, $a['slugs'], true ), "admin: $page is still listed" );
 }
-nx_assert_same( 1, count( array_keys( $a['slugs'], 'edit.php?post_type=nexora_vendor', true ) ), 'admin: Vendors appears exactly once' );
+nx_assert_same( 1, count( array_keys( $a['slugs'], 'edit.php?post_type=nexora_cust_seller', true ) ), 'admin: Vendors appears exactly once' );
 
 $m = $build( $member['user_id'] );
 nx_assert( ! in_array( 'nexora-system', $m['top'], true ) && array() === $m['slugs'], 'member: no Nexora System menu at all' );
-nx_assert( ! in_array( 'edit.php?post_type=nexora_vendor', $m['slugs'], true ) && ! in_array( 'edit.php?post_type=nexora_product', $m['slugs'], true ), 'member: no Vendors or Products entry' );
-$pt = get_post_type_object( 'nexora_vendor' );
+nx_assert( ! in_array( 'edit.php?post_type=nexora_cust_seller', $m['slugs'], true ) && ! in_array( 'edit.php?post_type=nexora_product', $m['slugs'], true ), 'member: no Vendors or Products entry' );
+$pt = get_post_type_object( 'nexora_cust_seller' );
 wp_set_current_user( $member['user_id'] );
 nx_assert( ! current_user_can( $pt->cap->edit_posts ) && ! current_user_can( $pt->cap->read_private_posts ), 'member: cannot edit or read vendor applications' );
 wp_set_current_user( $admin );

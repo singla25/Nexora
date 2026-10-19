@@ -10,11 +10,11 @@ nx_assert_same( NEXORA_VERSION, $hdr['v'], 'plugin header Version equals NEXORA_
 nx_assert( 'nexora' === $hdr['td'] && '/languages' === $hdr['dp'] && '' !== $hdr['php'] && '' !== $hdr['wp'], 'header declares Text Domain, Domain Path and requirements' );
 
 /* ---- isolate: only this test's own rows are visible to the plugin ---- */
-$real_posts   = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('user_profile','user_connections','user_content')" ) );
+$real_posts   = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('nexora_customer','user_connections','user_content')" ) );
 $min_thread   = 1 + (int) $wpdb->get_var( "SELECT MAX(id) FROM {$wpdb->prefix}nexora_threads" );
 $min_notif    = 1 + (int) $wpdb->get_var( "SELECT MAX(id) FROM {$wpdb->prefix}nexora_notifications" );
 add_action( 'pre_get_posts', function ( $q ) use ( $real_posts ) {
-	if ( array_intersect( (array) $q->get( 'post_type' ), array( 'user_profile', 'user_connections', 'user_content' ) ) ) {
+	if ( array_intersect( (array) $q->get( 'post_type' ), array( 'nexora_customer', 'user_connections', 'user_content' ) ) ) {
 		$q->set( 'post__not_in', array_merge( (array) $q->get( 'post__not_in' ), $real_posts ) );
 	}
 } );

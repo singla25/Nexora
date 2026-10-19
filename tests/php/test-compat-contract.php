@@ -60,7 +60,7 @@ foreach ( array( 'profile_registration', 'profile_login', 'profile_dashboard', '
 }
 
 // ---- Post types
-foreach ( array( 'user_profile', 'user_connections', 'user_content' ) as $pt ) {
+foreach ( array( 'nexora_customer', 'user_connections', 'user_content' ) as $pt ) {
 	$o = get_post_type_object( $pt );
 	nx_assert( $o && ! $o->public && ! $o->show_in_rest, "CPT $pt exists, non-public, not in REST" );
 }

@@ -36,6 +36,8 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 
 ### Phase 7a: Accounts and record types
 
+**Status: built on `refactor/accounts-and-cpts`, awaiting the owner's review (not merged, not pushed).** The migration (`wp nexora migrate-accounts`) has been rehearsed on a scratch copy of the database and dry-run on the real one; it has not been applied to the real database.
+
 - **Goal.** Three roles (`subscriber`, `nexora_seller`, `nexora_customer_seller`), record types named for what they hold (`nexora_customer`, `nexora_seller`, `nexora_cust_seller`), and a rejected seller who can apply again. Specified in `docs/SPEC.md` section 11 (fully decided there).
 - **Main pieces.**
   - Two helpers instead of a fuzzy `is_seller()`: `has_seller_record( $user )` (any status) and `can_sell( $user )` (approved and not suspended). Every selling gate uses `can_sell()`; screens show the status.

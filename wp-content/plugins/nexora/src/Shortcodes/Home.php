@@ -33,7 +33,8 @@ class Home {
 		add_action( 'deleted_user', array( $this, 'flush_stats' ) );
 		add_action( 'save_post_user_connections', array( $this, 'flush_stats' ) );
 		add_action( 'save_post_user_content', array( $this, 'flush_stats' ) );
-		add_action( 'save_post_user_profile', array( $this, 'flush_stats' ) );
+		add_action( 'save_post_' . \Nexora\Core\Post_Types::CUSTOMER, array( $this, 'flush_stats' ) );
+		add_action( 'save_post_' . \Nexora\Core\Post_Types::SELLER, array( $this, 'flush_stats' ) );
 	}
 
 	/**
@@ -63,8 +64,9 @@ class Home {
 
 		global $wpdb;
 
-		$profiles = wp_count_posts( 'user_profile' );
-		$content  = wp_count_posts( 'user_content' );
+		$customers = wp_count_posts( \Nexora\Core\Post_Types::CUSTOMER );
+		$direct    = wp_count_posts( \Nexora\Core\Post_Types::SELLER );
+		$content   = wp_count_posts( 'user_content' );
 
 		$connections = new \WP_Query(
 			array(
@@ -91,7 +93,7 @@ class Home {
 		}
 
 		$stats = array(
-			'members'     => (int) ( $profiles->publish ?? 0 ),
+			'members'     => (int) ( $customers->publish ?? 0 ) + (int) ( $direct->publish ?? 0 ),
 			'connections' => (int) $connections->found_posts,
 			'posts'       => (int) ( $content->publish ?? 0 ),
 			'chats'       => $threads,

@@ -22,27 +22,27 @@ $u        = nx_test_user( 'guard' );
 $r        = Service::apply( $u['user_id'], $biz( '27AAPFU0939F1ZV' ) );
 $vid      = (int) ( $r['vendor_id'] ?? 0 );
 $GLOBALS['nx_test']['posts'][] = $vid;
-$pt = get_post_type_object( 'nexora_vendor' );
+$pt = get_post_type_object( 'nexora_cust_seller' );
 
 /* ---------- no Publish box ---------- */
 $wp_meta_boxes = array();
 wp_set_current_user( $admin_id );
-add_meta_box( 'submitdiv', 'Publish', '__return_null', 'nexora_vendor', 'side', 'core' );
-do_action( 'add_meta_boxes', 'nexora_vendor', get_post( $vid ) );
+add_meta_box( 'submitdiv', 'Publish', '__return_null', 'nexora_cust_seller', 'side', 'core' );
+do_action( 'add_meta_boxes', 'nexora_cust_seller', get_post( $vid ) );
 wp_set_current_user( 0 );
-nx_assert( empty( $wp_meta_boxes['nexora_vendor']['side']['core']['submitdiv'] ), 'the Publish/Update box is removed from the vendor screen' );
-nx_assert( isset( $wp_meta_boxes['nexora_vendor']['side']['high']['nexora_vendor_decision'] ), 'the decision box is still there' );
+nx_assert( empty( $wp_meta_boxes['nexora_cust_seller']['side']['core']['submitdiv'] ), 'the Publish/Update box is removed from the vendor screen' );
+nx_assert( isset( $wp_meta_boxes['nexora_cust_seller']['side']['high']['nexora_vendor_decision'] ), 'the decision box is still there' );
 
 // Other post types keep their Publish box.
 $wp_meta_boxes = array();
-add_meta_box( 'submitdiv', 'Publish', '__return_null', 'user_profile', 'side', 'core' );
+add_meta_box( 'submitdiv', 'Publish', '__return_null', 'nexora_customer', 'side', 'core' );
 wp_set_current_user( $admin_id );
-do_action( 'add_meta_boxes', 'user_profile', get_post( $u['profile_id'] ) );
+do_action( 'add_meta_boxes', 'nexora_customer', get_post( $u['profile_id'] ) );
 wp_set_current_user( 0 );
-nx_assert( ! empty( $wp_meta_boxes['user_profile']['side']['core']['submitdiv'] ), 'other post types keep their Publish box' );
+nx_assert( ! empty( $wp_meta_boxes['nexora_customer']['side']['core']['submitdiv'] ), 'other post types keep their Publish box' );
 
 /* ---------- list screen: no bulk actions, no Trash/Restore/Quick Edit row links ---------- */
-$bulk = apply_filters( 'bulk_actions-edit-nexora_vendor', array( 'edit' => 'Edit', 'trash' => 'Move to Trash', 'untrash' => 'Restore', 'delete' => 'Delete permanently' ) );
+$bulk = apply_filters( 'bulk_actions-edit-nexora_cust_seller', array( 'edit' => 'Edit', 'trash' => 'Move to Trash', 'untrash' => 'Restore', 'delete' => 'Delete permanently' ) );
 nx_assert_same( array(), $bulk, 'the bulk actions are gone (no bulk Trash)' );
 $all = array( 'edit' => 'Edit', 'inline hide-if-no-js' => 'Quick Edit', 'trash' => 'Trash', 'untrash' => 'Restore', 'delete' => 'Delete Permanently', 'view' => 'View' );
 wp_set_current_user( $admin_id );
@@ -54,13 +54,17 @@ Service::change_status( $vid, 'reject' );
 $dead = apply_filters( 'post_row_actions', $all, get_post( $vid ) );
 nx_assert( ! array_intersect( array_keys( $dead ), array( 'trash', 'untrash', 'delete', 'inline hide-if-no-js', 'view', 'approve', 'reject' ) ), 'a rejected row has no Restore / Delete / decision link' );
 wp_set_current_user( 0 );
-nx_assert_same( 'trash', get_post_status( $vid ), 'setup: the application was rejected through Service (trash)' );
+nx_assert_same( 'publish', get_post_status( $vid ), 'setup: the application was rejected through Service (kept, not trashed)' );
+// An application rejected before Phase 7a sits in the trash (written here by hand); restoring it must stay refused.
+global $wpdb;
+$wpdb->update( $wpdb->posts, array( 'post_status' => 'trash' ), array( 'ID' => $vid ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+clean_post_cache( $vid );
 
 /* ---------- restoring a rejected application would re-reserve its GSTIN: refused ---------- */
 wp_set_current_user( $admin_id );
 wp_untrash_post( $vid );
 wp_set_current_user( 0 );
-nx_assert_same( 'trash', get_post_status( $vid ), 'wp_untrash_post cannot restore a rejected application' );
+nx_assert_same( 'trash', get_post_status( $vid ), 'wp_untrash_post cannot restore an old rejected application' );
 nx_assert_same( 0, Repository::find_by_gstin( '27AAPFU0939F1ZV' ), 'the GSTIN is still free after a refused restore' );
 
 /* ---------- a live application cannot be trashed, deleted or edited around Service ---------- */
@@ -87,12 +91,12 @@ wp_set_current_user( 0 );
 nx_assert( Repository::id_for_user( $u2['user_id'] ) === $vid2 && 'pending' === Account_Types::vendor_status( $u2['user_id'] ), 'the application is intact and still pending' );
 
 // Nor can an application be created from outside the Repository.
-$before_n = (int) $GLOBALS['wpdb']->get_var( "SELECT COUNT(*) FROM {$GLOBALS['wpdb']->posts} WHERE post_type = 'nexora_vendor'" );
+$before_n = (int) $GLOBALS['wpdb']->get_var( "SELECT COUNT(*) FROM {$GLOBALS['wpdb']->posts} WHERE post_type = 'nexora_cust_seller'" );
 wp_set_current_user( $admin_id );
-$forged = wp_insert_post( array( 'post_type' => 'nexora_vendor', 'post_title' => 'Forged application', 'post_status' => 'publish' ) );
+$forged = wp_insert_post( array( 'post_type' => 'nexora_cust_seller', 'post_title' => 'Forged application', 'post_status' => 'publish' ) );
 wp_set_current_user( 0 );
 nx_assert( ! $forged || is_wp_error( $forged ), 'wp_insert_post of an application from outside the Repository is refused' );
-nx_assert_same( $before_n, (int) $GLOBALS['wpdb']->get_var( "SELECT COUNT(*) FROM {$GLOBALS['wpdb']->posts} WHERE post_type = 'nexora_vendor'" ), 'and no application appeared' );
+nx_assert_same( $before_n, (int) $GLOBALS['wpdb']->get_var( "SELECT COUNT(*) FROM {$GLOBALS['wpdb']->posts} WHERE post_type = 'nexora_cust_seller'" ), 'and no application appeared' );
 
 // The sanctioned paths still work.
 wp_set_current_user( $admin_id );

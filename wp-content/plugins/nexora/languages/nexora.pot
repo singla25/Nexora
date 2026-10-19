@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.0.16\n"
+"Project-Id-Version: Nexora 1.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-16T10:15:41+00:00\n"
+"POT-Creation-Date: 2026-10-19T07:48:22+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -30,14 +30,32 @@ msgstr ""
 msgid "Sahil Singla"
 msgstr ""
 
-#: src/Admin/List_Columns.php:45
-#: src/Admin/List_Columns.php:137
+#: src/Accounts/Account_Types.php:112
+#: templates/auth/registration-form.php:51
+msgid "Customer"
+msgstr ""
+
+#: src/Accounts/Account_Types.php:116
+#: src/Imports/Admin.php:36
+#: src/Products/Admin.php:37
+#: templates/admin/metabox-product.php:14
+#: templates/auth/registration-form.php:52
+#: templates/orders/my-orders.php:37
+msgid "Seller"
+msgstr ""
+
+#: src/Accounts/Account_Types.php:120
+msgid "Customer & Seller"
+msgstr ""
+
+#: src/Admin/List_Columns.php:47
+#: src/Admin/List_Columns.php:139
 #: templates/admin/settings.php:123
 msgid "Name"
 msgstr ""
 
-#: src/Admin/List_Columns.php:86
-#: src/Vendors/Admin.php:45
+#: src/Admin/List_Columns.php:88
+#: src/Vendors/Admin.php:50
 #: templates/admin/chat.php:11
 #: templates/admin/metabox-connection-chat.php:16
 #: templates/admin/metabox-connection.php:36
@@ -45,7 +63,7 @@ msgstr ""
 #: templates/admin/metabox-connections.php:45
 #: templates/admin/metabox-product.php:15
 #: templates/admin/metabox-user-chat.php:18
-#: templates/admin/metabox-vendor.php:13
+#: templates/admin/metabox-vendor.php:14
 #: templates/admin/notifications.php:13
 msgid "Status"
 msgstr ""
@@ -57,7 +75,7 @@ msgstr ""
 
 #: src/Admin/Menu.php:74
 #: src/Admin/Menu.php:75
-#: src/Shortcodes/Home.php:164
+#: src/Shortcodes/Home.php:166
 #: templates/profile/page.php:37
 msgid "Notifications"
 msgstr ""
@@ -72,69 +90,69 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:34
+#: src/Admin/Meta_Boxes.php:35
 msgid "User Personal Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:35
+#: src/Admin/Meta_Boxes.php:36
 msgid "User Address Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:36
+#: src/Admin/Meta_Boxes.php:37
 msgid "User Work Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:37
+#: src/Admin/Meta_Boxes.php:38
 msgid "User Document Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:38
-#: src/Admin/Meta_Boxes.php:42
+#: src/Admin/Meta_Boxes.php:39
+#: src/Admin/Meta_Boxes.php:44
 msgid "User Connection Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:39
+#: src/Admin/Meta_Boxes.php:40
 msgid "User Content Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:40
+#: src/Admin/Meta_Boxes.php:41
 msgid "User Chat Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:43
+#: src/Admin/Meta_Boxes.php:45
 msgid "User Connection Chat Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:45
+#: src/Admin/Meta_Boxes.php:47
 msgid "User Content Info"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:101
+#: src/Admin/Meta_Boxes.php:103
 #: src/Profile/Page.php:309
 msgid "Profile Image"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:102
+#: src/Admin/Meta_Boxes.php:104
 #: src/Profile/Page.php:310
 msgid "Cover Image"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:103
+#: src/Admin/Meta_Boxes.php:105
 msgid "Aadhar Card"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:104
+#: src/Admin/Meta_Boxes.php:106
 #: src/Profile/Page.php:312
 msgid "Driving License"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:105
+#: src/Admin/Meta_Boxes.php:107
 #: src/Profile/Page.php:313
 msgid "Company ID Card"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:237
-#: src/Admin/Meta_Boxes.php:323
+#: src/Admin/Meta_Boxes.php:239
+#: src/Admin/Meta_Boxes.php:325
 msgid "No Subject"
 msgstr ""
 
@@ -293,7 +311,7 @@ msgid "User already exists"
 msgstr ""
 
 #: src/Auth/Registration.php:228
-#: src/Vendors/Service.php:241
+#: src/Vendors/Service.php:313
 msgid "This GSTIN is already registered."
 msgstr ""
 
@@ -301,11 +319,11 @@ msgstr ""
 msgid "User creation failed"
 msgstr ""
 
-#: src/Auth/Registration.php:273
+#: src/Auth/Registration.php:301
 msgid "Profile creation failed"
 msgstr ""
 
-#: src/Auth/Registration.php:328
+#: src/Auth/Registration.php:330
 msgid "🚀 New User Registered on Nexora"
 msgstr ""
 
@@ -447,14 +465,6 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: src/Imports/Admin.php:36
-#: src/Products/Admin.php:37
-#: templates/admin/metabox-product.php:14
-#: templates/auth/registration-form.php:52
-#: templates/orders/my-orders.php:37
-msgid "Seller"
-msgstr ""
-
 #: src/Imports/Admin.php:37
 msgid "Created"
 msgstr ""
@@ -511,7 +521,7 @@ msgstr ""
 #: src/Imports/Ajax.php:325
 #: src/Products/Ajax.php:72
 #: src/Products/Ajax.php:104
-#: src/Vendors/Admin.php:237
+#: src/Vendors/Admin.php:272
 msgid "Invalid request."
 msgstr ""
 
@@ -631,7 +641,7 @@ msgstr ""
 #: src/Imports/Connections.php:56
 #: src/Products/Service.php:332
 #: src/Vendors/Ajax.php:44
-#: src/Vendors/Service.php:232
+#: src/Vendors/Service.php:304
 msgid "Please correct the highlighted fields."
 msgstr ""
 
@@ -679,8 +689,8 @@ msgstr ""
 #: src/Imports/Connections.php:276
 #: src/Imports/Importer.php:516
 #: src/Products/Service.php:322
-#: src/Vendors/Admin.php:227
-#: src/Vendors/Service.php:163
+#: src/Vendors/Admin.php:262
+#: src/Vendors/Service.php:239
 #: src/Vendors/Vendor_Ajax.php:81
 msgid "You are not allowed to do that."
 msgstr ""
@@ -1076,32 +1086,36 @@ msgstr ""
 msgid "Nexora: the stock for %s is no longer available, so these units are not reserved for this order. Check it before shipping."
 msgstr ""
 
-#: src/PostTypes/Registrar.php:30
+#: src/PostTypes/Registrar.php:32
 msgid "User Profiles"
 msgstr ""
 
-#: src/PostTypes/Registrar.php:42
+#: src/PostTypes/Registrar.php:44
 msgid "User Connections"
 msgstr ""
 
-#: src/PostTypes/Registrar.php:54
+#: src/PostTypes/Registrar.php:56
 msgid "User Content"
 msgstr ""
 
-#: src/PostTypes/Registrar.php:67
-msgid "Vendors"
+#: src/PostTypes/Registrar.php:68
+msgid "Sellers"
 msgstr ""
 
-#: src/PostTypes/Registrar.php:87
+#: src/PostTypes/Registrar.php:69
+msgid "Customer sellers"
+msgstr ""
+
+#: src/PostTypes/Registrar.php:97
 msgid "Products"
 msgstr ""
 
-#: src/PostTypes/Registrar.php:107
+#: src/PostTypes/Registrar.php:117
 #: templates/imports/history.php:9
 msgid "Import history"
 msgstr ""
 
-#: src/PostTypes/Registrar.php:127
+#: src/PostTypes/Registrar.php:137
 msgid "API connections"
 msgstr ""
 
@@ -1424,138 +1438,142 @@ msgstr ""
 msgid "New contact message"
 msgstr ""
 
-#: src/Shortcodes/Home.php:161
-#: src/Shortcodes/Home.php:205
+#: src/Shortcodes/Home.php:163
+#: src/Shortcodes/Home.php:207
 msgid "Real-time chat"
 msgstr ""
 
-#: src/Shortcodes/Home.php:161
+#: src/Shortcodes/Home.php:163
 msgid "Instant conversations with subject-based threads."
 msgstr ""
 
-#: src/Shortcodes/Home.php:162
-#: src/Shortcodes/Home.php:206
+#: src/Shortcodes/Home.php:164
+#: src/Shortcodes/Home.php:208
 msgid "Smart connections"
 msgstr ""
 
-#: src/Shortcodes/Home.php:162
+#: src/Shortcodes/Home.php:164
 msgid "Build a meaningful network, not random followers."
 msgstr ""
 
-#: src/Shortcodes/Home.php:163
+#: src/Shortcodes/Home.php:165
 msgid "Share content"
 msgstr ""
 
-#: src/Shortcodes/Home.php:163
+#: src/Shortcodes/Home.php:165
 msgid "Post updates with images and keep a personal history."
 msgstr ""
 
-#: src/Shortcodes/Home.php:164
+#: src/Shortcodes/Home.php:166
 msgid "Stay up to date on requests and responses."
 msgstr ""
 
-#: src/Shortcodes/Home.php:165
+#: src/Shortcodes/Home.php:167
 msgid "Your profile"
 msgstr ""
 
-#: src/Shortcodes/Home.php:165
+#: src/Shortcodes/Home.php:167
 msgid "Showcase your identity, work and documents securely."
 msgstr ""
 
-#: src/Shortcodes/Home.php:204
+#: src/Shortcodes/Home.php:206
 msgid "Feed experience"
 msgstr ""
 
-#: src/Shortcodes/Home.php:219
+#: src/Shortcodes/Home.php:221
 #: templates/admin/settings.php:38
 msgid "Your professional network"
 msgstr ""
 
-#: src/Shortcodes/Home.php:220
+#: src/Shortcodes/Home.php:222
 #: templates/admin/settings.php:43
 msgid "Connect. Grow. Discover."
 msgstr ""
 
-#: src/Shortcodes/Home.php:221
+#: src/Shortcodes/Home.php:223
 #: templates/admin/settings.php:48
 msgid "Nexora helps you connect, share, and grow your network in real-time."
 msgstr ""
 
-#: src/Vendors/Admin.php:42
+#: src/Vendors/Admin.php:47
 #: templates/profile/tab-info.php:18
 msgid "Business"
 msgstr ""
 
-#: src/Vendors/Admin.php:43
+#: src/Vendors/Admin.php:48
 #: src/Vendors/Fields.php:44
 msgid "GSTIN"
 msgstr ""
 
-#: src/Vendors/Admin.php:44
-#: templates/admin/metabox-vendor.php:14
+#: src/Vendors/Admin.php:49
+#: templates/admin/metabox-vendor.php:18
 msgid "Account"
 msgstr ""
 
-#: src/Vendors/Admin.php:46
+#: src/Vendors/Admin.php:51
 msgid "Applied"
 msgstr ""
 
-#: src/Vendors/Admin.php:97
+#: src/Vendors/Admin.php:104
 msgid "Seller application"
 msgstr ""
 
-#: src/Vendors/Admin.php:101
+#: src/Vendors/Admin.php:108
 msgid "Application decision"
 msgstr ""
 
-#: src/Vendors/Admin.php:124
-#: templates/admin/metabox-connection.php:41
-#: templates/admin/metabox-vendor.php:13
-msgid "Rejected"
+#: src/Vendors/Admin.php:112
+msgid "Seller account"
 msgstr ""
 
-#: src/Vendors/Admin.php:175
+#: src/Vendors/Admin.php:210
 msgid "Approve"
 msgstr ""
 
-#: src/Vendors/Admin.php:176
+#: src/Vendors/Admin.php:211
 msgid "Reject"
 msgstr ""
 
-#: src/Vendors/Admin.php:177
+#: src/Vendors/Admin.php:212
 msgid "Suspend"
 msgstr ""
 
-#: src/Vendors/Admin.php:178
+#: src/Vendors/Admin.php:213
 msgid "Reactivate"
 msgstr ""
 
-#: src/Vendors/Admin.php:190
-msgid "Are you sure? The application moves to the trash and the applicant goes back to being a regular member."
+#: src/Vendors/Admin.php:225
+msgid "Are you sure? The application is marked rejected and kept. The applicant stays a regular member and can apply again."
 msgstr ""
 
-#: src/Vendors/Admin.php:266
+#: src/Vendors/Admin.php:301
 msgid "Vendor status updated."
 msgstr ""
 
-#: src/Vendors/Admin.php:268
+#: src/Vendors/Admin.php:303
 msgid "That change was not possible for this vendor's current status."
 msgstr ""
 
-#: src/Vendors/Admin.php:281
+#: src/Vendors/Admin.php:316
 #: templates/admin/metabox-connection.php:39
 msgid "Pending"
 msgstr ""
 
-#: src/Vendors/Admin.php:282
+#: src/Vendors/Admin.php:317
 msgid "Approved"
 msgstr ""
 
-#: src/Vendors/Admin.php:283
+#: src/Vendors/Admin.php:318
 msgid "Suspended"
 msgstr ""
 
-#: src/Vendors/Admin.php:284
+#: src/Vendors/Admin.php:319
+#: templates/admin/metabox-connection.php:41
+#: templates/admin/metabox-vendor.php:14
+msgid "Rejected"
+msgstr ""
+
+#: src/Vendors/Admin.php:320
 msgid "Not a vendor"
 msgstr ""
 
@@ -1647,41 +1665,47 @@ msgstr ""
 msgid "Your seller application was not approved"
 msgstr ""
 
-#: src/Vendors/Service.php:45
+#: src/Vendors/Service.php:48
+#: src/Vendors/Service.php:87
 msgid "Account not found."
 msgstr ""
 
-#: src/Vendors/Service.php:49
+#: src/Vendors/Service.php:54
+#: src/Vendors/Service.php:91
 msgid "You have already applied to sell."
 msgstr ""
 
-#: src/Vendors/Service.php:61
-#: src/Vendors/Service.php:133
+#: src/Vendors/Service.php:122
+#: src/Vendors/Service.php:209
 msgid "This GSTIN is being registered right now. Please try again in a moment."
 msgstr ""
 
-#: src/Vendors/Service.php:75
-#: src/Vendors/Service.php:83
+#: src/Vendors/Service.php:141
+#: src/Vendors/Service.php:155
 msgid "Could not save your application. Please try again."
 msgstr ""
 
-#: src/Vendors/Service.php:110
+#: src/Vendors/Service.php:182
 msgid "You have no seller application."
 msgstr ""
 
-#: src/Vendors/Service.php:117
+#: src/Vendors/Service.php:186
+msgid "Your application was not approved. Send a new application instead."
+msgstr ""
+
+#: src/Vendors/Service.php:193
 msgid "Nothing to update."
 msgstr ""
 
-#: src/Vendors/Service.php:169
+#: src/Vendors/Service.php:245
 msgid "Unknown action."
 msgstr ""
 
-#: src/Vendors/Service.php:176
+#: src/Vendors/Service.php:252
 msgid "Application not found."
 msgstr ""
 
-#: src/Vendors/Service.php:187
+#: src/Vendors/Service.php:263
 msgid "That status change is not allowed."
 msgstr ""
 
@@ -1953,6 +1977,25 @@ msgstr ""
 msgid "Bio"
 msgstr ""
 
+#: templates/admin/metabox-seller-account.php:12
+#: templates/admin/metabox-vendor-decision.php:15
+#: templates/mail/vendor-application-admin.php:11
+msgid "Business:"
+msgstr ""
+
+#: templates/admin/metabox-seller-account.php:13
+#: templates/admin/metabox-vendor-decision.php:13
+msgid "Status:"
+msgstr ""
+
+#: templates/admin/metabox-seller-account.php:14
+msgid "Open the seller record"
+msgstr ""
+
+#: templates/admin/metabox-seller-account.php:16
+msgid "This customer is not a seller."
+msgstr ""
+
 #: templates/admin/metabox-user-chat.php:8
 msgid "No user linked."
 msgstr ""
@@ -1977,21 +2020,20 @@ msgstr ""
 msgid "No conversations"
 msgstr ""
 
-#: templates/admin/metabox-vendor-decision.php:13
-msgid "Status:"
-msgstr ""
-
 #: templates/admin/metabox-vendor-decision.php:14
 msgid "Applicant:"
 msgstr ""
 
-#: templates/admin/metabox-vendor-decision.php:15
-#: templates/mail/vendor-application-admin.php:11
-msgid "Business:"
-msgstr ""
-
 #: templates/admin/metabox-vendor-decision.php:21
 msgid "No decision is available for this application."
+msgstr ""
+
+#: templates/admin/metabox-vendor.php:16
+msgid "Customer profile"
+msgstr ""
+
+#: templates/admin/metabox-vendor.php:16
+msgid "Open the customer profile"
 msgstr ""
 
 #: templates/admin/metabox-work.php:2
@@ -2405,10 +2447,6 @@ msgstr ""
 msgid "I want to join as"
 msgstr ""
 
-#: templates/auth/registration-form.php:51
-msgid "Customer"
-msgstr ""
-
 #: templates/auth/registration-form.php:56
 msgid "Business details"
 msgstr ""
@@ -2525,7 +2563,7 @@ msgstr ""
 
 #: templates/imports/api-popup.php:75
 #: templates/profile/tab-my-products.php:39
-#: templates/profile/vendor-card.php:57
+#: templates/profile/vendor-card.php:61
 msgid "Edit"
 msgstr ""
 
@@ -3079,7 +3117,7 @@ msgid "Documents"
 msgstr ""
 
 #: templates/profile/tab-info.php:18
-#: templates/profile/vendor-card.php:57
+#: templates/profile/vendor-card.php:61
 msgid "Edit business details"
 msgstr ""
 
@@ -3193,40 +3231,44 @@ msgstr ""
 msgid "Orders for your products and what you earn from them. Only Processing and Completed orders count."
 msgstr ""
 
-#: templates/profile/vendor-card.php:14
-#: templates/profile/vendor-card.php:16
+#: templates/profile/vendor-card.php:15
+#: templates/profile/vendor-card.php:20
 msgid "Become a seller"
 msgstr ""
 
-#: templates/profile/vendor-card.php:15
+#: templates/profile/vendor-card.php:17
+msgid "Your earlier application was not approved. You can correct your details and apply again."
+msgstr ""
+
+#: templates/profile/vendor-card.php:19
 msgid "Sell your products on the Nexora marketplace. Tell us about your business; we review every application."
 msgstr ""
 
-#: templates/profile/vendor-card.php:31
+#: templates/profile/vendor-card.php:35
 msgid "Send application"
 msgstr ""
 
-#: templates/profile/vendor-card.php:35
+#: templates/profile/vendor-card.php:39
 msgid "Business Details"
 msgstr ""
 
-#: templates/profile/vendor-card.php:39
+#: templates/profile/vendor-card.php:43
 msgid "Your application is under review. Your account works as before in the meantime."
 msgstr ""
 
-#: templates/profile/vendor-card.php:41
+#: templates/profile/vendor-card.php:45
 msgid "You are an approved seller."
 msgstr ""
 
-#: templates/profile/vendor-card.php:43
+#: templates/profile/vendor-card.php:47
 msgid "Your seller account is suspended. You cannot list or sell until it is reactivated."
 msgstr ""
 
-#: templates/profile/vendor-card.php:62
+#: templates/profile/vendor-card.php:66
 msgid "Business name, business type and GSTIN cannot be changed once your application has been decided. Contact the site administrator if they need correcting."
 msgstr ""
 
-#: templates/profile/vendor-card.php:75
+#: templates/profile/vendor-card.php:79
 msgid "Save details"
 msgstr ""
 

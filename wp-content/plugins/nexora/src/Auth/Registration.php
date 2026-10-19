@@ -232,7 +232,7 @@ class Registration {
 	}
 
 	/**
-	 * Creates the WP user and the linked user_profile post, notifies the admin and logs the
+	 * Creates the WP user and the linked profile post (a customer post, or the one seller post for a seller sign-up), notifies the admin and logs the
 	 * new member in. Rolls the user back (and ends the request) if the profile cannot be created.
 	 *
 	 * @param array $input Sanitised sign-up fields.
@@ -255,48 +255,50 @@ class Registration {
 			)
 		);
 
-		// Create Profile CPT
-		$post_id = wp_insert_post(
-			array(
-				'post_type'   => 'user_profile',
-				'post_title'  => $input['user_name'],
-				'post_name'   => sanitize_title( $input['user_name'] ),
-				'post_status' => 'publish',
-				'post_author' => $wp_user_id,
-			)
-		);
-
-		if ( is_wp_error( $post_id ) || ! $post_id ) {
-			// Roll back so the user can try again
-			require_once ABSPATH . 'wp-admin/includes/user.php';
-			wp_delete_user( $wp_user_id );
-			wp_send_json_error( __( 'Profile creation failed', 'nexora' ) );
-		}
-
-		update_post_meta( $post_id, '_wp_user_id', $wp_user_id );
-
-		// Save Meta
-		update_post_meta( $post_id, 'user_name', $input['user_name'] );
-		update_post_meta( $post_id, 'first_name', $input['first_name'] );
-		update_post_meta( $post_id, 'last_name', $input['last_name'] );
-		update_post_meta( $post_id, 'email', $input['email'] );
-		update_post_meta( $post_id, 'phone', $input['phone'] );
-		update_post_meta( $post_id, 'gender', $input['gender'] );
-		update_post_meta( $post_id, 'birthdate', $input['birthdate'] );
-
-		// Link profile
-		update_user_meta( $wp_user_id, '_profile_id', $post_id );
-
-		// Seller sign-up: record the application; if that fails the whole sign-up is undone.
+		// Seller sign-up: ONE seller record holds the personal and business details (it is their profile). If the
+		// application fails the whole sign-up is undone.
 		if ( 'seller' === $input['intent'] ) {
 
-			$application = \Nexora\Vendors\Service::apply( $wp_user_id, $input['business'] );
+			$application = \Nexora\Vendors\Service::register_seller(
+				$wp_user_id,
+				array(
+					'user_name'  => $input['user_name'],
+					'first_name' => $input['first_name'],
+					'last_name'  => $input['last_name'],
+					'email'      => $input['email'],
+					'phone'      => $input['phone'],
+					'gender'     => $input['gender'],
+					'birthdate'  => $input['birthdate'],
+				),
+				$input['business']
+			);
 
 			if ( is_wp_error( $application ) ) {
 				require_once ABSPATH . 'wp-admin/includes/user.php';
-				wp_delete_post( $post_id, true );
 				wp_delete_user( $wp_user_id );
 				wp_send_json_error( $application->get_error_message() );
+			}
+		} else {
+
+			// Create Profile CPT
+			$post_id = \Nexora\Profile\Repository::create_customer(
+				$wp_user_id,
+				array(
+					'user_name'  => $input['user_name'],
+					'first_name' => $input['first_name'],
+					'last_name'  => $input['last_name'],
+					'email'      => $input['email'],
+					'phone'      => $input['phone'],
+					'gender'     => $input['gender'],
+					'birthdate'  => $input['birthdate'],
+				)
+			);
+
+			if ( is_wp_error( $post_id ) ) {
+				// Roll back so the user can try again
+				require_once ABSPATH . 'wp-admin/includes/user.php';
+				wp_delete_user( $wp_user_id );
+				wp_send_json_error( __( 'Profile creation failed', 'nexora' ) );
 			}
 		}
 

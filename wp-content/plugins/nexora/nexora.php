@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Nexora
  * Description: Handles User Registration, Login, Profile Dashboard and User Connections
- * Version: 1.0.16
+ * Version: 1.1.0
  * Requires at least: 6.4
  * Requires PHP: 8.0
  * Author: Sahil Singla
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'NEXORA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'NEXORA_URL', plugin_dir_url( __FILE__ ) );
-define( 'NEXORA_VERSION', '1.0.16' );
+define( 'NEXORA_VERSION', '1.1.0' );
 
 require_once NEXORA_PATH . 'src/Core/Autoloader.php';
 

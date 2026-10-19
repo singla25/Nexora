@@ -16,8 +16,10 @@ class List_Columns {
 	 */
 	public function __construct() {
 
-		add_filter( 'manage_user_profile_posts_columns', array( $this, 'add_name_column' ) );
-		add_action( 'manage_user_profile_posts_custom_column', array( $this, 'manage_name_column' ), 10, 2 );
+		foreach ( \Nexora\Core\Post_Types::profiles() as $type ) {
+			add_filter( 'manage_' . $type . '_posts_columns', array( $this, 'add_name_column' ) );
+			add_action( 'manage_' . $type . '_posts_custom_column', array( $this, 'manage_name_column' ), 10, 2 );
+		}
 
 		add_filter( 'manage_user_connections_posts_columns', array( $this, 'add_status_column' ) );
 		add_action( 'manage_user_connections_posts_custom_column', array( $this, 'manage_status_column' ), 10, 2 );

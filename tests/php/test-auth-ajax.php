@@ -142,7 +142,7 @@ if ( $new ) {
 	$GLOBALS['nx_test']['users'][] = $new->ID;
 	$pid = (int) get_user_meta( $new->ID, '_profile_id', true );
 	$GLOBALS['nx_test']['posts'][] = $pid;
-	nx_assert( $pid && 'user_profile' === get_post_type( $pid ) && (int) get_post_meta( $pid, '_wp_user_id', true ) === $new->ID, 'profile post created and linked both ways' );
+	nx_assert( $pid && 'nexora_customer' === get_post_type( $pid ) && (int) get_post_meta( $pid, '_wp_user_id', true ) === $new->ID, 'profile post created and linked both ways' );
 	foreach ( array( 'user_name' => $ok['user_name'], 'first_name' => 'Reg', 'last_name' => 'Tester', 'email' => $ok['email'], 'phone' => '9999999999', 'gender' => 'other', 'birthdate' => '1995-01-31' ) as $k => $v ) {
 		nx_assert_same( $v, get_post_meta( $pid, $k, true ), "profile meta stored: $k" );
 	}

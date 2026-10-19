@@ -79,9 +79,9 @@ class Uninstaller {
 				'recaptcha_secret_key',
 				'recaptcha_enabled',
 			),
-			'user_meta'          => array( '_profile_id', 'reset_otp', 'reset_token', 'reset_token_expiry', 'otp_attempts', 'otp_expiry', \Nexora\Accounts\Account_Types::STATUS_META ),
-			'roles'              => array( \Nexora\Accounts\Account_Types::ROLE ),
-			'post_types'         => array( 'user_profile', 'user_connections', 'user_content', 'nexora_vendor', 'nexora_product', 'nexora_import_log', 'nexora_api_conn' ),
+			'user_meta'          => array( '_profile_id', 'reset_otp', 'reset_token', 'reset_token_expiry', 'otp_attempts', 'otp_expiry', \Nexora\Accounts\Account_Types::STATUS_META, \Nexora\Accounts\Account_Types::SELLER_META ),
+			'roles'              => array( \Nexora\Accounts\Account_Types::ROLE_SELLER, \Nexora\Accounts\Account_Types::ROLE_CUSTOMER_SELLER, \Nexora\Accounts\Account_Types::LEGACY_ROLE ),
+			'post_types'         => array( \Nexora\Core\Post_Types::CUSTOMER, \Nexora\Core\Post_Types::SELLER, \Nexora\Core\Post_Types::CUST_SELLER, 'user_connections', 'user_content', 'nexora_product', 'nexora_import_log', 'nexora_api_conn', 'user_profile', 'nexora_vendor' ), // The last two are the pre-7a slugs, in case the site is uninstalled before the migration ran.
 			'dirs'               => array( $upload['basedir'] . '/nexora-private' ),
 			'transient_prefixes' => array( 'nexora_', 'nx_rl_', 'nx_reg_', 'nx_contact_' ),
 		);
