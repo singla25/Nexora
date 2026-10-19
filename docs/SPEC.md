@@ -293,3 +293,80 @@ Payouts, per-vendor shipping and tax, live GST lookup, multi-currency, product v
 ## 10. Phase acceptance (summary; details in TEST_PLAN.md)
 
 1. Existing customer markup and AJAX byte-identical. 2. Application works with rollback, role tampering ignored. 3. Gating and tabs per map. 4. Own-only product CRUD, marketplace shows only published + approved. 5. Imports pass the bad-input matrix. 6. Price from DB, snapshot complete, stock once. 7. Vendor sees only own earnings. 8. End-to-end test, security checklist, docs, `.pot`, versions.
+
+## 11. Accounts and records (Phase 7a)
+
+Status: **specified, not built.** Recorded from the owner's requirement and answers (2026-10-19).
+
+**Roles.** Three: `subscriber` (customer), `nexora_seller` (registered as a seller) and `nexora_customer_seller` (a customer who became a seller). Code asks a helper such as `Account_Types::is_seller()`, never a role slug.
+
+**Post types** (at most 20 characters, the WordPress limit):
+
+| Today | After 7a | Holds |
+|---|---|---|
+| `user_profile` | `nexora_customer` | a customer's profile |
+| `nexora_vendor` | `nexora_seller` | a seller who registered directly as a seller: personal details and business details |
+| (new) | `nexora_cust_seller` | the business details of a customer who becomes a seller |
+| `user_connections`, `user_content`, `nexora_product` | unchanged | |
+
+`nexora_import_log` and `nexora_api_conn` keep their slugs. PHP namespaces, classes and product or order meta keys (`vendor_id` on products, `_nx_*` on order items) are **not** renamed.
+
+**Linking.** `customer_post_id` on the `nexora_cust_seller` record and `seller_post_id` on the `nexora_customer` post, kept in sync by **one** method. User meta `_profile_id` (customer post) and `_seller_post_id` (seller record). A direct seller has no customer post, so only `_seller_post_id` is set for them.
+
+**Flows.**
+
+1. *Register as a customer:* role `subscriber`, a `nexora_customer` post.
+2. *Register as a seller:* role `nexora_seller`, status `pending`, and **only** a `nexora_seller` post holding their personal and business details. No separate customer post is created.
+3. *A customer clicks Become a seller:* a `nexora_cust_seller` post with status `pending` is created and linked to the customer post. The role changes to `nexora_customer_seller` on approval, not before.
+
+**Rules for every seller.** Pending, rejected and suspended sellers can still buy but cannot sell.
+
+**Rejection.**
+
+- A rejected *customer* stays `subscriber`. Their `nexora_cust_seller` record is kept with status `rejected`, and they can apply again.
+- A rejected *direct seller* keeps the role `nexora_seller` with status `rejected`, can buy but not sell, and can apply again.
+
+**Statuses** of a seller record: `pending`, `approved`, `rejected`, `suspended` (today `rejected` is not stored: a rejected application returns to `none`).
+
+**Admin.** A customer's edit screen has a "Seller account" box showing whether this customer is also a seller and linking to that record.
+
+**Existing data** is converted in place, so post IDs do not change, by an idempotent migration with a dry-run (the dry-run reports what would change and writes nothing; running the migration twice changes nothing the second time):
+
+- every existing `nexora_vendor` post becomes a `nexora_cust_seller` post (`post_type` changed in place), linked to the owner's existing customer post (`customer_post_id` / `seller_post_id`), with its status kept;
+- the users' role becomes `nexora_customer_seller`;
+- `user_profile` posts become `nexora_customer` posts.
+
+**Size of the change** (measured 2026-10-19): `user_profile` appears in 20 plugin or theme files, 14 test files (1 golden snapshot) and 8 docs; `nexora_vendor` in 9, 21 (3 golden) and 2; `_vendor_id` in 4 and 2; `_profile_id` in 20, 14 and 7. The live site has 7 `user_profile` posts, 2 `nexora_vendor` posts and 110 products.
+
+**Open points to settle at the start of 7a** (not decided here):
+
+1. What a seller-only account sees. It has no customer post, and Connections, Content, Chat and Notifications are all keyed on `_profile_id`: do those features apply to a direct seller, and what does their profile page show?
+2. Exactly what `is_seller()` answers for pending, rejected and suspended sellers (a pending *customer* applicant is still a `subscriber` with a pending record).
+3. The role of a suspended `nexora_cust_seller` (today the role is removed on suspension; does it go back to `subscriber`?) and of a suspended direct seller.
+4. What happens to the user meta `_nexora_vendor_status` and `_vendor_id` (rename, or keep and alias).
+5. How an administrator creates or deletes a seller-only account, and what "Become a seller" means for someone who already registered as a direct seller (nothing, presumably).
+
+## 12. Admin editing (Phase 7b)
+
+Status: **specified, not built.** Recorded from the owner's requirement (2026-10-19). Depends on Phase 7a.
+
+**Who and how.** Administrators (`manage_options`) can edit, trash and delete every Nexora post type through **ACF Pro** field groups registered in code, using the existing meta keys as the field names. *Prerequisite:* ACF Pro installed and licensed (through wp-admin, not committed); the site has the free ACF 6.8.10 today.
+
+**Validation.** Admin saves go through the same validators as the front end.
+
+**Read-only.** Order snapshots (the `_nx_*` meta on order items) and the links between posts (`customer_post_id`, `seller_post_id`, and the user-meta links) stay read-only.
+
+**Notifications** are a custom table, not a post type, so they get their own edit and delete screen.
+
+**Change history.** Every admin change is recorded in a read-only "Change history" box.
+
+**Delete rules.**
+
+- Deleting a seller also removes their products and API connections.
+- Order snapshots stay.
+- The WordPress user drops to `subscriber`.
+- A customer post that has a linked seller post cannot be deleted first.
+- Deleting a WordPress user cascades to their Nexora posts.
+
+**Open points to settle at the start of 7b** (not decided here): where the change history is stored (post meta or a table); how the existing `Core\Post_Guard` refusals, which today block direct `wp_update_post` / `wp_delete_post` on products and seller records, are lifted for administrators only; what "trash" means for a seller who has orders; and the rule for a direct seller (no customer post) under "a customer post with a linked seller post cannot be deleted first".
+
