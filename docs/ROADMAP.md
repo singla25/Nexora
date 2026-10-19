@@ -36,7 +36,7 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 
 ### Phase 7a: Accounts and record types
 
-- **Goal.** Three roles (`subscriber`, `nexora_seller`, `nexora_customer_seller`), record types named for what they hold (`nexora_customer`, `nexora_seller`, `nexora_cust_seller`), and a rejected seller who can apply again. Specified in `docs/SPEC.md` section 11 (decided there; three small open points remain).
+- **Goal.** Three roles (`subscriber`, `nexora_seller`, `nexora_customer_seller`), record types named for what they hold (`nexora_customer`, `nexora_seller`, `nexora_cust_seller`), and a rejected seller who can apply again. Specified in `docs/SPEC.md` section 11 (fully decided there).
 - **Main pieces.**
   - Two helpers instead of a fuzzy `is_seller()`: `has_seller_record( $user )` (any status) and `can_sell( $user )` (approved and not suspended). Every selling gate uses `can_sell()`; screens show the status.
   - Roles change only on approval (promote to `nexora_customer_seller`) and when a seller record is deleted (demote to `subscriber`); suspension keeps the role, the status controls it.
@@ -53,13 +53,15 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 
 ### Phase 7b: Admin editing through ACF Pro
 
-- **Goal.** Administrators (`manage_options`) can edit, trash and delete every Nexora post type from wp-admin. Specified in `docs/SPEC.md` section 12 (decided there; one open point remains).
+- **Goal.** Administrators (`manage_options`) can edit, trash and delete every Nexora post type from wp-admin. Specified in `docs/SPEC.md` section 12 (fully decided there).
 - **Main pieces.**
   - Field groups registered in code, using the existing meta keys as field names.
   - Admin saves through the same validators as the front end; order snapshots and post links read-only.
   - A screen for the notifications table.
   - A read-only "Change history" box fed by a small append-only custom table (object type, object id, user, field, old value, new value, time) that survives post deletion; this is a new table, so `Migrations::DB_VERSION` and the uninstaller list change.
   - `Core\Post_Guard` lifted only when the user has `manage_options`, the request is a wp-admin edit-screen save or an admin row action, and the nonce is valid; never for REST or AJAX.
+  - A row action to create a seller-only account by hand, using the shared linking method of 7a.
+  - Deleting the WordPress user of a seller whose record has order lines is refused.
   - Trash of a seller with orders is allowed (hides the seller, unpublishes their products, orders untouched); permanent delete is refused while any order line refers to the seller; a seller with no orders can be deleted (products and API connections go, the user drops to `subscriber`); a customer post with a linked seller record cannot be deleted first; deleting a WordPress user cascades to their Nexora posts.
 - **Depends on.** 7a (the new slugs and links) and **ACF Pro installed and licensed** (the site has the free ACF 6.8.10 today; the owner will install Pro through wp-admin).
 - **Tested by.** A capability matrix (only `manage_options`); validators applied on admin save; read-only fields unchangeable by a crafted request; the Post_Guard lift only with all three conditions (and not via REST or AJAX, not with a bad nonce); one test per trash and delete rule, including refusal while an order line refers to the seller; a history row per edit that survives deletion; the cascade on user deletion; `Core\Post_Guard` still blocking everyone else.
@@ -112,7 +114,7 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 - **Clean-repo push.** Create a fresh GitHub repository from the clean tree at some later point; the existing repository stays as it is until then.
 - **Housekeeping.**
   - Push the local tag `phase-6-complete` (the owner does the pushing).
-  - The 833 third-party files committed in `16cb22e5` ("marketplace"): decide whether third-party code belongs in the repository at all.
+  - The 833 third-party files are already in commit `16cb22e5` ("marketplace") on the remote; nothing to decide about them.
   - Remove the leftover `Integrations\Better_Messages` class, its alias and test.
   - Tidy the stale text listed in section 2, including the phase numbering in `docs/TEST_PLAN.md`.
 
@@ -152,11 +154,10 @@ The items flagged as "possibly missing" in the first version of this roadmap now
 - **Analytics** show no buyer names; the shipping name and address only while the order still ships, as in 6b. The **admin overview** (total sales, commission, orders, a per-seller table) is part of Phase 8.
 - **Change history** is an append-only custom table that survives deletion; **Post_Guard** is lifted only for `manage_options` on a wp-admin save or row action with a valid nonce (never REST or AJAX); **trash** of a seller with orders is allowed, permanent delete is refused while an order line refers to the seller.
 - **Schedule:** Phase 8 analytics and admin overview; Phase 9 fulfilment, order emails and notifications, low-stock alerts; Phase 10 hardening and automated tests on every push; backlog as in section 4; the pre-launch checklist at the end.
+- **Direct seller details.** `_seller_post_id` is also set for a direct seller (same post as `_profile_id`); if a direct seller's seller record is deleted they become a `subscriber` and get a plain `nexora_customer` post; seller-only accounts by hand are a 7b row action; deleting the WordPress user of a seller whose record has order lines is refused.
 - **Payouts** out of scope for now (backlog). Phase 7b uses **ACF Pro**, installed by the owner. The **clean-repo push** is wanted, later.
 
 **Still open** (the roadmap does not guess):
 
-1. `docs/SPEC.md` section 11: whether `_seller_post_id` is also set for a direct seller; what profile a direct seller has if their seller record is deleted (they become a `subscriber` with no profile post); how an administrator creates a seller-only account by hand.
-2. `docs/SPEC.md` section 12: when an administrator deletes the WordPress user of a seller whose record order lines refer to, does the user deletion get refused or does the seller record stay?
-3. Phase 9, before it starts: how "shipped" relates to the order status and to earnings; which emails and notifications, to whom; the low-stock threshold.
-4. The two *OWNER TO SUPPLY* backlog items (deferred CSS fixes, email-sending failures): the answer message still contained the template placeholders, so nothing was recorded.
+1. Phase 9, before it starts: how "shipped" relates to the order status and to earnings; which emails and notifications, to whom; the low-stock threshold.
+2. The two *OWNER TO SUPPLY* backlog items (deferred CSS fixes, email-sending failures): the answer message still contained the template placeholders, so nothing was recorded.

@@ -1,6 +1,6 @@
-# Nexora Marketplace: SPEC (Phase 0 draft)
+# Nexora Marketplace: SPEC
 
-Status: **All Phase 0 decisions resolved (2026-10-14). Awaiting your review before Phase 1.** No feature code exists yet.
+Status: the Phase 0 decisions (2026-10-14) are below. Phases 1 to 6 are built; sections 8a to 8a4 describe what is built. Sections 11 and 12 (Phases 7a and 7b) are specified, not built.
 
 ## 0. Decisions log
 
@@ -24,10 +24,10 @@ WordPress 7.1, PHP 8.3.30, WooCommerce 11.2.1, HPOS on (sync off), default role 
 | Products visible in marketplace | n/a | n/a | yes | no | n/a |
 
 - **Vendor = customer + extra** (additive). A user keeps their existing WP role and gains `nexora_vendor` through `add_role()`. No migration for existing users.
-- Role is held only while approved (added on approval, removed on suspension or rejection) so the caps gate themselves; `can_sell()` still requires both status and role. Suspended vendors read earnings through `can_view_earnings()`. Uninstall (when "delete data" is on) removes the role, status meta and version option.
-- Status lives in user meta `_nexora_vendor_status`: `none | pending | approved | suspended`. Allowed transitions: none→pending, pending→approved|rejected(none), approved→suspended, suspended→approved. Reject is for pending applications only: a suspended vendor can only be reactivated (keeps the GSTIN locked, so no re-applying, and keeps read-only earnings).
+- Suspension keeps the role: the status, not the role, controls what a seller may do (section 11). `can_sell()` is true only for an approved, not suspended seller. Suspended vendors read earnings through `can_view_earnings()`. Uninstall (when "delete data" is on) removes the role, status meta and version option.
+- Status lives in user meta `_nexora_vendor_status`: `none | pending | approved | suspended`. Allowed transitions: none→pending, pending→approved|rejected, approved→suspended, suspended→approved. Reject is for pending applications only: a suspended vendor can only be reactivated (keeps the GSTIN locked and read-only earnings). Today a rejected application returns to `none`; Phase 7a stores `rejected` and lets the person apply again (section 11).
 - The client sends only an intent (`customer` | `seller`). The server decides; any `role` parameter is ignored.
-- `Accounts\Account_Types`: `is_vendor()`, `vendor_status()`, `can_sell()`, `tabs_for()`.
+- `Accounts\Account_Types`: `vendor_status()`, `can_sell()`, `tabs_for()`. Phase 7a adds `has_seller_record()` (any status) next to `can_sell()` (approved and not suspended) and replaces `is_vendor()` (section 11).
 
 ### Tab-visibility map (single source: `Account_Types::tabs_for()`)
 
@@ -52,7 +52,7 @@ Hiding a tab is never the security; every endpoint re-checks on the server.
 - **Platform vendor**: a built-in vendor that owns API-imported items. It cannot be applied for or suspended from the front end.
 - **`nexora_product` CPT**: meta `price`, `stock`, `sku`, `vendor_id`, `source` (manual|csv|api), `external_id`, `image_id`, `category`. SKU unique per vendor (the upsert key for CSV and API is always **vendor + sku**, never sku alone). Bounds: price 0.01 to 1,000,000; stock 0 to 100,000; title up to 120 characters; description up to 2,000 characters, plain text.
 - **Import log**: stored as a custom post type or table, decided in Phase 5. A table would bump `Migrations::DB_VERSION`.
-- **Order-item snapshot** (Woo order item meta, CRUD API only): `_nx_product_id`, `_nx_vendor_id`, `_nx_source`, `_nx_name`, `_nx_unit_price`, `_nx_qty`, `_nx_sku`, `_nx_commission_rate`, `_nx_commission_amount`, `_nx_stock_reduced` (idempotency flag).
+- **Order-item snapshot** (Woo order item meta, CRUD API only): `_nx_product_id`, `_nx_name`, `_nx_sku`, `_nx_price`, `_nx_qty`, `_nx_vendor_id`, `_nx_vendor_name`, `_nx_rate`, `_nx_gross`, `_nx_commission`, `_nx_earning`, and the counters `_nx_stock_taken`, `_nx_stock_back`, `_nx_refunded`, `_nx_refunded_qty`, `_nx_earning_reversed`, `_nx_commission_reversed`; the order carries `_nx_order`, `_nx_placed` and one `_nx_vendor` row per vendor. `Orders\Lines` is the only place that knows these keys (section 8a4).
 - **Settings** (Nexora System > Settings): commission % (default 10), category list, import limits.
 
 ### 3b. Vendor application (built in Phase 2)
@@ -344,16 +344,18 @@ Every selling gate (products, imports, the Sales and My Products tabs, the order
 **Existing data** is converted in place, so post IDs do not change, by an idempotent migration with a dry-run (the dry-run reports what would change and writes nothing; running the migration twice changes nothing the second time):
 
 - every existing `nexora_vendor` post becomes a `nexora_cust_seller` post (`post_type` changed in place), linked to the owner's existing customer post (`customer_post_id` / `seller_post_id`), with its status kept;
-- the users' role becomes `nexora_customer_seller`;
+- the users' role: approved and suspended sellers become `nexora_customer_seller` (suspension keeps the role); pending sellers and users with no seller record become `subscriber` (the role changes on approval); the `nexora_vendor` role is removed afterwards;
 - `user_profile` posts become `nexora_customer` posts.
 
 **Size of the change** (measured 2026-10-19): `user_profile` appears in 20 plugin or theme files, 14 test files (1 golden snapshot) and 8 docs; `nexora_vendor` in 9, 21 (3 golden) and 2; `_vendor_id` in 4 and 2; `_profile_id` in 20, 14 and 7. The live site has 7 `user_profile` posts, 2 `nexora_vendor` posts and 110 products.
 
-**Open points to settle at the start of 7a** (everything else in this section is decided):
+**Owner's answers on the last points (2026-10-19):**
 
-1. Is `_seller_post_id` also set for a direct seller (pointing at the same post as `_profile_id`)?
-2. A direct seller whose seller record is deleted is demoted to `subscriber` and is left with no profile post. What profile do they have afterwards?
-3. How an administrator creates a seller-only account by hand.
+1. `_seller_post_id` **is also set for a direct seller**, pointing at the same post as `_profile_id`.
+2. When a direct seller's seller record is deleted, the user is demoted to `subscriber` and a **plain `nexora_customer` post is created for them**, so they keep a profile.
+3. Creating a seller-only account by hand is **deferred to Phase 7b** as an admin row action that uses the shared linking method.
+
+Nothing in this section is open.
 
 ## 12. Admin editing (Phase 7b)
 
@@ -379,4 +381,8 @@ Status: **specified, not built.** Recorded from the owner's requirement and answ
 - A customer post that has a linked seller record cannot be deleted first (the rule concerns customer posts that have a `nexora_cust_seller` record; a direct seller's only profile is their seller post, which follows the seller rules above).
 - Deleting a WordPress user cascades to their Nexora posts.
 
-**Open point to settle at the start of 7b:** deleting a WordPress user cascades to their Nexora posts, but a seller record that order lines refer to cannot be deleted permanently. Which wins when an administrator deletes the WordPress user of such a seller (refuse the user deletion, or keep the seller record)?
+**Deleting the WordPress user of a seller whose record has order lines is refused** (owner's answer, 2026-10-19): the cascade never runs for such a user, so the seller record the order lines refer to is never deleted.
+
+**Row action for seller-only accounts** (decided for 7b): an administrator can create a seller-only account by hand through an admin row action that uses the shared linking method of section 11.
+
+Nothing in this section is open.

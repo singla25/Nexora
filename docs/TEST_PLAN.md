@@ -92,13 +92,13 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - Multi-vendor order carries each item's vendor id.
 - HPOS on and off. `wc-ajax` and COD/BACS checkout complete end to end.
 
-## Phase 7: Analytics (`test-vendor-analytics.php`)
+## Phase 8: Analytics and admin overview (`test-vendor-analytics.php`)
 - Only processing and completed orders count; refunded, cancelled and pending are excluded.
 - Commission rounding (e.g. 10% of ₹33.33 gives ₹3.33).
-- Vendor A never sees vendor B's lines or buyers; the per-order list exposes only buyer name, date, qty and amount.
+- Vendor A never sees vendor B's lines or buyers; the per-order list exposes the order number, date, the vendor's own products, quantities and earnings, and no buyer name (the shipping name and address only while the order still ships, as in 6b).
 - Date filter edges; zero state; the admin overview totals equal the sum of the vendors.
 
-## Phase 8: Hardening and end to end (`test-e2e-marketplace.php`)
+## Phase 10: Hardening and end to end (`test-e2e-marketplace.php`)
 - One flow: customer signs up, becomes a seller, admin approves, adds products manually, by CSV and by API, another customer buys with COD, the vendor sees the earning.
 - Security checklist: nonces, capabilities, object-level checks, prepared SQL, escaped output (grep review).
 - Performance: query counts on marketplace list, profile page and analytics.
