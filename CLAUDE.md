@@ -69,4 +69,4 @@ The suite runs inside WordPress against the real DB, so a careless test can dest
 
 ## Planned changes
 
-Upcoming work (Phases 7a accounts and record types, 7b admin editing, 8 vendor analytics, 9 hardening) and the backlog are tracked in `docs/ROADMAP.md`; the specification of 7a and 7b is `docs/SPEC.md` sections 11 and 12. Read both before touching account types, post-type slugs or admin editing: the post types `user_profile` and `nexora_vendor` are planned to be renamed, so don't spread new hard-coded uses of them without checking the roadmap.
+Upcoming work (Phases 7a accounts and record types, 7b admin editing, 8 vendor analytics and admin overview, 9 fulfilment, order emails and low-stock alerts, 10 hardening and CI) and the backlog are tracked in `docs/ROADMAP.md`; the specification of 7a and 7b is `docs/SPEC.md` sections 11 and 12. Read both before touching account types, post-type slugs or admin editing: the post types `user_profile` and `nexora_vendor` are planned to be renamed, so don't spread new hard-coded uses of them without checking the roadmap.

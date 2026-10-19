@@ -298,26 +298,37 @@ Payouts, per-vendor shipping and tax, live GST lookup, multi-currency, product v
 
 Status: **specified, not built.** Recorded from the owner's requirement and answers (2026-10-19).
 
-**Roles.** Three: `subscriber` (customer), `nexora_seller` (registered as a seller) and `nexora_customer_seller` (a customer who became a seller). Code asks a helper such as `Account_Types::is_seller()`, never a role slug.
+**Roles.** Three: `subscriber` (customer), `nexora_seller` (registered as a seller) and `nexora_customer_seller` (a customer who became a seller). No code asks for a role slug.
+
+**Two helpers, not one.**
+
+- `Account_Types::has_seller_record( $user )`: the user has a seller record, in **any** status.
+- `Account_Types::can_sell( $user )`: the seller is approved and not suspended.
+
+Every selling gate (products, imports, the Sales and My Products tabs, the order and stock paths) uses `can_sell()`. Screens that show where a seller stands use the status (`pending`, `approved`, `rejected`, `suspended`).
+
+**When roles change.** Only on approval (a customer is promoted to `nexora_customer_seller`) and when a seller record is deleted (the user is demoted to `subscriber`). **Suspension does not remove the role**: the status controls what the seller may do. A suspended customer-seller keeps `nexora_customer_seller`, can still buy and can still read their earnings. This replaces the "role held only while approved" rule of section 2.
 
 **Post types** (at most 20 characters, the WordPress limit):
 
 | Today | After 7a | Holds |
 |---|---|---|
 | `user_profile` | `nexora_customer` | a customer's profile |
-| `nexora_vendor` | `nexora_seller` | a seller who registered directly as a seller: personal details and business details |
+| `nexora_vendor` | `nexora_seller` | a seller who registered directly as a seller: their personal details and business details |
 | (new) | `nexora_cust_seller` | the business details of a customer who becomes a seller |
 | `user_connections`, `user_content`, `nexora_product` | unchanged | |
 
-`nexora_import_log` and `nexora_api_conn` keep their slugs. PHP namespaces, classes and product or order meta keys (`vendor_id` on products, `_nx_*` on order items) are **not** renamed.
+`nexora_import_log` and `nexora_api_conn` keep their slugs. PHP namespaces, classes and product or order meta keys (`vendor_id` on products, `_nx_*` on order items) are **not** renamed. The user meta `_nexora_vendor_status` and `_vendor_id` are **kept as they are, with no aliases**; only user-facing text says "seller".
 
-**Linking.** `customer_post_id` on the `nexora_cust_seller` record and `seller_post_id` on the `nexora_customer` post, kept in sync by **one** method. User meta `_profile_id` (customer post) and `_seller_post_id` (seller record). A direct seller has no customer post, so only `_seller_post_id` is set for them.
+**A direct seller is a normal member.** Their `_profile_id` points to their primary profile, which is their `nexora_seller` post, and every shared guard accepts both profile post types. Connections, Content, Chat and Notifications therefore work for them, keyed on whichever profile post they have. Their profile page shows the personal section (as for a customer) plus a business section.
+
+**Linking.** For a customer who became a seller: `customer_post_id` on the `nexora_cust_seller` record and `seller_post_id` on the `nexora_customer` post, kept in sync by **one** method. User meta: `_profile_id` (the primary profile: the customer post, or the seller post for a direct seller) and `_seller_post_id` (the seller record).
 
 **Flows.**
 
-1. *Register as a customer:* role `subscriber`, a `nexora_customer` post.
-2. *Register as a seller:* role `nexora_seller`, status `pending`, and **only** a `nexora_seller` post holding their personal and business details. No separate customer post is created.
-3. *A customer clicks Become a seller:* a `nexora_cust_seller` post with status `pending` is created and linked to the customer post. The role changes to `nexora_customer_seller` on approval, not before.
+1. *Register as a customer:* role `subscriber` and a `nexora_customer` post.
+2. *Register as a seller:* role `nexora_seller`, status `pending`, and **only** a `nexora_seller` post holding their personal and business details (it is their primary profile). No separate customer post.
+3. *A customer clicks Become a seller:* a `nexora_cust_seller` post with status `pending`, linked to the customer post. The role changes to `nexora_customer_seller` on approval, not before.
 
 **Rules for every seller.** Pending, rejected and suspended sellers can still buy but cannot sell.
 
@@ -338,17 +349,15 @@ Status: **specified, not built.** Recorded from the owner's requirement and answ
 
 **Size of the change** (measured 2026-10-19): `user_profile` appears in 20 plugin or theme files, 14 test files (1 golden snapshot) and 8 docs; `nexora_vendor` in 9, 21 (3 golden) and 2; `_vendor_id` in 4 and 2; `_profile_id` in 20, 14 and 7. The live site has 7 `user_profile` posts, 2 `nexora_vendor` posts and 110 products.
 
-**Open points to settle at the start of 7a** (not decided here):
+**Open points to settle at the start of 7a** (everything else in this section is decided):
 
-1. What a seller-only account sees. It has no customer post, and Connections, Content, Chat and Notifications are all keyed on `_profile_id`: do those features apply to a direct seller, and what does their profile page show?
-2. Exactly what `is_seller()` answers for pending, rejected and suspended sellers (a pending *customer* applicant is still a `subscriber` with a pending record).
-3. The role of a suspended `nexora_cust_seller` (today the role is removed on suspension; does it go back to `subscriber`?) and of a suspended direct seller.
-4. What happens to the user meta `_nexora_vendor_status` and `_vendor_id` (rename, or keep and alias).
-5. How an administrator creates or deletes a seller-only account, and what "Become a seller" means for someone who already registered as a direct seller (nothing, presumably).
+1. Is `_seller_post_id` also set for a direct seller (pointing at the same post as `_profile_id`)?
+2. A direct seller whose seller record is deleted is demoted to `subscriber` and is left with no profile post. What profile do they have afterwards?
+3. How an administrator creates a seller-only account by hand.
 
 ## 12. Admin editing (Phase 7b)
 
-Status: **specified, not built.** Recorded from the owner's requirement (2026-10-19). Depends on Phase 7a.
+Status: **specified, not built.** Recorded from the owner's requirement and answers (2026-10-19). Depends on Phase 7a.
 
 **Who and how.** Administrators (`manage_options`) can edit, trash and delete every Nexora post type through **ACF Pro** field groups registered in code, using the existing meta keys as the field names. *Prerequisite:* ACF Pro installed and licensed (through wp-admin, not committed); the site has the free ACF 6.8.10 today.
 
@@ -358,15 +367,16 @@ Status: **specified, not built.** Recorded from the owner's requirement (2026-10
 
 **Notifications** are a custom table, not a post type, so they get their own edit and delete screen.
 
-**Change history.** Every admin change is recorded in a read-only "Change history" box.
+**Change history.** Every admin change is recorded in a read-only "Change history" box. The records live in a small **append-only custom table**: object type, object id, user, field, old value, new value, time. It survives the deletion of the object, so a deleted seller's history stays. It is a new table, so it follows the usual rules for tables (`Database\Migrations::DB_VERSION` bump, listed in the uninstaller).
 
-**Delete rules.**
+**When `Core\Post_Guard` is lifted.** Today it refuses direct `wp_update_post` / `wp_delete_post` on products and seller records. It is lifted only when **all** of these are true: `current_user_can( 'manage_options' )`, the request is a wp-admin edit-screen save or an admin row action, and the nonce is valid. It is **not** lifted for REST or AJAX.
 
-- Deleting a seller also removes their products and API connections.
-- Order snapshots stay.
-- The WordPress user drops to `subscriber`.
-- A customer post that has a linked seller post cannot be deleted first.
+**Trash and delete rules.**
+
+- *Trash* is allowed for a seller who has orders: it hides the seller and unpublishes their products; the orders are untouched.
+- *Permanent delete* is refused while any order line refers to that seller.
+- A seller with no orders can be deleted: this also removes their products and their API connections, and the WordPress user drops to `subscriber`. Order snapshots always stay.
+- A customer post that has a linked seller record cannot be deleted first (the rule concerns customer posts that have a `nexora_cust_seller` record; a direct seller's only profile is their seller post, which follows the seller rules above).
 - Deleting a WordPress user cascades to their Nexora posts.
 
-**Open points to settle at the start of 7b** (not decided here): where the change history is stored (post meta or a table); how the existing `Core\Post_Guard` refusals, which today block direct `wp_update_post` / `wp_delete_post` on products and seller records, are lifted for administrators only; what "trash" means for a seller who has orders; and the rule for a direct seller (no customer post) under "a customer post with a linked seller post cannot be deleted first".
-
+**Open point to settle at the start of 7b:** deleting a WordPress user cascades to their Nexora posts, but a seller record that order lines refer to cannot be deleted permanently. Which wins when an administrator deletes the WordPress user of such a seller (refuse the user deletion, or keep the seller record)?
