@@ -132,7 +132,7 @@ function nx_test_options_restore() {
  * restore removes what the run created and puts the originals back. Only the run's own rows are ever deleted.
  */
 function nx_test_ephemera_patterns() {
-	return array( '\\_transient\\_nx\\_%', '\\_transient\\_timeout\\_nx\\_%', 'nexora\\_rl\\_%', '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%', '\\_transient\\_nexora\\_import\\_%', '\\_transient\\_timeout\\_nexora\\_import\\_%', 'nexora\\_lock\\_%', 'nexora\\_vendor\\_lock\\_%', '\\_transient\\_nexora\\_otp%', '\\_transient\\_timeout\\_nexora\\_otp%' );
+	return array( '\\_transient\\_nx\\_%', '\\_transient\\_timeout\\_nx\\_%', 'nexora\\_rl\\_%', '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%', '\\_transient\\_nexora\\_rep\\_%', '\\_transient\\_timeout\\_nexora\\_rep\\_%', '\\_transient\\_nexora\\_import\\_%', '\\_transient\\_timeout\\_nexora\\_import\\_%', 'nexora\\_lock\\_%', 'nexora\\_vendor\\_lock\\_%', '\\_transient\\_nexora\\_otp%', '\\_transient\\_timeout\\_nexora\\_otp%' );
 }
 
 function nx_test_ephemera_names() {

@@ -70,6 +70,8 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 
 ### Phase 8: Vendor analytics and the admin overview
 
+**Status: built on `feature/marketplace-analytics`, awaiting the owner's review (not merged, not pushed).** Decided with the owner: no buyer names or unique-buyer count anywhere (SPEC section 7 was corrected); a partial refund shows the seller's reversed share; order lines naming a deleted seller record show as "Deleted seller" in the overview. The test file is `test-vendor-analytics.php`. CSV export of the reports moved to the backlog.
+
 - **Goal.** Each vendor sees how their shop is doing; the administrator sees the whole marketplace. Only Processing and Completed orders count, as for earnings today.
 - **Main pieces.**
   - *Vendor analytics:* per-vendor revenue, orders and top products, with a date filter, on top of `Orders\Earnings` and `Orders\Lines` (the per-line figures are already frozen and refund-adjusted). **No buyer names.** A vendor sees the order number, the date, their own products, quantities and earnings, and the buyer's shipping name and address only while the order still ships, as in 6b.
@@ -108,6 +110,7 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 - **Customer cancel and return requests.**
 - **Data retention and erasure.** Order lines keep buyer and seller names as frozen text; a policy for personal-data erasure requests is needed.
 - **The earnings summary table.** Earnings are read from each vendor's orders on every request. Fine for thousands of orders; a summary table is the next step if volume grows.
+- **CSV export** of the seller report and the admin overview (moved out of Phase 8).
 - **Coupons on marketplace lines.** Refused today: a discounted line no longer equals the product price, so placing the order is refused with the price message. Needs a rule for who pays the discount and how commission is worked out.
 - **Admin-only platform catalog import.** The "Platform" vendor that owns catalog items was dropped from Phase 5 (imported items belong to the importing vendor); an administrator-only import into a platform-owned catalog can be added later.
 - **Deferred CSS fixes.** *OWNER TO SUPPLY:* the list of fixes (pages, screenshots) has not been written down yet.

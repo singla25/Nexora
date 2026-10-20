@@ -115,26 +115,31 @@ class Earnings {
 	/**
 	 * One page of a vendor's orders, newest first, each with ONLY that vendor's lines.
 	 *
-	 * @param int $vendor_id The vendor application post id.
-	 * @param int $page      Page number (from 1).
+	 * @param int      $vendor_id The vendor application post id.
+	 * @param int      $page      Page number (from 1).
+	 * @param int|null $since     Only orders created at or after this time (a Unix time), or null for all.
 	 * @return array orders, page, pages, total
 	 */
-	public static function sales( $vendor_id, $page = 1 ) {
+	public static function sales( $vendor_id, $page = 1, $since = null ) {
 
-		$per    = self::per_page();
-		$page   = max( 1, (int) $page );
-		$result = wc_get_orders(
-			array(
-				'status'     => self::statuses(),
-				'limit'      => $per,
-				'page'       => $page,
-				'paginate'   => true,
-				'orderby'    => 'date',
-				'order'      => 'DESC',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- the one lookup of "orders of this vendor"; the order meta is the index.
-				'meta_query' => self::vendor_query( $vendor_id ),
-			)
+		$per  = self::per_page();
+		$page = max( 1, (int) $page );
+		$args = array(
+			'status'     => self::statuses(),
+			'limit'      => $per,
+			'page'       => $page,
+			'paginate'   => true,
+			'orderby'    => 'date',
+			'order'      => 'DESC',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- the one lookup of "orders of this vendor"; the order meta is the index.
+			'meta_query' => self::vendor_query( $vendor_id ),
 		);
+
+		if ( null !== $since ) {
+			$args['date_created'] = '>=' . (int) $since;
+		}
+
+		$result = wc_get_orders( $args );
 
 		$out = array();
 
@@ -225,27 +230,29 @@ class Earnings {
 	/**
 	 * Ids of every order that has a line of this vendor.
 	 *
-	 * @param int $vendor_id The vendor application post id.
+	 * @param int      $vendor_id The vendor application post id.
+	 * @param int|null $since     Only orders created at or after this time (a Unix time), or null for all.
 	 * @return int[]
 	 */
-	private static function order_ids( $vendor_id ) {
+	public static function order_ids( $vendor_id, $since = null ) {
 
 		if ( (int) $vendor_id <= 0 ) {
 			return array();
 		}
 
-		return array_map(
-			'intval',
-			wc_get_orders(
-				array(
-					'status'     => self::statuses(),
-					'limit'      => -1,
-					'return'     => 'ids',
-					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- see sales().
-					'meta_query' => self::vendor_query( $vendor_id ),
-				)
-			)
+		$args = array(
+			'status'     => self::statuses(),
+			'limit'      => -1,
+			'return'     => 'ids',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- see sales().
+			'meta_query' => self::vendor_query( $vendor_id ),
 		);
+
+		if ( null !== $since ) {
+			$args['date_created'] = '>=' . (int) $since;
+		}
+
+		return array_map( 'intval', wc_get_orders( $args ) );
 	}
 
 	/**
