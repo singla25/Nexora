@@ -194,6 +194,11 @@ class Placement {
 		$order->update_meta_data( Lines::ORDER_FLAG, '1' );
 		$order->update_meta_data( Lines::PLACED_FLAG, (string) time() );
 		$order->save();
+
+		// The order is placed: now see which products fell to the low-stock threshold (an order that was refused above never alerts).
+		foreach ( $plan as $row ) {
+			Low_Stock::check( $row[1] );
+		}
 	}
 
 	/**

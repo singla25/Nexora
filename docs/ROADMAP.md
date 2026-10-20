@@ -82,6 +82,8 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 
 ### Phase 9: Fulfilment, order emails and notifications, low-stock alerts
 
+**Status: built on `feature/marketplace-fulfilment`, awaiting the owner's review (not merged, not pushed).** The open questions below were answered by the owner on 2026-10-20 and are specified in `docs/SPEC.md` section 13.
+
 - **Goal.** Close the loop after an order is placed.
 - **Main pieces.**
   - *Vendor fulfilment:* a vendor marks their own order lines as shipped.

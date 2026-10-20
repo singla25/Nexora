@@ -27,6 +27,7 @@ class Ajax extends Vendor_Ajax {
 		\Nexora\Http\Ajax::register( 'my_orders', array( $this, 'my_orders' ) );
 		\Nexora\Http\Ajax::register( 'sales', array( $this, 'sales' ) );
 		\Nexora\Http\Ajax::register( 'sale_order', array( $this, 'sale_order' ) );
+		\Nexora\Http\Ajax::register( 'mark_shipped', array( $this, 'mark_shipped' ) );
 	}
 
 	/**
@@ -106,6 +107,44 @@ class Ajax extends Vendor_Ajax {
 		}
 
 		wp_send_json_success( array( 'html' => View::render( 'orders/sale-order', array( 'order' => $entry ) ) ) );
+	}
+
+	/**
+	 * The seller marks their own lines of an order as shipped. Approved sellers only (a suspended one reads history, nothing more); the
+	 * seller is the caller's own application, nothing posted names one; the order id must be digits. A foreign, unknown or non-marketplace
+	 * order gets the same "forbidden" answer; an order that is not Processing or Completed gets a plain message. Clicking twice is harmless.
+	 */
+	public function mark_shipped() {
+
+		$member = $this->seller();
+
+		if ( Rate_Limiter::hit( 'order_ship', (string) $member['user_id'] ) ) {
+			wp_send_json_error( array( 'message' => Rate_Limiter::message() ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce checked in seller(); Fulfilment::ship() accepts only digits.
+		$order_id = isset( $_POST['order_id'] ) ? wp_unslash( $_POST['order_id'] ) : '';
+		$result   = Fulfilment::ship( $member['user_id'], $order_id );
+
+		if ( is_wp_error( $result ) ) {
+
+			if ( 'nexora_not_shippable' === $result->get_error_code() || 'nexora_busy' === $result->get_error_code() ) {
+				wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+			}
+
+			$this->forbid();
+		}
+
+		$entry = Earnings::order_for_vendor( $order_id, $member['vendor_id'] );
+
+		wp_send_json_success(
+			array(
+				'message'   => $result['shipped'] > 0 ? __( 'Marked as shipped.', 'nexora' ) : __( 'These items were already marked as shipped.', 'nexora' ),
+				'shipped'   => $result['shipped'],
+				'completed' => $result['completed'],
+				'html'      => $entry ? View::render( 'orders/sale-order', array( 'order' => $entry ) ) : '',
+			)
+		);
 	}
 
 	/**

@@ -24,7 +24,6 @@ class Earnings {
 
 	const COUNTED  = array( 'processing', 'completed' );
 	const AWAITING = array( 'pending', 'on-hold' );
-	const SHIPPING = array( 'pending', 'on-hold', 'processing', 'completed' );
 
 	/**
 	 * Whether an order in this status is earned.
@@ -187,8 +186,9 @@ class Earnings {
 
 		$entry = self::entry( $order, $lines );
 
-		// What shipping needs, only while there is something to ship: the recipient and the shipping address. Never billing, e-mail or phone.
-		$entry['ship_to'] = in_array( self::plain( $order->get_status() ), self::SHIPPING, true )
+		// What shipping needs, and only while THIS seller still has something to ship: a counted order (Processing or Completed) with at
+		// least one of their lines unshipped and not refunded. The recipient and the shipping address; never billing, e-mail or phone.
+		$entry['ship_to'] = Fulfilment::has_open_lines( $order, $vendor_id )
 			? array_filter(
 				array(
 					trim( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
@@ -200,6 +200,9 @@ class Earnings {
 				'strlen'
 			)
 			: array();
+
+		// The button is for a seller who may sell (a suspended seller reads history and cannot ship).
+		$entry['can_ship'] = Fulfilment::has_open_lines( $order, $vendor_id ) && \Nexora\Accounts\Account_Types::can_sell( \Nexora\Vendors\Repository::user_for( $vendor_id ) );
 
 		return $entry;
 	}

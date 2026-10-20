@@ -81,6 +81,7 @@ class Stock {
 		);
 
 		self::forget( $product_id );
+		Low_Stock::check( $product_id, false );
 	}
 
 	/**
@@ -169,6 +170,7 @@ class Stock {
 						Lines::bump( $item, '_nx_stock_taken', $need );
 						$item->save();
 						$total += $need;
+						Low_Stock::check( $line['product_id'] );
 					} else {
 						$short[] = $line['name'];
 					}

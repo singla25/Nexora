@@ -13,7 +13,7 @@ $file = (string) getenv( 'NX_GUARD_FILE' );
 
 $names = array(
 	'nexora_vendor_apis_enabled', 'nexora_api_sources', 'nexora_api_host_allowlist', 'nexora_product_categories',
-	'nexora_marketplace_item_id', 'nexora_db_version', 'nexora_accounts_version', 'nexora_delete_data_on_uninstall', 'nexora_commission_rate',
+	'nexora_marketplace_item_id', 'nexora_db_version', 'nexora_accounts_version', 'nexora_delete_data_on_uninstall', 'nexora_commission_rate', 'nexora_low_stock_threshold',
 	'woocommerce_coming_soon', 'woocommerce_store_pages_only', 'woocommerce_enable_guest_checkout',
 	'woocommerce_enable_signup_and_login_from_checkout', 'woocommerce_enable_checkout_login_reminder', 'woocommerce_enable_myaccount_registration',
 	'rewrite_rules',
@@ -66,6 +66,7 @@ $hostile = array(
 	'nexora_api_host_allowlist'   => array( 'option_value' => "hostile.example\nother.example", 'autoload' => 'auto' ),
 	'nexora_product_categories'   => array( 'option_value' => "Hostile Category\nOther", 'autoload' => 'auto' ),
 	'nexora_commission_rate'      => array( 'option_value' => '25', 'autoload' => 'auto' ),
+	'nexora_low_stock_threshold'  => array( 'option_value' => '50', 'autoload' => 'auto' ),
 	'woocommerce_coming_soon'     => array( 'option_value' => 'yes', 'autoload' => 'auto' ),
 	'woocommerce_store_pages_only'=> array( 'option_value' => 'yes', 'autoload' => 'auto' ),
 	'woocommerce_enable_guest_checkout' => array( 'option_value' => 'yes', 'autoload' => 'auto' ),

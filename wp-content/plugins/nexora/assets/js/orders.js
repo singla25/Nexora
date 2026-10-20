@@ -87,4 +87,24 @@
             .fail(function () { window.alert('Server error. Please try again.'); })
             .always(function () { $btn.prop('disabled', false); });
     });
+
+    // The seller marks their own lines of an order as shipped. Only the order id and the nonce are sent; the server decides everything else
+    // and answers with the order view (already escaped), which replaces the open popup.
+    $(document).on('click', '.nx-ship', function () {
+        var $btn = $(this).prop('disabled', true);
+
+        $.post(cfg.ajaxUrl, { action: 'nexora_mark_shipped', nonce: cfg.nonce, order_id: $btn.data('order') })
+            .done(function (res) {
+                if (res && res.success) {
+                    $btn.closest('.nx-sale-detail').replaceWith($(document.createElement('div')).html(res.data.html).contents());
+                    loaded.sales = false;
+                    load('sales', 1);
+                    return;
+                }
+                var info = res && res.data;
+                window.alert((info && info.message) || 'You are not allowed to do that.');
+                $btn.prop('disabled', false);
+            })
+            .fail(function () { window.alert('Server error. Please try again.'); $btn.prop('disabled', false); });
+    });
 })(jQuery);

@@ -25,6 +25,9 @@ class Module {
 		add_action( 'woocommerce_store_api_checkout_order_processed', array( __NAMESPACE__ . '\Placement', 'on_store_api' ) );
 		add_action( 'woocommerce_order_status_changed', array( __NAMESPACE__ . '\Order_Events', 'status_changed' ), 10, 4 );
 		add_action( 'woocommerce_order_refunded', array( __NAMESPACE__ . '\Refunds', 'apply' ), 10, 2 );
+
+		Mailer::hooks();
+		Low_Stock::hooks();
 	}
 
 	/**
