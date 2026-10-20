@@ -65,6 +65,8 @@ class Plugin {
 		new \Nexora\Marketplace\Cart_Ajax();
 		new \Nexora\Orders\Module();
 		new \Nexora\Orders\Ajax();
+		\Nexora\Orders\Reports::hooks();
+		new \Nexora\Orders\Overview_Page();
 		new \Nexora\Vendors\Assets();
 		new \Nexora\Connections\Cache();
 		new \Nexora\Admin_Edit\Acf_Bridge();

@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.1.1\n"
+"Project-Id-Version: Nexora 1.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T08:30:13+00:00\n"
+"POT-Creation-Date: 2026-10-20T10:21:46+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -37,6 +37,7 @@ msgstr ""
 
 #: src/Accounts/Account_Types.php:121
 #: src/Imports/Admin.php:36
+#: src/Orders/Overview_Page.php:85
 #: src/Products/Admin.php:37
 #: templates/admin/metabox-product.php:14
 #: templates/auth/registration-form.php:52
@@ -69,6 +70,7 @@ msgstr ""
 #: templates/admin/metabox-user-chat.php:18
 #: templates/admin/metabox-vendor.php:14
 #: templates/admin/notifications.php:14
+#: templates/orders/report.php:97
 msgid "Status"
 msgstr ""
 
@@ -978,6 +980,7 @@ msgstr ""
 #: src/Imports/Admin.php:41
 #: templates/admin/metabox-contents.php:7
 #: templates/admin/notifications.php:15
+#: templates/orders/report.php:96
 #: templates/profile/content-history.php:6
 msgid "Date"
 msgstr ""
@@ -1520,11 +1523,16 @@ msgid "Sales counted (Processing and Completed)"
 msgstr ""
 
 #: src/Orders/Ajax.php:73
+#: src/Orders/Overview_Page.php:89
+#: templates/orders/report.php:99
 #: templates/orders/sales.php:47
 msgid "Commission"
 msgstr ""
 
 #: src/Orders/Ajax.php:77
+#: templates/orders/report.php:24
+#: templates/orders/report.php:64
+#: templates/orders/report.php:79
 msgid "Your earnings"
 msgstr ""
 
@@ -1534,6 +1542,55 @@ msgstr ""
 
 #: src/Orders/Commission.php:46
 msgid "The commission must be a number from 0 to 100, for example 10 or 12.5. The previous value was kept."
+msgstr ""
+
+#: src/Orders/Overview_Page.php:33
+#: src/Orders/Overview_Page.php:34
+#: templates/orders/report-overview.php:13
+msgid "Marketplace overview"
+msgstr ""
+
+#: src/Orders/Overview_Page.php:72
+#: src/Orders/Report_View.php:84
+msgid "Last 7 days"
+msgstr ""
+
+#: src/Orders/Overview_Page.php:73
+#: src/Orders/Report_View.php:85
+msgid "Last 30 days"
+msgstr ""
+
+#: src/Orders/Overview_Page.php:74
+#: src/Orders/Report_View.php:86
+msgid "Last 90 days"
+msgstr ""
+
+#: src/Orders/Overview_Page.php:75
+#: src/Orders/Report_View.php:87
+msgid "All time"
+msgstr ""
+
+#: src/Orders/Overview_Page.php:86
+#: templates/orders/report.php:27
+msgid "Orders"
+msgstr ""
+
+#: src/Orders/Overview_Page.php:87
+#: templates/orders/report-overview.php:28
+#: templates/orders/report.php:79
+msgid "Units"
+msgstr ""
+
+#: src/Orders/Overview_Page.php:88
+#: templates/orders/report.php:28
+#: templates/profile/page.php:34
+#: templates/profile/tab-sales.php:10
+msgid "Sales"
+msgstr ""
+
+#: src/Orders/Overview_Page.php:90
+#: templates/orders/report-overview.php:27
+msgid "Seller earnings"
 msgstr ""
 
 #. translators: %s: product name.
@@ -1556,6 +1613,22 @@ msgstr ""
 #: src/Orders/Placement.php:226
 #, php-format
 msgid "Sorry, \"%s\" is no longer in stock in that quantity, so the order was not placed. Please review your cart."
+msgstr ""
+
+#: src/Orders/Reports.php:368
+msgid "Deleted seller"
+msgstr ""
+
+#: src/Orders/Report_View.php:118
+#: src/Vendors/Products_Box.php:88
+#: templates/marketplace/results.php:27
+msgid "Previous"
+msgstr ""
+
+#: src/Orders/Report_View.php:144
+#: src/Vendors/Products_Box.php:89
+#: templates/marketplace/results.php:34
+msgid "Next"
 msgstr ""
 
 #. translators: %s: product names.
@@ -1599,6 +1672,7 @@ msgstr ""
 
 #: src/Products/Admin.php:36
 #: templates/orders/my-orders.php:36
+#: templates/orders/report.php:79
 #: templates/orders/sale-order.php:25
 #: templates/orders/sales.php:43
 msgid "Product"
@@ -2071,16 +2145,6 @@ msgstr ""
 #: src/Vendors/Products_Box.php:31
 #, php-format
 msgid "Products (%d)"
-msgstr ""
-
-#: src/Vendors/Products_Box.php:88
-#: templates/marketplace/results.php:27
-msgid "Previous"
-msgstr ""
-
-#: src/Vendors/Products_Box.php:89
-#: templates/marketplace/results.php:34
-msgid "Next"
 msgstr ""
 
 #: src/Vendors/Service.php:54
@@ -3262,9 +3326,119 @@ msgstr ""
 msgid "Shipping to"
 msgstr ""
 
+#: templates/orders/report-overview.php:14
+msgid "Only Processing and Completed orders count. Figures come from the amounts frozen on each order line, so a price changed later does not alter them."
+msgstr ""
+
+#: templates/orders/report-overview.php:25
+msgid "Total sales"
+msgstr ""
+
+#: templates/orders/report-overview.php:26
+msgid "Total commission"
+msgstr ""
+
+#: templates/orders/report-overview.php:29
+msgid "Orders (counted)"
+msgstr ""
+
+#: templates/orders/report-overview.php:32
+msgid "An order with products from several sellers is counted once in the total above and once for each seller below, so the order counts of the rows can add up to more. Sales, commission, earnings and units always add up to the totals."
+msgstr ""
+
+#: templates/orders/report-overview.php:46
+msgid "No counted orders in this period."
+msgstr ""
+
+#: templates/orders/report.php:15
+msgid "Your sales report"
+msgstr ""
+
+#: templates/orders/report.php:17
+msgid "Date range"
+msgstr ""
+
+#: templates/orders/report.php:25
+msgid "Commission paid"
+msgstr ""
+
+#: templates/orders/report.php:26
+msgid "Units sold"
+msgstr ""
+
+#: templates/orders/report.php:30
+msgid "Your share reversed by refunds (already taken off)"
+msgstr ""
+
+#. translators: 1: number of orders, 2: amount
+#: templates/orders/report.php:38
+#, php-format
+msgid "Not counted yet (pending or on hold): %1$d order, %2$s you would earn once it is paid."
+msgid_plural "Not counted yet (pending or on hold): %1$d orders, %2$s you would earn once they are paid."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/orders/report.php:46
+msgid "Earnings over time"
+msgstr ""
+
+#: templates/orders/report.php:48
+#: templates/orders/report.php:76
+msgid "No counted sales in this period."
+msgstr ""
+
+#: templates/orders/report.php:50
+msgid "Line chart of your earnings by day. The same numbers are in the table below."
+msgstr ""
+
+#: templates/orders/report.php:51
+msgid "Earnings by day"
+msgstr ""
+
+#: templates/orders/report.php:62
+msgid "Show the same numbers as a table"
+msgstr ""
+
+#: templates/orders/report.php:64
+msgid "Day"
+msgstr ""
+
+#: templates/orders/report.php:74
+msgid "Best sellers"
+msgstr ""
+
+#: templates/orders/report.php:88
+msgid "Orders in this period"
+msgstr ""
+
+#: templates/orders/report.php:90
+msgid "No orders in this period."
+msgstr ""
+
+#: templates/orders/report.php:95
+msgid "Order"
+msgstr ""
+
+#: templates/orders/report.php:98
+msgid "Your products"
+msgstr ""
+
+#: templates/orders/report.php:100
 #: templates/orders/sale-order.php:28
 #: templates/orders/sales.php:48
 msgid "Your earning"
+msgstr ""
+
+#: templates/orders/report.php:111
+msgid "(not counted yet)"
+msgstr ""
+
+#: templates/orders/report.php:113
+msgid "(not counted)"
+msgstr ""
+
+#: templates/orders/report.php:130
+msgid "Orders pages"
 msgstr ""
 
 #: templates/orders/sale-order.php:45
@@ -3384,11 +3558,6 @@ msgstr ""
 #: templates/profile/page.php:32
 #: templates/profile/tab-my-orders.php:10
 msgid "My Orders"
-msgstr ""
-
-#: templates/profile/page.php:34
-#: templates/profile/tab-sales.php:10
-msgid "Sales"
 msgstr ""
 
 #: templates/profile/tab-connections.php:10
@@ -3599,6 +3768,10 @@ msgstr ""
 
 #: templates/profile/tab-sales.php:11
 msgid "Orders for your products and what you earn from them. Only Processing and Completed orders count."
+msgstr ""
+
+#: templates/profile/tab-sales.php:15
+msgid "Order details"
 msgstr ""
 
 #: templates/profile/vendor-card.php:15

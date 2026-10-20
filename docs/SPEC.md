@@ -188,7 +188,15 @@ The "Import from API" popup has a dropdown **How many products**: 20, 40, 100 or
 
 ## 7. Analytics
 
-Aggregated from order-item snapshots. Only processing and completed orders count; refunds and cancels are excluded. Reported: total sales, commission, net, order count, unique buyers, top products, per-order list (buyer name, date, qty, amount only). Date filter. A vendor can only ever query their own `vendor_id`. Commission is rounded half-up to 2 decimals per line.
+Status: **built (Phase 8), awaiting the owner's review.** Decided with the owner on 2026-10-20: this section used to promise "unique buyers" and a buyer name per order, and to exclude refunds altogether; that is replaced by the rules below (no buyer name anywhere, a partial refund reverses the seller's share).
+
+Read-only reports on the frozen order-line figures of Phase 6b (`Orders\Lines`), added in whole cents with `Orders\Commission`; there is no money maths of its own (`Orders\Reports`). Nothing reads the live product, so a price edited later changes no old figure.
+
+- **Counted:** Processing and Completed only. Pending and On hold are shown apart as "not counted yet" (what the seller would earn once paid). Cancelled, Failed and Refunded are in no total.
+- **Refunds:** a partial refund lowers the sales and units and shows the seller's reversed share ("already taken off"); the totals match what is owed (`Earnings::summary`).
+- **Seller (Sales tab, approved and suspended sellers, both seller kinds):** date range 7, 30, 90 days or all time (`nx_range`, allow-list, default 30; "7 days" is today and the six before it, site time); totals for the range (earnings, commission paid, units, orders, sales); a line chart of earnings per day (inline SVG, with a table of the same numbers); best sellers (product, units, earnings); an orders table, 10 a page (`nx_orders_page`): order number, date, status, the seller's own products (name, quantity, price), commission, earning. A seller sees only their own lines. **No buyer name, e-mail, phone or address, and no unique-buyer count, anywhere in a report.** The shipping name and address stay where 6b put them (the order detail, only while the order still ships). Pending and rejected sellers, customers and guests get nothing.
+- **Administrator (Nexora System, Marketplace overview, `manage_options`):** the same range; total sales, commission, seller earnings, units and counted orders, and a per-seller table sortable by column. Sales, commission, earnings and units add up to the totals; an order with products from several sellers is counted once in the total of orders and once for each seller. Order lines that name a seller record that no longer exists are counted (if the status counts) and the row is shown as "Deleted seller"; they are never shown to any seller.
+- **Cache:** computed on the fly and kept for 5 minutes in a transient; any order change (status, refund, new order) starts a new cache version. No summary table (backlog).
 
 ## 8. Woo route closing (finding F2)
 
