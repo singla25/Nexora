@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Migrations {
 
-	const DB_VERSION = '1.1.0';
+	const DB_VERSION = '1.2.0';
 	const OPTION     = 'nexora_db_version';
 	const LOCK       = 'nexora_db_migrating';
 
@@ -72,6 +72,6 @@ class Migrations {
 		$notifications = new \Nexora\Notifications\Repository();
 		$chat          = new \Nexora\Chat\Repository();
 
-		return array_merge( $notifications->create_table(), $chat->create_table() );
+		return array_merge( $notifications->create_table(), $chat->create_table(), \Nexora\Admin_Edit\Audit::create_table() );
 	}
 }

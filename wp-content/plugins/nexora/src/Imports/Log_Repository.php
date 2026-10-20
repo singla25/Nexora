@@ -73,6 +73,31 @@ class Log_Repository {
 	}
 
 	/**
+	 * Deletes the whole import history of a vendor (the seller record is being deleted for good).
+	 *
+	 * @param int $vendor_id Vendor application post ID.
+	 */
+	public static function delete_all_for_vendor( $vendor_id ) {
+
+		for ( $round = 0; $round < 20; $round++ ) {
+
+			$ids = self::ids( (int) $vendor_id, 500 );
+
+			if ( ! $ids ) {
+				return;
+			}
+
+			foreach ( $ids as $id ) {
+				self::internally(
+					function () use ( $id ) {
+						wp_delete_post( $id, true );
+					}
+				);
+			}
+		}
+	}
+
+	/**
 	 * A vendor's history, newest first.
 	 *
 	 * @param int $vendor_id Vendor application post ID.

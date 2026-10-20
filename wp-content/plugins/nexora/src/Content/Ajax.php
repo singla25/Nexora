@@ -34,12 +34,13 @@ class Ajax extends Member_Ajax {
 		$user_id    = $auth['user_id'];
 		$profile_id = $auth['profile_id'];
 
-		$title       = $this->post_value( 'title' );
-		$description = sanitize_textarea_field( wp_unslash( $_POST['description'] ?? '' ) );
+		$checked     = Validator::validate( $this->post_value( 'title' ), isset( $_POST['description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['description'] ) ) : '' );
+		$title       = $checked['data']['title'];
+		$description = $checked['data']['description'];
 		$image_id    = absint( $_POST['image'] ?? 0 );
 
-		if ( '' === $title ) {
-			wp_send_json_error( __( 'Title is required', 'nexora' ) );
+		if ( $checked['errors'] ) {
+			wp_send_json_error( $checked['errors']['title'] );
 		}
 
 		if ( Rate_Limiter::hit( 'content_save', 'u' . $user_id ) ) {

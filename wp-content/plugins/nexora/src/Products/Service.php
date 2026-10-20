@@ -61,6 +61,54 @@ class Service {
 	}
 
 	/**
+	 * An administrator's edit of any product: the values were checked by Validator (and the image by the caller); this takes the
+	 * lock on the seller's SKU, re-checks that the SKU is free for that seller, and writes through the Repository. Nothing about
+	 * the owner or the seller changes.
+	 *
+	 * @param int         $product_id Product to change.
+	 * @param array       $data       Validated fields (name, description, price, stock, sku, category, image_id; any subset).
+	 * @param string|null $status     publish | draft, or null to leave it.
+	 * @return true|\WP_Error
+	 */
+	public static function admin_save( $product_id, array $data, $status = null ) {
+
+		$product_id = (int) $product_id;
+
+		if ( ! current_user_can( 'manage_options' ) || Repository::owner_of( $product_id ) <= 0 ) {
+			return self::forbidden();
+		}
+
+		$vendor_id = Repository::vendor_of( $product_id );
+		$lock      = '';
+
+		if ( isset( $data['sku'] ) ) {
+
+			$lock = $vendor_id . '|' . $data['sku'];
+
+			if ( ! Lock::take( $lock ) ) {
+				return new \WP_Error( 'nexora_busy', __( 'This product is being saved right now. Please try again in a moment.', 'nexora' ) );
+			}
+
+			if ( Repository::find_by_sku( $vendor_id, $data['sku'], $product_id ) ) {
+				Lock::release( $lock );
+				return self::invalid( array( 'sku' => __( 'This seller already has a product with this SKU.', 'nexora' ) ) );
+			}
+		}
+
+		Repository::update( $product_id, $data );
+
+		if ( null !== $status ) {
+			Repository::set_status( $product_id, $status );
+		}
+
+		if ( '' !== $lock ) {
+			Lock::release( $lock );
+		}
+
+		return true;
+	}
+
+	/**
 	 * Deletes one of the caller's own products.
 	 *
 	 * @param int $user_id    The vendor's user ID.

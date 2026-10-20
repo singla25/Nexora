@@ -92,6 +92,27 @@ class Connection_Repository {
 	}
 
 	/**
+	 * Deletes every connection of a vendor (the seller record is being deleted for good).
+	 *
+	 * @param int $vendor_id The vendor's application post ID.
+	 */
+	public static function delete_all_for_vendor( $vendor_id ) {
+
+		for ( $round = 0; $round < 20; $round++ ) {
+
+			$ids = self::ids( (int) $vendor_id );
+
+			if ( ! $ids ) {
+				return;
+			}
+
+			foreach ( $ids as $id ) {
+				self::delete( $id );
+			}
+		}
+	}
+
+	/**
 	 * A vendor's connections, oldest first, WITHOUT the key.
 	 *
 	 * @param int $vendor_id The vendor's application post ID.

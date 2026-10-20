@@ -214,6 +214,63 @@ class Repository {
 	}
 
 	/**
+	 * Creates an EMPTY seller record for an existing member, on an administrator's request (Users screen): a customer-seller record
+	 * when the member already has a customer profile, otherwise a direct seller record that becomes their profile. Linked through
+	 * Accounts\Links; the business details are filled in afterwards. The pending status is set by Vendors\Service.
+	 *
+	 * @param int $user_id Member.
+	 * @return int|\WP_Error New seller record ID.
+	 */
+	public static function create_blank( $user_id ) {
+
+		$user_id = (int) $user_id;
+		$user    = get_userdata( $user_id );
+
+		if ( ! $user ) {
+			return new \WP_Error( 'nexora_no_user', __( 'Account not found.', 'nexora' ) );
+		}
+
+		$profile = (int) get_user_meta( $user_id, Links::PROFILE_META, true );
+		$direct  = ! $profile || Post_Types::CUSTOMER !== get_post_type( $profile );
+
+		if ( $direct ) {
+			$id = self::insert( Post_Types::SELLER, $user_id, $user->user_login, $user->user_login );
+		} else {
+			$id = self::insert( Post_Types::CUST_SELLER, $user_id, $user->user_login );
+		}
+
+		if ( is_wp_error( $id ) ) {
+			return $id;
+		}
+
+		if ( $direct ) {
+
+			$personal = array(
+				'user_name'  => $user->user_login,
+				'first_name' => $user->first_name,
+				'last_name'  => $user->last_name,
+				'email'      => $user->user_email,
+			);
+
+			foreach ( $personal as $key => $value ) {
+				update_post_meta( $id, $key, $value );
+			}
+		}
+
+		foreach ( Fields::keys() as $key ) {
+			update_post_meta( $id, $key, '' );
+		}
+
+		Links::link( $id );
+
+		if ( $direct ) {
+			Account_Types::assign_seller_role( $user_id );
+		}
+
+		return (int) $id;
+	}
+
+	/**
 	 * Inserts a seller record post owned by a user.
 	 *
 	 * @param string $type        Post type (Core\Post_Types::sellers()).
@@ -286,9 +343,13 @@ class Repository {
 	 * customer) and, for a direct seller whose record was their only profile, a plain customer post is made so
 	 * they keep a profile. This is the one deletion path (a failed application being rolled back, and, from 7b, the admin's).
 	 *
-	 * @param int $vendor_id Seller record ID.
+	 * Refused (false) while any order line refers to the record: the orders keep pointing at it.
+	 *
+	 * @param int  $vendor_id        Seller record ID.
+	 * @param bool $keep_profile_for A direct seller gets a plain customer post (false when their account is being deleted too).
+	 * @return bool Whether the record was deleted.
 	 */
-	public static function delete( $vendor_id ) {
+	public static function delete( $vendor_id, $keep_profile_for = true ) {
 
 		$vendor_id = (int) $vendor_id;
 		$type      = get_post_type( $vendor_id );
@@ -296,7 +357,11 @@ class Repository {
 		$owned     = $user_id && (int) get_user_meta( $user_id, self::USER_META, true ) === $vendor_id;
 
 		if ( ! in_array( $type, self::types(), true ) ) {
-			return;
+			return false;
+		}
+
+		if ( \Nexora\Orders\Earnings::has_orders( $vendor_id ) ) {
+			return false;
 		}
 
 		$personal = array();
@@ -318,13 +383,15 @@ class Repository {
 		);
 
 		if ( ! $owned || ! get_userdata( $user_id ) ) {
-			return;
+			return true;
 		}
 
 		Account_Types::clear( $user_id );
 
-		if ( Post_Types::SELLER === $type ) {
+		if ( $keep_profile_for && Post_Types::SELLER === $type ) {
 			\Nexora\Profile\Repository::create_customer( $user_id, $personal );
 		}
+
+		return true;
 	}
 }

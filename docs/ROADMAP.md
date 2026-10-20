@@ -53,7 +53,7 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 - **Tested by.** Dry-run versus apply versus a second run (post IDs unchanged, nothing changes twice); a role and flow matrix; `can_sell()` for every status ("pending, rejected and suspended can buy but not sell", and a suspended customer-seller keeps the role and can read earnings); social features for a direct seller; link-sync; the existing suites green with the new slugs; golden diffs reviewed; the whole migration rehearsed on a scratch copy of the live database first.
 - **Risk.** The widest change so far (SPEC section 11 gives the numbers), and the seller-only profile changes an assumption the social features rely on.
 
-### Phase 7b: Admin editing through ACF Pro
+### Phase 7b: Admin editing through ACF (built, awaiting review)
 
 - **Goal.** Administrators (`manage_options`) can edit, trash and delete every Nexora post type from wp-admin. Specified in `docs/SPEC.md` section 12 (fully decided there).
 - **Main pieces.**
@@ -65,7 +65,7 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
   - A row action to create a seller-only account by hand, using the shared linking method of 7a.
   - Deleting the WordPress user of a seller whose record has order lines is refused.
   - Trash of a seller with orders is allowed (hides the seller, unpublishes their products, orders untouched); permanent delete is refused while any order line refers to the seller; a seller with no orders can be deleted (products and API connections go, the user drops to `subscriber`); a customer post with a linked seller record cannot be deleted first; deleting a WordPress user cascades to their Nexora posts.
-- **Depends on.** 7a (the new slugs and links) and **ACF Pro installed and licensed** (the site has the free ACF 6.8.10 today; the owner will install Pro through wp-admin).
+- **Depends on.** 7a (the new slugs and links) and ACF (the free ACF 6.8.x is enough; decided at 7b).
 - **Tested by.** A capability matrix (only `manage_options`); validators applied on admin save; read-only fields unchangeable by a crafted request; the Post_Guard lift only with all three conditions (and not via REST or AJAX, not with a bad nonce); one test per trash and delete rule, including refusal while an order line refers to the seller; a history row per edit that survives deletion; the cascade on user deletion; `Core\Post_Guard` still blocking everyone else.
 
 ### Phase 8: Vendor analytics and the admin overview
@@ -128,7 +128,7 @@ Nothing here is a phase; it is done once, just before real customers use the sit
 - **Working mail** (the WP Mail SMTP failures resolved; test registration, password reset, vendor decision and order mails).
 - **HTTPS** on the live address.
 - **Backups** that are tested and kept off the site.
-- **ACF Pro installed** and licensed (it is already needed from Phase 7b on).
+- ACF active (the free edition is enough for Phase 7b).
 
 ## 6. Where the flagged items went
 
@@ -157,7 +157,7 @@ The items flagged as "possibly missing" in the first version of this roadmap now
 - **Change history** is an append-only custom table that survives deletion; **Post_Guard** is lifted only for `manage_options` on a wp-admin save or row action with a valid nonce (never REST or AJAX); **trash** of a seller with orders is allowed, permanent delete is refused while an order line refers to the seller.
 - **Schedule:** Phase 8 analytics and admin overview; Phase 9 fulfilment, order emails and notifications, low-stock alerts; Phase 10 hardening and automated tests on every push; backlog as in section 4; the pre-launch checklist at the end.
 - **Direct seller details.** `_seller_post_id` is also set for a direct seller (same post as `_profile_id`); if a direct seller's seller record is deleted they become a `subscriber` and get a plain `nexora_customer` post; seller-only accounts by hand are a 7b row action; deleting the WordPress user of a seller whose record has order lines is refused.
-- **Payouts** out of scope for now (backlog). Phase 7b uses **ACF Pro**, installed by the owner. The **clean-repo push** is wanted, later.
+- **Payouts** out of scope for now (backlog). Phase 7b works with free ACF (Pro optional). The **clean-repo push** is wanted, later.
 
 **Still open** (the roadmap does not guess):
 

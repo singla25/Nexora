@@ -28,7 +28,7 @@ add_filter(
 	1000
 );
 
-$GLOBALS['nx_test'] = array( 'pass' => 0, 'fail' => 0, 'users' => array(), 'posts' => array(), 'threads' => array(), 'mail' => array(), 'orders' => array(), 'opt_snap' => array(), 'ephemera' => null, 'ephemera_aside' => false, 'item_scope' => null );
+$GLOBALS['nx_test'] = array( 'pass' => 0, 'fail' => 0, 'users' => array(), 'posts' => array(), 'threads' => array(), 'mail' => array(), 'orders' => array(), 'admin_request' => false, 'opt_snap' => array(), 'ephemera' => null, 'ephemera_aside' => false, 'item_scope' => null );
 
 /* ------------------------------------------------------------------
  * Test isolation. A test may only change or delete what it created itself. Anything of the SITE'S that a test needs to
@@ -373,6 +373,75 @@ function nx_test_product( array $vendor, $sku, $price = '100', $stock = '5', arr
 }
 
 
+/* ------------------------------------------------------------------
+ * Admin request fixtures (Phase 7b). nx_test_admin_request() puts this process in the exact shape of a genuine wp-admin request for
+ * ONE post: an edit-screen save (POST post.php, action=editpost, nonce update-post_ID) or a row action (GET post.php?action=trash|untrash|
+ * delete&post=ID with that action's nonce). Options switch single conditions off, to prove each one is needed. nx_test_admin_request_end()
+ * takes the process back out of it (also run by nx_test_cleanup()).
+ * ---------------------------------------------------------------- */
+
+/**
+ * @param int    $post_id   The post the request is about.
+ * @param string $operation edit | trash | untrash | delete.
+ * @param array  $over      user (id; default a throwaway administrator), nonce (true | false | 'other': a nonce for another post), screen (false = not wp-admin),
+ *                          ajax (true = admin-ajax), post_id_in_request (default $post_id), method.
+ */
+function nx_test_admin_request( $post_id, $operation = 'edit', array $over = array() ) {
+
+	$over = $over + array( 'user' => null, 'nonce' => true, 'screen' => true, 'ajax' => false, 'post_id_in_request' => $post_id, 'method' => null );
+
+	nx_test_admin_request_end();
+
+	$GLOBALS['nx_test']['admin_request'] = true;
+	wp_set_current_user( $over['user'] ? $over['user'] : nx_test_admin() );
+
+	$request_id = (int) $over['post_id_in_request'];
+	$action     = 'edit' === $operation ? 'update-post_' . $request_id : $operation . '-post_' . $request_id;
+	$nonce      = true === $over['nonce'] ? wp_create_nonce( $action ) : ( 'other' === $over['nonce'] ? wp_create_nonce( 'update-post_' . ( $request_id + 1 ) ) : '' );
+
+	$GLOBALS['pagenow'] = 'post.php';
+
+	if ( 'edit' === $operation ) {
+		$_SERVER['REQUEST_METHOD'] = $over['method'] ? $over['method'] : 'POST';
+		$_POST                     = array( 'action' => 'editpost', 'post_ID' => $request_id );
+		$_GET                      = array();
+		if ( '' !== $nonce ) { $_POST['_wpnonce'] = $nonce; }
+	} else {
+		$_SERVER['REQUEST_METHOD'] = $over['method'] ? $over['method'] : 'GET';
+		$_GET                      = array( 'action' => $operation, 'post' => $request_id );
+		$_POST                     = array();
+		if ( '' !== $nonce ) { $_GET['_wpnonce'] = $nonce; }
+	}
+
+	$_REQUEST = array_merge( $_GET, $_POST );
+
+	if ( $over['screen'] ) {
+		set_current_screen( 'post' );
+	} else {
+		unset( $GLOBALS['current_screen'] );
+	}
+
+	if ( $over['ajax'] ) {
+		add_filter( 'wp_doing_ajax', '__return_true' );
+	}
+}
+
+function nx_test_admin_request_end() {
+
+	if ( empty( $GLOBALS['nx_test']['admin_request'] ) ) {
+		return;
+	}
+
+	$GLOBALS['nx_test']['admin_request'] = false;
+	remove_filter( 'wp_doing_ajax', '__return_true' );
+	unset( $GLOBALS['current_screen'] );
+	$GLOBALS['pagenow'] = 'index.php';
+	$_POST              = $_GET = $_REQUEST = array();
+	$_SERVER['REQUEST_METHOD'] = 'GET';
+	wp_set_current_user( 0 );
+}
+
+
 function nx_assert( $cond, $label ) {
 	$GLOBALS['nx_test'][ $cond ? 'pass' : 'fail' ]++;
 	echo ( $cond ? '  ok   ' : '  FAIL ' ) . $label . "\n";
@@ -613,6 +682,15 @@ function nx_test_cleanup() {
 	// counters, import previews, mocked API pages and locks made by this run go; the ones the site had are put back
 	nx_test_ephemera_restore();
 	wp_set_current_user( 0 );
+	nx_test_admin_request_end();
+	// The change history is append-only for the application. Rows this run made were written by test users (the throwaway administrator
+	// and the other fixtures), so exactly those rows go; anybody else's history is never touched.
+	if ( $GLOBALS['nx_test']['users'] ) {
+		$audit = $wpdb->prefix . 'nexora_audit';
+		if ( $audit === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $audit ) ) ) {
+			$wpdb->query( "DELETE FROM $audit WHERE user_id IN (" . implode( ',', array_map( 'intval', $GLOBALS['nx_test']['users'] ) ) . ')' ); // phpcs:ignore WordPress.DB
+		}
+	}
 	nx_test_delete_orders();
 	foreach ( $GLOBALS['nx_test']['posts'] as $id ) {
 		wp_delete_post( $id, true );

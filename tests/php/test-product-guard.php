@@ -42,11 +42,16 @@ nx_assert( ! current_user_can( $pt->cap->create_posts ), 'nobody has the capabil
 
 /* ---------- the screen ---------- */
 $wp_meta_boxes = array();
+wp_set_current_user( 0 );
+add_meta_box( 'submitdiv', 'Publish', '__return_null', 'nexora_product', 'side', 'core' );
+do_action( 'add_meta_boxes', 'nexora_product', get_post( $id ) );
+nx_assert( empty( $wp_meta_boxes['nexora_product']['side']['core']['submitdiv'] ), 'the Publish/Update box is removed from the product screen (for everyone but an administrator)' );
+$wp_meta_boxes = array();
 wp_set_current_user( $admin );
 add_meta_box( 'submitdiv', 'Publish', '__return_null', 'nexora_product', 'side', 'core' );
 do_action( 'add_meta_boxes', 'nexora_product', get_post( $id ) );
+nx_assert( ! empty( $wp_meta_boxes['nexora_product']['side']['core']['submitdiv'] ), '... an administrator keeps the Update button (Phase 7b: their saves go through the Saver)' );
 wp_set_current_user( 0 );
-nx_assert( empty( $wp_meta_boxes['nexora_product']['side']['core']['submitdiv'] ), 'the Publish/Update box is removed from the product screen' );
 nx_assert_same( array(), apply_filters( 'bulk_actions-edit-nexora_product', array( 'trash' => 'Trash', 'edit' => 'Edit' ) ), 'no bulk actions on the product list' );
 $rows = apply_filters( 'post_row_actions', array( 'edit' => 'Edit', 'trash' => 'Trash', 'inline hide-if-no-js' => 'Quick Edit', 'view' => 'View' ), get_post( $id ) );
 nx_assert( ! array_intersect( array_keys( $rows ), array( 'trash', 'untrash', 'delete', 'inline hide-if-no-js', 'view' ) ) && isset( $rows['edit'] ), 'the product rows keep only Edit (to read it)' );

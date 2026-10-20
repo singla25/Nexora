@@ -26,11 +26,13 @@ $pt = get_post_type_object( 'nexora_cust_seller' );
 
 /* ---------- no Publish box ---------- */
 $wp_meta_boxes = array();
-wp_set_current_user( $admin_id );
+wp_set_current_user( 0 );
 add_meta_box( 'submitdiv', 'Publish', '__return_null', 'nexora_cust_seller', 'side', 'core' );
 do_action( 'add_meta_boxes', 'nexora_cust_seller', get_post( $vid ) );
+nx_assert( empty( $wp_meta_boxes['nexora_cust_seller']['side']['core']['submitdiv'] ), 'the Publish/Update box is removed from the vendor screen (for everyone but an administrator)' );
+wp_set_current_user( $admin_id );
+do_action( 'add_meta_boxes', 'nexora_cust_seller', get_post( $vid ) );
 wp_set_current_user( 0 );
-nx_assert( empty( $wp_meta_boxes['nexora_cust_seller']['side']['core']['submitdiv'] ), 'the Publish/Update box is removed from the vendor screen' );
 nx_assert( isset( $wp_meta_boxes['nexora_cust_seller']['side']['high']['nexora_vendor_decision'] ), 'the decision box is still there' );
 
 // Other post types keep their Publish box.
@@ -47,12 +49,13 @@ nx_assert_same( array(), $bulk, 'the bulk actions are gone (no bulk Trash)' );
 $all = array( 'edit' => 'Edit', 'inline hide-if-no-js' => 'Quick Edit', 'trash' => 'Trash', 'untrash' => 'Restore', 'delete' => 'Delete Permanently', 'view' => 'View' );
 wp_set_current_user( $admin_id );
 $live = apply_filters( 'post_row_actions', $all, get_post( $vid ) );
-nx_assert( ! array_intersect( array_keys( $live ), array( 'trash', 'untrash', 'delete', 'inline hide-if-no-js', 'view' ) ), 'a live row has no Trash / Restore / Delete / Quick Edit / View link' );
+nx_assert( ! array_intersect( array_keys( $live ), array( 'untrash', 'delete', 'inline hide-if-no-js', 'view' ) ), 'a live row has no Restore / Delete / Quick Edit / View link' );
+nx_assert( isset( $live['trash'] ) && false !== strpos( $live['trash'], '_wpnonce' ), '... only an administrator\'s Move to Trash, with the nonce Core\\Admin_Gate checks (Phase 7b)' );
 nx_assert( isset( $live['edit'] ) && isset( $live['approve'] ), 'a live row keeps Edit and the decision links' );
 $list = apply_filters( 'post_row_actions', $all, get_post( $vid ) );
 Service::change_status( $vid, 'reject' );
 $dead = apply_filters( 'post_row_actions', $all, get_post( $vid ) );
-nx_assert( ! array_intersect( array_keys( $dead ), array( 'trash', 'untrash', 'delete', 'inline hide-if-no-js', 'view', 'approve', 'reject' ) ), 'a rejected row has no Restore / Delete / decision link' );
+nx_assert( ! array_intersect( array_keys( $dead ), array( 'untrash', 'delete', 'inline hide-if-no-js', 'view', 'approve', 'reject' ) ), 'a rejected row has no Restore / Delete / decision link' );
 wp_set_current_user( 0 );
 nx_assert_same( 'publish', get_post_status( $vid ), 'setup: the application was rejected through Service (kept, not trashed)' );
 // An application rejected before Phase 7a sits in the trash (written here by hand); restoring it must stay refused.

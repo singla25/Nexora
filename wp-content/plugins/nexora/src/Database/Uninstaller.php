@@ -49,6 +49,7 @@ class Uninstaller {
 				$wpdb->prefix . 'nexora_thread_participants',
 				$wpdb->prefix . 'nexora_messages',
 				$wpdb->prefix . 'nexora_message_meta',
+				$wpdb->prefix . 'nexora_audit',
 			),
 			'options'            => array(
 				Migrations::OPTION,

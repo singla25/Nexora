@@ -276,6 +276,94 @@ class Service {
 	}
 
 	/**
+	 * An administrator's edit of a seller's business details (any subset, already validated by Validator). Takes the GSTIN lock
+	 * and checks the GSTIN is not another live seller record's (either type) before writing through the Repository.
+	 *
+	 * @param int   $vendor_id Seller record ID.
+	 * @param array $data      Validated business fields.
+	 * @return true|\WP_Error
+	 */
+	public static function admin_save( $vendor_id, array $data ) {
+
+		$vendor_id = (int) $vendor_id;
+
+		if ( ! current_user_can( 'manage_options' ) || ! Repository::user_for( $vendor_id ) ) {
+			return new \WP_Error( 'nexora_forbidden', __( 'You are not allowed to do that.', 'nexora' ) );
+		}
+
+		$locked  = false;
+		$current = Repository::data( $vendor_id );
+
+		if ( isset( $data['gstin'] ) && $data['gstin'] !== $current['gstin'] ) {
+
+			if ( ! self::lock( $data['gstin'] ) ) {
+				return new \WP_Error( 'nexora_busy', __( 'This GSTIN is being registered right now. Please try again in a moment.', 'nexora' ) );
+			}
+
+			$locked = true;
+
+			if ( Repository::find_by_gstin( $data['gstin'], $vendor_id ) ) {
+				self::unlock( $data['gstin'] );
+				return self::invalid( array( 'gstin' => self::duplicate_message() ) );
+			}
+		}
+
+		Repository::save( $vendor_id, $data );
+
+		if ( $locked ) {
+			self::unlock( $data['gstin'] );
+		}
+
+		return true;
+	}
+
+	/**
+	 * An administrator opens an empty seller record for an existing member (Users screen). Status pending; nothing is approved.
+	 *
+	 * @param int $user_id Member.
+	 * @return int|\WP_Error New seller record ID.
+	 */
+	public static function open_blank( $user_id ) {
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return new \WP_Error( 'nexora_forbidden', __( 'You are not allowed to do that.', 'nexora' ) );
+		}
+
+		$id = Repository::create_blank( $user_id );
+
+		if ( is_wp_error( $id ) ) {
+			return $id;
+		}
+
+		$status = Account_Types::set_status( $user_id, Account_Types::PENDING );
+
+		if ( is_wp_error( $status ) ) {
+			Repository::delete( $id );
+			return $status;
+		}
+
+		return $id;
+	}
+
+	/**
+	 * The action (approve, suspend, reactivate, reject) that takes a seller from one status to another, or '' when there is none.
+	 *
+	 * @param string $from Current status.
+	 * @param string $to   Wanted status.
+	 * @return string
+	 */
+	public static function action_for( $from, $to ) {
+
+		foreach ( self::actions() as $action => $rule ) {
+			if ( $rule[1] === $to && in_array( $from, $rule[0], true ) ) {
+				return $action;
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * What the owner's profile card needs (never called for anyone else).
 	 *
 	 * @param int $user_id Owner.

@@ -47,22 +47,19 @@ class Ajax extends Member_Ajax {
 				? sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) )
 				: $this->post_value( $field );
 
-			if ( 'gender' === $field && ! in_array( $value, array( 'male', 'female', 'other', '' ), true ) ) {
-				continue;
-			}
+			$checked = Validator::check( $field, $value );
 
-			if ( 'birthdate' === $field && '' !== $value ) {
-				$dt = \DateTime::createFromFormat( 'Y-m-d', $value );
-				if ( ! $dt || $dt->format( 'Y-m-d' ) !== $value || $dt > new \DateTime( 'today' ) ) {
-					wp_send_json_error( __( 'Invalid date of birth', 'nexora' ) );
+			if ( is_string( $checked ) ) {
+
+				// A gender outside the list is skipped quietly (as it always was); the other fields tell the member.
+				if ( 'gender' === $field ) {
+					continue;
 				}
+
+				wp_send_json_error( $checked );
 			}
 
-			if ( 'linkedin_id' === $field ) {
-				$value = sanitize_text_field( $value );
-			}
-
-			update_post_meta( $id, $field, $value );
+			update_post_meta( $id, $field, $checked[0] );
 		}
 
 		wp_send_json_success( __( 'Personal Info Updated', 'nexora' ) );
@@ -104,12 +101,13 @@ class Ajax extends Member_Ajax {
 
 			$value = $this->post_value( $field );
 
-			if ( 'company_email' === $field && '' !== $value ) {
-				$value = sanitize_email( $value );
-				if ( ! is_email( $value ) ) {
-					wp_send_json_error( __( 'Invalid company email', 'nexora' ) );
-				}
+			$checked = Validator::check( $field, $value );
+
+			if ( is_string( $checked ) ) {
+				wp_send_json_error( $checked );
 			}
+
+			$value = $checked[0];
 
 			update_post_meta( $id, $field, $value );
 		}

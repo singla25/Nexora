@@ -10,8 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Makes a Repository the only way to change the posts of a private post type (vendor applications, products).
  * A live post cannot be created, trashed, deleted, edited (status, title, content) or restored from wp-admin,
  * a bulk action, a crafted request or other code, because that would skip the Service's validation and
- * ownership rules. The Repository's own writes (flagged with Internal_Writes) and deleting the owning member
- * (their posts go with them) are allowed.
+ * ownership rules. The Repository's own writes (flagged with Internal_Writes), deleting the owning member
+ * (their posts go with them) and an administrator's genuine wp-admin action on that one post (Core\Admin_Gate:
+ * trash, restore, delete; never creating) are allowed.
  */
 class Post_Guard {
 
@@ -75,7 +76,8 @@ class Post_Guard {
 	 */
 	public function remove_publish_box( $post_type ) {
 
-		if ( $this->post_type === $post_type ) {
+		// Administrators keep the Update button: their saves go through the Admin_Edit\Saver (the same validators), never around them.
+		if ( $this->post_type === $post_type && ! current_user_can( 'manage_options' ) ) {
 			remove_meta_box( 'submitdiv', $this->post_type, 'side' );
 		}
 	}
@@ -93,7 +95,7 @@ class Post_Guard {
 
 		unset( $user_id );
 
-		if ( 'delete_post' === $cap && ! empty( $args[0] ) && $this->is_live( (int) $args[0] ) ) {
+		if ( 'delete_post' === $cap && ! empty( $args[0] ) && $this->is_live( (int) $args[0] ) && ! $this->admin_may( (int) $args[0], array( 'trash', 'untrash', 'delete' ) ) ) {
 			return array( 'do_not_allow' );
 		}
 
@@ -108,7 +110,7 @@ class Post_Guard {
 	 * @return bool|null
 	 */
 	public function refuse_trash( $trash, $post ) {
-		return $this->guarded( $post ) && ! $this->internal() ? false : $trash;
+		return $this->guarded( $post ) && ! $this->internal() && ! Admin_Gate::open( $post->ID, 'trash' ) ? false : $trash;
 	}
 
 	/**
@@ -119,7 +121,7 @@ class Post_Guard {
 	 * @return bool|null
 	 */
 	public function refuse_untrash( $untrash, $post ) {
-		return $this->guarded( $post ) ? false : $untrash;
+		return $this->guarded( $post ) && ! Admin_Gate::open( $post->ID, 'untrash' ) ? false : $untrash;
 	}
 
 	/**
@@ -131,7 +133,7 @@ class Post_Guard {
 	 */
 	public function refuse_delete( $delete, $post ) {
 
-		if ( $this->guarded( $post ) && 'trash' !== $post->post_status && ! $this->internal() && ! $this->deleting_user ) {
+		if ( $this->guarded( $post ) && 'trash' !== $post->post_status && ! $this->internal() && ! $this->deleting_user && ! Admin_Gate::open( $post->ID, 'delete' ) ) {
 			return false;
 		}
 
@@ -163,7 +165,7 @@ class Post_Guard {
 	 */
 	public function keep_fields( $data, $postarr ) {
 
-		if ( empty( $postarr['ID'] ) || $this->post_type !== $data['post_type'] || $this->internal() ) {
+		if ( empty( $postarr['ID'] ) || $this->post_type !== $data['post_type'] || $this->internal() || $this->admin_may( (int) $postarr['ID'], array( 'trash', 'untrash' ) ) ) {
 			return $data;
 		}
 
@@ -191,6 +193,24 @@ class Post_Guard {
 	 */
 	public function user_deleted() {
 		$this->deleting_user = false;
+	}
+
+	/**
+	 * Whether the current request is a genuine administrator action of one of these kinds on this post.
+	 *
+	 * @param int      $post_id    Post ID.
+	 * @param string[] $operations Operations to look for.
+	 * @return bool
+	 */
+	private function admin_may( $post_id, array $operations ) {
+
+		foreach ( $operations as $operation ) {
+			if ( Admin_Gate::open( $post_id, $operation ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
