@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T07:12:47+00:00\n"
+"POT-Creation-Date: 2026-10-20T08:30:13+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -51,6 +51,7 @@ msgstr ""
 #: src/Admin/List_Columns.php:47
 #: src/Admin/List_Columns.php:139
 #: src/Admin_Edit/Fields.php:80
+#: templates/admin/metabox-products.php:9
 #: templates/admin/settings.php:123
 msgid "Name"
 msgstr ""
@@ -219,6 +220,7 @@ msgstr ""
 #: src/Products/Admin.php:39
 #: src/Products/Fields.php:34
 #: templates/admin/metabox-product.php:17
+#: templates/admin/metabox-products.php:11
 #: templates/orders/my-orders.php:39
 #: templates/orders/sales.php:45
 #: templates/products/form.php:23
@@ -237,6 +239,7 @@ msgstr ""
 #: src/Products/Admin.php:38
 #: src/Products/Fields.php:36
 #: templates/admin/metabox-product.php:16
+#: templates/admin/metabox-products.php:10
 #: templates/orders/sale-order.php:24
 #: templates/orders/sales.php:42
 #: templates/products/form.php:33
@@ -288,7 +291,7 @@ msgstr ""
 
 #: src/Admin_Edit/Fields.php:110
 #: src/Admin_Edit/Fields.php:349
-#: src/Vendors/Admin.php:316
+#: src/Vendors/Admin.php:336
 #: templates/admin/metabox-connection.php:39
 msgid "Pending"
 msgstr ""
@@ -300,7 +303,7 @@ msgstr ""
 
 #: src/Admin_Edit/Fields.php:112
 #: src/Admin_Edit/Fields.php:351
-#: src/Vendors/Admin.php:319
+#: src/Vendors/Admin.php:339
 #: templates/admin/metabox-connection.php:41
 #: templates/admin/metabox-vendor.php:14
 msgid "Rejected"
@@ -508,12 +511,12 @@ msgid "Seller status"
 msgstr ""
 
 #: src/Admin_Edit/Fields.php:350
-#: src/Vendors/Admin.php:317
+#: src/Vendors/Admin.php:337
 msgid "Approved"
 msgstr ""
 
 #: src/Admin_Edit/Fields.php:352
-#: src/Vendors/Admin.php:318
+#: src/Vendors/Admin.php:338
 msgid "Suspended"
 msgstr ""
 
@@ -574,7 +577,7 @@ msgstr ""
 #: src/Imports/Connections.php:276
 #: src/Imports/Importer.php:516
 #: src/Products/Service.php:370
-#: src/Vendors/Admin.php:262
+#: src/Vendors/Admin.php:282
 #: src/Vendors/Service.php:239
 #: src/Vendors/Service.php:301
 #: src/Vendors/Service.php:339
@@ -1012,7 +1015,7 @@ msgstr ""
 #: src/Imports/Ajax.php:325
 #: src/Products/Ajax.php:72
 #: src/Products/Ajax.php:104
-#: src/Vendors/Admin.php:272
+#: src/Vendors/Admin.php:292
 msgid "Invalid request."
 msgstr ""
 
@@ -1932,47 +1935,47 @@ msgstr ""
 msgid "Applied"
 msgstr ""
 
-#: src/Vendors/Admin.php:104
+#: src/Vendors/Admin.php:108
 msgid "Seller application"
 msgstr ""
 
-#: src/Vendors/Admin.php:108
+#: src/Vendors/Admin.php:128
 msgid "Application decision"
 msgstr ""
 
-#: src/Vendors/Admin.php:112
+#: src/Vendors/Admin.php:132
 msgid "Seller account"
 msgstr ""
 
-#: src/Vendors/Admin.php:210
+#: src/Vendors/Admin.php:230
 msgid "Approve"
 msgstr ""
 
-#: src/Vendors/Admin.php:211
+#: src/Vendors/Admin.php:231
 msgid "Reject"
 msgstr ""
 
-#: src/Vendors/Admin.php:212
+#: src/Vendors/Admin.php:232
 msgid "Suspend"
 msgstr ""
 
-#: src/Vendors/Admin.php:213
+#: src/Vendors/Admin.php:233
 msgid "Reactivate"
 msgstr ""
 
-#: src/Vendors/Admin.php:225
+#: src/Vendors/Admin.php:245
 msgid "Are you sure? The application is marked rejected and kept. The applicant stays a regular member and can apply again."
 msgstr ""
 
-#: src/Vendors/Admin.php:301
+#: src/Vendors/Admin.php:321
 msgid "Vendor status updated."
 msgstr ""
 
-#: src/Vendors/Admin.php:303
+#: src/Vendors/Admin.php:323
 msgid "That change was not possible for this vendor's current status."
 msgstr ""
 
-#: src/Vendors/Admin.php:320
+#: src/Vendors/Admin.php:340
 msgid "Not a vendor"
 msgstr ""
 
@@ -2062,6 +2065,22 @@ msgstr ""
 
 #: src/Vendors/Notifier.php:77
 msgid "Your seller application was not approved"
+msgstr ""
+
+#. translators: %d: number of products the seller has
+#: src/Vendors/Products_Box.php:31
+#, php-format
+msgid "Products (%d)"
+msgstr ""
+
+#: src/Vendors/Products_Box.php:88
+#: templates/marketplace/results.php:27
+msgid "Previous"
+msgstr ""
+
+#: src/Vendors/Products_Box.php:89
+#: templates/marketplace/results.php:34
+msgid "Next"
 msgstr ""
 
 #: src/Vendors/Service.php:54
@@ -2302,6 +2321,26 @@ msgstr ""
 #: templates/profile/tab-info.php:67
 msgid "Birthdate"
 msgstr ""
+
+#: templates/admin/metabox-products.php:3
+msgid "No products yet"
+msgstr ""
+
+#: templates/admin/metabox-products.php:8
+msgid "Product ID"
+msgstr ""
+
+#: templates/admin/metabox-products.php:12
+msgid "Items in stock"
+msgstr ""
+
+#. translators: %d: number of products
+#: templates/admin/metabox-products.php:30
+#, php-format
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] ""
+msgstr[1] ""
 
 #: templates/admin/metabox-seller-account.php:12
 #: templates/admin/metabox-vendor-decision.php:15
@@ -3189,18 +3228,10 @@ msgstr[1] ""
 msgid "Product pages"
 msgstr ""
 
-#: templates/marketplace/results.php:27
-msgid "Previous"
-msgstr ""
-
 #. translators: 1: current page, 2: number of pages.
 #: templates/marketplace/results.php:31
 #, php-format
 msgid "Page %1$d of %2$d"
-msgstr ""
-
-#: templates/marketplace/results.php:34
-msgid "Next"
 msgstr ""
 
 #: templates/orders/my-orders.php:10
