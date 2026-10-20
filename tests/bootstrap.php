@@ -95,7 +95,7 @@ function nx_test_options_keep( array $names ) {
 
 /**
  * Known default settings for a test whose output depends on the site's configuration: no API sources saved (so the built-in list),
- * vendor APIs off, no host allow-list, the default product categories, delete-on-uninstall off, commission at its default of 10%. $override changes single values.
+ * vendor APIs off, no host allow-list, the default product categories, delete-on-uninstall off, commission at its default of 10%, low-stock threshold at its default of 5. $override changes single values.
  * The site's own values are put back at the end.
  */
 function nx_test_default_settings( array $override = array() ) {
@@ -107,6 +107,7 @@ function nx_test_default_settings( array $override = array() ) {
 			'nexora_product_categories'        => null,
 			'nexora_delete_data_on_uninstall'  => null,
 			'nexora_commission_rate'           => null,
+			'nexora_low_stock_threshold'       => null,
 		)
 	);
 }

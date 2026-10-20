@@ -24,6 +24,8 @@ class Lines {
 	const PLACED_FLAG = '_nx_placed';
 	const VENDOR_META = '_nx_vendor';
 	const PRODUCT     = '_nx_product_id';
+	const SHIPPED     = '_nx_shipped';
+	const SHIPPED_AT  = '_nx_shipped_at';
 
 	/**
 	 * The order lines that came from marketplace products (tagged at checkout), placed or not.
@@ -113,6 +115,8 @@ class Lines {
 			'stock_taken'         => $taken,
 			'stock_back'          => $back,
 			'stock_held'          => max( 0, $taken - $back ),
+			'shipped'             => '1' === (string) $m( self::SHIPPED, '' ),
+			'shipped_at'          => (string) $m( self::SHIPPED_AT, '' ),
 		);
 	}
 
@@ -144,6 +148,16 @@ class Lines {
 	 */
 	public static function is_marketplace( $order ) {
 		return $order instanceof \WC_Order && '1' === (string) $order->get_meta( self::ORDER_FLAG, true );
+	}
+
+	/**
+	 * Whether a placed line still has units to ship: not shipped yet and not fully refunded.
+	 *
+	 * @param array $line A line from read().
+	 * @return bool
+	 */
+	public static function open_to_ship( array $line ) {
+		return ! $line['shipped'] && (int) $line['qty'] - (int) $line['refunded_qty'] > 0;
 	}
 
 	/**

@@ -81,6 +81,14 @@
 					</tr>
 
 					<tr>
+						<th><label for="nexora_low_stock_threshold"><?php esc_html_e( 'Low-stock threshold', 'nexora' ); ?></label></th>
+						<td>
+							<input type="text" inputmode="numeric" id="nexora_low_stock_threshold" name="nexora_low_stock_threshold" value="<?php echo esc_attr( $v['low_stock'] ); ?>" class="small-text" maxlength="6">
+							<p class="description"><?php esc_html_e( 'When a product\'s stock falls to this number or below, its seller gets one e-mail and one notification. A whole number from 0 to 100000; 0 turns the alerts off. The alert is sent again only after the stock has risen above this number.', 'nexora' ); ?></p>
+						</td>
+					</tr>
+
+					<tr>
 						<th><?php esc_html_e( 'Product API sources', 'nexora' ); ?></th>
 						<td>
 							<p class="description"><?php esc_html_e( 'Product catalogs every approved vendor can import from. Only public https addresses work (private, local and cloud-metadata addresses are always refused). Keys are stored encrypted and are never shown again: leave a key field empty to keep the saved key.', 'nexora' ); ?></p>
