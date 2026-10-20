@@ -2,6 +2,10 @@
 // Used by tests/guard.sh (wp eval-file tests/tools/guard-state.php with env NX_GUARD = save | hostile | compare | restore and
 // NX_GUARD_FILE = a JSON file). Works on the RAW database rows of the options the suite touches, the real Marketplace Item
 // (post row, meta rows, option) and the vendor role, so "exactly back" means byte for byte, autoload flag included.
+// Never on the site's real database (no override for this tool).
+require_once dirname( __DIR__ ) . '/live-guard.php';
+nx_live_guard_enforce( false );
+
 global $wpdb;
 
 $cmd  = (string) getenv( 'NX_GUARD' );

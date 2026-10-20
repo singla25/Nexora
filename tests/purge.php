@@ -2,6 +2,10 @@
 // Removes leftovers of test runs that crashed before they could clean up. Touches fixture data ONLY:
 // users named nxtest_*, profile posts titled nxtest_*, and everything that hangs off those users.
 // Run by tests/run.sh before the suites (wp eval-file tests/purge.php).
+// Never on the site's real database (no override for this script).
+require_once __DIR__ . '/live-guard.php';
+nx_live_guard_enforce( false );
+
 global $wpdb;
 require_once ABSPATH . 'wp-admin/includes/user.php';
 

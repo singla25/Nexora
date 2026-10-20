@@ -11,6 +11,13 @@
 set -u
 cd "$(dirname "$0")/.."
 
+# Refuse to touch the site's real database: tests run on a scratch copy named in NX_TEST_DB (tests/live-guard.php does the same in PHP).
+live_db="$(sed -n "s/.*define( *['\"]DB_NAME['\"] *, *['\"]\([^'\"]*\)['\"].*/\1/p" wp-config.php | head -n 1)"
+if [ -z "${NX_TEST_DB:-}" ] || [ -z "$live_db" ] || [ "${NX_TEST_DB,,}" = "${live_db,,}" ]; then
+  echo "REFUSED: guard.sh sets hostile settings, so it runs only on a scratch copy. Set NX_TEST_DB=<scratch database> (not the one in wp-config.php)." >&2
+  exit 3
+fi
+
 tmp="$(mktemp -d)"
 if [ -n "${NX_TEST_DB:-}" ]; then
   printf "exec: \"define('DB_NAME','%s');\"\n" "${NX_TEST_DB}" > "$tmp/wp-cli.yml"

@@ -10,6 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Never run against the site's real database (tests/live-guard.php; the override is only for the tests in tests/live-readonly.txt).
+require_once __DIR__ . '/live-guard.php';
+nx_live_guard_enforce( true );
+
 // CLI has no headers to send; keep auth-cookie calls from emitting warnings.
 add_filter( 'send_auth_cookies', '__return_false' );
 
