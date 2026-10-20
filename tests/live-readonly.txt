@@ -1,0 +1,4 @@
+# Tests that may run against the LIVE database (NX_ALLOW_LIVE_READONLY=1). Only tests that write nothing: no users, posts,
+# orders, options or meta. Everything else needs a scratch copy (NX_TEST_DB). Keep this list short.
+test-static-namespaces.php
+test-compat-contract.php
