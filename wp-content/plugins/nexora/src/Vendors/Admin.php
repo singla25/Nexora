@@ -29,7 +29,7 @@ class Admin {
 		}
 
 		add_filter( 'post_row_actions', array( $this, 'row_actions' ), 10, 2 );
-		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
+		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 10, 2 );
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_status_request' ) );
 		add_action( 'admin_notices', array( $this, 'notice' ) );
 	}
@@ -96,12 +96,32 @@ class Admin {
 	}
 
 	/**
-	 * Registers the details box on both seller edit screens, and the read-only "Seller account" box on the customer's.
+	 * Registers the details box on both seller edit screens (and, for administrators, the read-only Products box directly below it),
+	 * and the read-only "Seller account" box on the customer's.
+	 *
+	 * @param string        $post_type Post type being edited.
+	 * @param \WP_Post|null $post      The post being edited.
 	 */
-	public function add_meta_boxes() {
+	public function add_meta_boxes( $post_type = '', $post = null ) {
 
 		foreach ( Repository::types() as $type ) {
 			add_meta_box( 'nexora_vendor_details', __( 'Seller application', 'nexora' ), array( $this, 'render_details_box' ), $type, 'normal', 'high' );
+
+			if ( $type === $post_type && $post instanceof \WP_Post && current_user_can( 'manage_options' ) ) {
+
+				$total = Products_Box::total( $post->ID );
+
+				add_meta_box(
+					'nexora_seller_products',
+					Products_Box::title( $total ),
+					function ( $record ) use ( $total ) {
+						Products_Box::render( $record, $total );
+					},
+					$type,
+					'normal',
+					'high'
+				);
+			}
 
 			// The decision buttons: administrators only, top of the side column where the Publish box sits.
 			if ( current_user_can( 'manage_options' ) ) {

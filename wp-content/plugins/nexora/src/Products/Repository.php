@@ -344,6 +344,43 @@ class Repository {
 	}
 
 	/**
+	 * One page of a vendor's products (every status except trash), newest first. Returns the posts themselves with their meta
+	 * already loaded in one go, so showing them costs no query per row.
+	 *
+	 * @param int $vendor_post_id Vendor application post ID.
+	 * @param int $page           Page number from 1.
+	 * @param int $per_page       Products per page.
+	 * @return \WP_Post[]
+	 */
+	public static function page_for_vendor( $vendor_post_id, $page, $per_page ) {
+
+		$query = new \WP_Query(
+			array(
+				'post_type'           => self::POST_TYPE,
+				'post_status'         => array( 'publish', 'draft', 'pending', 'private' ),
+				'posts_per_page'      => max( 1, (int) $per_page ),
+				'paged'               => max( 1, (int) $page ),
+				'no_found_rows'       => true,
+				'ignore_sticky_posts' => true,
+				'suppress_filters'    => true,
+				'orderby'             => array(
+					'date' => 'DESC',
+					'ID'   => 'DESC',
+				),
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one page of one vendor's products.
+				'meta_query'          => array(
+					array(
+						'key'   => 'vendor_id',
+						'value' => (int) $vendor_post_id,
+					),
+				),
+			)
+		);
+
+		return $query->posts;
+	}
+
+	/**
 	 * Writes the meta fields.
 	 *
 	 * @param int   $id   Product ID.
