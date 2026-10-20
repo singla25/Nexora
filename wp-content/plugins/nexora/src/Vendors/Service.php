@@ -263,6 +263,16 @@ class Service {
 			return new \WP_Error( 'nexora_bad_transition', __( 'That status change is not allowed.', 'nexora' ) );
 		}
 
+		// Approving needs the same business details registration asks for (an administrator-made or half-filled record cannot go live).
+		if ( 'approve' === $action ) {
+
+			$checked = Validator::validate( Repository::data( $vendor_id ) );
+
+			if ( $checked['errors'] ) {
+				return self::invalid( $checked['errors'] );
+			}
+		}
+
 		$business = (string) get_post_meta( $vendor_id, 'business_name', true );
 		$result   = Account_Types::set_status( $user_id, $to );
 

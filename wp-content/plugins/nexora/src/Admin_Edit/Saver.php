@@ -376,6 +376,18 @@ class Saver {
 			return;
 		}
 
+		// Approving needs the full business details, counting what this same save sets (so nothing is half-saved and then refused).
+		if ( 'approve' === Seller_Service::action_for( $now, $wanted ) ) {
+
+			$merged  = array_merge( Sellers::data( $post->ID ), array_intersect_key( $values, array_flip( \Nexora\Vendors\Fields::keys() ) ) );
+			$missing = \Nexora\Vendors\Validator::validate( $merged )['errors'];
+
+			if ( $missing ) {
+				$errors['status'] = __( 'This seller cannot be approved until the business details are complete and valid:', 'nexora' ) . ' ' . implode( ', ', array_keys( $missing ) );
+				return;
+			}
+		}
+
 		$values['status'] = $wanted;
 	}
 

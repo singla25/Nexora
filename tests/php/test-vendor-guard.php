@@ -52,6 +52,14 @@ $live = apply_filters( 'post_row_actions', $all, get_post( $vid ) );
 nx_assert( ! array_intersect( array_keys( $live ), array( 'untrash', 'delete', 'inline hide-if-no-js', 'view' ) ), 'a live row has no Restore / Delete / Quick Edit / View link' );
 nx_assert( isset( $live['trash'] ) && false !== strpos( $live['trash'], '_wpnonce' ), '... only an administrator\'s Move to Trash, with the nonce Core\\Admin_Gate checks (Phase 7b)' );
 nx_assert( isset( $live['edit'] ) && isset( $live['approve'] ), 'a live row keeps Edit and the decision links' );
+$someone = nx_test_user( 'vgnon' );
+foreach ( array( 'a guest' => 0, 'a customer' => $someone['user_id'] ) as $who => $uid ) {
+	wp_set_current_user( $uid );
+	$theirs = apply_filters( 'post_row_actions', $all, get_post( $vid ) );
+	nx_assert( ! array_intersect( array_keys( $theirs ), array( 'trash', 'untrash', 'delete', 'inline hide-if-no-js', 'view' ) ), "Phase 7b: $who still gets no Trash / Restore / Delete / Quick Edit / View link" );
+	nx_assert( ! current_user_can( 'delete_post', $vid ) && ! wp_trash_post( $vid ) && 'publish' === get_post_status( $vid ), "Phase 7b: $who still cannot trash a seller record" );
+}
+wp_set_current_user( $admin_id );
 $list = apply_filters( 'post_row_actions', $all, get_post( $vid ) );
 Service::change_status( $vid, 'reject' );
 $dead = apply_filters( 'post_row_actions', $all, get_post( $vid ) );

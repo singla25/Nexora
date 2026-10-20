@@ -199,9 +199,9 @@ function nx_test_flush_api_cache() {
 	nx_test_ephemera_begin( true );
 	foreach ( array( '\\_transient\\_nexora\\_api\\_%', '\\_transient\\_timeout\\_nexora\\_api\\_%' ) as $like ) {
 		foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) ) as $name ) {
-			if ( ! array_key_exists( $name, (array) $GLOBALS['nx_test']['ephemera'] ) ) {
-				nx_test_write_raw_option( $name, null );
-			}
+			// The site's own rows were set aside above and are put back at the end, so everything found now is this run's: a test
+			// that fetches the same URL as the site once cached must not meet the site's (or its own earlier) cache entry.
+			nx_test_write_raw_option( $name, null );
 		}
 	}
 	wp_cache_flush();

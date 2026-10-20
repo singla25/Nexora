@@ -199,6 +199,10 @@ foreach ( array( 'get_history' => array(), 'get_user_content_history' => array()
 }
 foreach ( array( 'get_add_new_users', 'get_requests' ) as $action ) {
 	$r = nx_call_ajax( $action, nx_profile_nonce() );
+	if ( 'get_add_new_users' === $action && is_array( $r['data'] ?? null ) ) {
+		// The list offers every member on the site; only this test's own members are part of the snapshot (the site's real ones vary).
+		$r['data'] = array_values( array_filter( $r['data'], function ( $row ) { return 0 === strpos( (string) $row['username'], 'nxgold_' ); } ) );
+	}
 	nx_assert_golden( "ajax-$action", json_encode( $r ) );
 }
 wp_set_current_user( $B );
@@ -230,24 +234,19 @@ wp_set_current_user( $AD );
 nx_assert_golden( 'chat-popup-admin', $capture( function () use ( $chat ) { $chat->load_chat_template(); } ) );
 
 /* ================= ADMIN SAVE ================= */
-wp_set_current_user( $AD );
+// Since Phase 7b the meta boxes save nothing: a plain POST to a profile or a connection changes nothing, whoever sends it.
+// (The validated admin save is tested in test-admin-edit-*.php.)
+$before_name   = get_post_meta( $PB, 'first_name', true );
+$before_status = get_post_meta( $C2, 'status', true );
 set_current_screen( 'edit-nexora_customer' );
-$_POST = array( '_wpnonce' => wp_create_nonce( 'update-post_' . $PB ), 'first_name' => '<i>Bobby</i>', 'bio' => "line1\nline2", 'profile_image' => '123abc', 'aadhaar_card' => (string) $ATT1, 'email' => 'bob@new.test' );
-$boxes->save_meta_boxes( $PB );
-nx_assert_same( 'Bobby', get_post_meta( $PB, 'first_name', true ), 'admin save: text sanitized' );
-nx_assert_same( 123, (int) get_post_meta( $PB, 'profile_image', true ), 'admin save: attachment id absint' );
-nx_assert_same( 'bob@new.test', get_post_meta( $PB, 'email', true ), 'admin save: email stored' );
-$_POST['_wpnonce'] = 'bad'; $_POST['first_name'] = 'Hacked';
-$boxes->save_meta_boxes( $PB );
-nx_assert_same( 'Bobby', get_post_meta( $PB, 'first_name', true ), 'admin save: bad nonce ignored' );
-wp_set_current_user( $B );
-$_POST = array( '_wpnonce' => wp_create_nonce( 'update-post_' . $PB ), 'first_name' => 'Member' );
-$boxes->save_meta_boxes( $PB );
-nx_assert_same( 'Bobby', get_post_meta( $PB, 'first_name', true ), 'admin save: non-admin ignored' );
-wp_set_current_user( $AD );
-$_POST = array( '_wpnonce' => wp_create_nonce( 'update-post_' . $C2 ), 'status' => 'accepted', 'sender_user_name' => 'x<y>' );
-$boxes->save_meta_boxes( $C2 );
-nx_assert_same( 'accepted', get_post_meta( $C2, 'status', true ), 'admin save: connection status' );
+foreach ( array( $AD, $B ) as $who ) {
+	wp_set_current_user( $who );
+	$_POST = array( '_wpnonce' => wp_create_nonce( 'update-post_' . $PB ), 'first_name' => 'Raw', 'email' => 'raw@new.test', 'status' => 'removed' );
+	do_action( 'save_post', $PB, get_post( $PB ), true );
+	do_action( 'save_post', $C2, get_post( $C2 ), true );
+}
+nx_assert_same( $before_name, get_post_meta( $PB, 'first_name', true ), 'admin save: a plain POST to a profile writes nothing' );
+nx_assert_same( $before_status, get_post_meta( $C2, 'status', true ), 'admin save: a plain POST to a connection writes nothing' );
 $_POST = array();
 
 $clean();
