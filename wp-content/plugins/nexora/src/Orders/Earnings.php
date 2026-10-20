@@ -87,6 +87,32 @@ class Earnings {
 	}
 
 	/**
+	 * Whether ANY order line, in any status (cancelled, refunded, even trashed), refers to this seller. The rule that keeps a seller
+	 * record from being deleted for good.
+	 *
+	 * @param int $vendor_id The seller record post id.
+	 * @return bool
+	 */
+	public static function has_orders( $vendor_id ) {
+
+		if ( (int) $vendor_id <= 0 || ! function_exists( 'wc_get_orders' ) ) {
+			return false;
+		}
+
+		$found = wc_get_orders(
+			array(
+				'status'     => array_merge( array_keys( wc_get_order_statuses() ), array( 'trash', 'wc-checkout-draft' ) ),
+				'limit'      => 1,
+				'return'     => 'ids',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one existence check per delete.
+				'meta_query' => self::vendor_query( $vendor_id ),
+			)
+		);
+
+		return ! empty( $found );
+	}
+
+	/**
 	 * One page of a vendor's orders, newest first, each with ONLY that vendor's lines.
 	 *
 	 * @param int $vendor_id The vendor application post id.

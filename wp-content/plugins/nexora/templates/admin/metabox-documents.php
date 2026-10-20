@@ -8,10 +8,6 @@
 					class="profile-preview"
 					style="max-width:150px; display:<?php echo $doc['url'] ? 'block' : 'none'; ?>; margin-bottom:10px;">
 
-				<input type="hidden" name="<?php echo esc_attr( $doc['key'] ); ?>" value="<?php echo esc_attr( $doc['id'] ); ?>">
-
-				<button type="button" class="button upload-btn"><?php esc_html_e( 'Upload', 'nexora' ); ?></button>
-				<button type="button" class="button remove-btn" style="<?php echo $doc['url'] ? '' : 'display:none;'; ?>"><?php esc_html_e( 'Remove', 'nexora' ); ?></button>
 			</div>
 			<hr>
 <?php endforeach; ?>

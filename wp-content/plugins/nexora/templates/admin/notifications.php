@@ -1,4 +1,5 @@
 <?php /** @var object[] $notifications  rows from the notifications table */ ?>
+<?php $nx_can_edit = current_user_can( 'manage_options' ); ?>
 		<div class="wrap">
 			<h1><?php esc_html_e( '🔔 Notifications', 'nexora' ); ?></h1>
 
@@ -12,6 +13,9 @@
 						<th><?php esc_html_e( 'Message', 'nexora' ); ?></th>
 						<th><?php esc_html_e( 'Status', 'nexora' ); ?></th>
 						<th><?php esc_html_e( 'Date', 'nexora' ); ?></th>
+						<?php if ( $nx_can_edit ) : ?>
+						<th><?php esc_html_e( 'Edit', 'nexora' ); ?></th>
+						<?php endif; ?>
 					</tr>
 				</thead>
 				<tbody>
@@ -35,11 +39,27 @@
 							<?php endif; ?>
 						</td>
 						<td><?php echo esc_html( $n->created_at ); ?></td>
+						<?php if ( $nx_can_edit ) : ?>
+						<td>
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+								<input type="hidden" name="action" value="nexora_notification_update">
+								<input type="hidden" name="id" value="<?php echo esc_attr( $n->id ); ?>">
+								<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'nexora_notification_update_' . $n->id ) ); ?>">
+								<textarea name="message" rows="2" maxlength="1000" class="widefat"><?php echo esc_textarea( $n->message ); ?></textarea>
+								<select name="is_read">
+									<option value="0" <?php selected( (int) $n->is_read, 0 ); ?>><?php esc_html_e( 'Unread', 'nexora' ); ?></option>
+									<option value="1" <?php selected( (int) $n->is_read, 1 ); ?>><?php esc_html_e( 'Read', 'nexora' ); ?></option>
+								</select>
+								<button type="submit" class="button button-small"><?php esc_html_e( 'Save', 'nexora' ); ?></button>
+								<a class="submitdelete" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=nexora_notification_delete&id=' . (int) $n->id ), 'nexora_notification_delete_' . $n->id ) ); ?>" onclick="return confirm('<?php echo esc_js( __( 'Delete this notification for good?', 'nexora' ) ); ?>');"><?php esc_html_e( 'Delete', 'nexora' ); ?></a>
+							</form>
+						</td>
+						<?php endif; ?>
 					</tr>
 
 									<?php endforeach; else : ?>
 
-					<tr><td colspan="7" style="text-align: center;"><?php esc_html_e( 'No notifications found', 'nexora' ); ?></td></tr>
+					<tr><td colspan="<?php echo $nx_can_edit ? 8 : 7; ?>" style="text-align: center;"><?php esc_html_e( 'No notifications found', 'nexora' ); ?></td></tr>
 
 				<?php endif; ?>
 

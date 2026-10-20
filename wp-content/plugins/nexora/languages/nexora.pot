@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.1.0\n"
+"Project-Id-Version: Nexora 1.1.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-19T07:48:22+00:00\n"
+"POT-Creation-Date: 2026-10-20T07:12:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: nexora\n"
@@ -30,12 +30,12 @@ msgstr ""
 msgid "Sahil Singla"
 msgstr ""
 
-#: src/Accounts/Account_Types.php:112
+#: src/Accounts/Account_Types.php:117
 #: templates/auth/registration-form.php:51
 msgid "Customer"
 msgstr ""
 
-#: src/Accounts/Account_Types.php:116
+#: src/Accounts/Account_Types.php:121
 #: src/Imports/Admin.php:36
 #: src/Products/Admin.php:37
 #: templates/admin/metabox-product.php:14
@@ -44,17 +44,20 @@ msgstr ""
 msgid "Seller"
 msgstr ""
 
-#: src/Accounts/Account_Types.php:120
+#: src/Accounts/Account_Types.php:125
 msgid "Customer & Seller"
 msgstr ""
 
 #: src/Admin/List_Columns.php:47
 #: src/Admin/List_Columns.php:139
+#: src/Admin_Edit/Fields.php:80
 #: templates/admin/settings.php:123
 msgid "Name"
 msgstr ""
 
 #: src/Admin/List_Columns.php:88
+#: src/Admin_Edit/Fields.php:88
+#: src/Admin_Edit/Fields.php:106
 #: src/Vendors/Admin.php:50
 #: templates/admin/chat.php:11
 #: templates/admin/metabox-connection-chat.php:16
@@ -64,7 +67,7 @@ msgstr ""
 #: templates/admin/metabox-product.php:15
 #: templates/admin/metabox-user-chat.php:18
 #: templates/admin/metabox-vendor.php:14
-#: templates/admin/notifications.php:13
+#: templates/admin/notifications.php:14
 msgid "Status"
 msgstr ""
 
@@ -90,69 +93,69 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:35
+#: src/Admin/Meta_Boxes.php:39
 msgid "User Personal Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:36
+#: src/Admin/Meta_Boxes.php:40
 msgid "User Address Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:37
+#: src/Admin/Meta_Boxes.php:41
 msgid "User Work Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:38
+#: src/Admin/Meta_Boxes.php:44
 msgid "User Document Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:39
-#: src/Admin/Meta_Boxes.php:44
+#: src/Admin/Meta_Boxes.php:45
+#: src/Admin/Meta_Boxes.php:51
 msgid "User Connection Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:40
+#: src/Admin/Meta_Boxes.php:46
 msgid "User Content Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:41
+#: src/Admin/Meta_Boxes.php:47
 msgid "User Chat Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:45
+#: src/Admin/Meta_Boxes.php:54
 msgid "User Connection Chat Details"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:47
+#: src/Admin/Meta_Boxes.php:57
 msgid "User Content Info"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:103
+#: src/Admin/Meta_Boxes.php:114
 #: src/Profile/Page.php:309
 msgid "Profile Image"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:104
+#: src/Admin/Meta_Boxes.php:115
 #: src/Profile/Page.php:310
 msgid "Cover Image"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:105
+#: src/Admin/Meta_Boxes.php:116
 msgid "Aadhar Card"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:106
+#: src/Admin/Meta_Boxes.php:117
 #: src/Profile/Page.php:312
 msgid "Driving License"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:107
+#: src/Admin/Meta_Boxes.php:118
 #: src/Profile/Page.php:313
 msgid "Company ID Card"
 msgstr ""
 
-#: src/Admin/Meta_Boxes.php:239
-#: src/Admin/Meta_Boxes.php:325
+#: src/Admin/Meta_Boxes.php:250
+#: src/Admin/Meta_Boxes.php:336
 msgid "No Subject"
 msgstr ""
 
@@ -182,6 +185,499 @@ msgstr ""
 
 #: src/Admin/Settings.php:30
 msgid "Default Smart Connections Image"
+msgstr ""
+
+#: src/Admin_Edit/Acf_Bridge.php:184
+msgid "Editing Nexora records needs the Advanced Custom Fields (ACF) plugin. It is not active, so these screens are read-only until it is."
+msgstr ""
+
+#: src/Admin_Edit/Deletion.php:62
+msgid "This customer profile still has a seller record. Deal with the seller record first (trash or delete it), then this profile can go."
+msgstr ""
+
+#: src/Admin_Edit/Deletion.php:81
+msgid "This seller cannot be deleted for good because orders refer to them. Move the record to the trash instead: that hides the seller and unpublishes their products, and the orders stay exactly as they are."
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:73
+#: src/Admin_Edit/Fields.php:296
+msgid "Owner (user ID)"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:74
+msgid "Customer profile (post ID)"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:81
+#: src/Products/Fields.php:33
+#: templates/admin/metabox-product.php:21
+#: templates/products/form.php:18
+msgid "Description"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:82
+#: src/Products/Admin.php:39
+#: src/Products/Fields.php:34
+#: templates/admin/metabox-product.php:17
+#: templates/orders/my-orders.php:39
+#: templates/orders/sales.php:45
+#: templates/products/form.php:23
+msgid "Price"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:83
+#: src/Products/Admin.php:40
+#: src/Products/Fields.php:35
+#: templates/admin/metabox-product.php:18
+#: templates/products/form.php:28
+msgid "Stock"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:84
+#: src/Products/Admin.php:38
+#: src/Products/Fields.php:36
+#: templates/admin/metabox-product.php:16
+#: templates/orders/sale-order.php:24
+#: templates/orders/sales.php:42
+#: templates/products/form.php:33
+msgid "SKU"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:85
+#: src/Products/Admin.php:41
+#: src/Products/Fields.php:37
+#: templates/admin/metabox-product.php:19
+#: templates/products/form.php:38
+#: templates/profile/tab-marketplace.php:19
+msgid "Category"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:86
+#: src/Products/Fields.php:38
+#: templates/products/form.php:48
+msgid "Image"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:92
+msgid "Published"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:93
+msgid "Draft (not listed)"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:96
+#: src/Admin_Edit/Fields.php:300
+msgid "Seller record (post ID)"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:97
+#: src/Products/Admin.php:42
+#: templates/admin/metabox-product.php:20
+#: templates/imports/api-popup.php:13
+msgid "Source"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:98
+msgid "External ID"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:99
+msgid "External image URL"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:110
+#: src/Admin_Edit/Fields.php:349
+#: src/Vendors/Admin.php:316
+#: templates/admin/metabox-connection.php:39
+msgid "Pending"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:111
+#: templates/admin/metabox-connection.php:40
+msgid "Accepted"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:112
+#: src/Admin_Edit/Fields.php:351
+#: src/Vendors/Admin.php:319
+#: templates/admin/metabox-connection.php:41
+#: templates/admin/metabox-vendor.php:14
+msgid "Rejected"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:113
+#: templates/admin/metabox-connection.php:42
+msgid "Removed"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:116
+msgid "Sender user ID"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:117
+msgid "Sender profile ID"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:118
+msgid "Sender user name"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:119
+msgid "Receiver user ID"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:120
+msgid "Receiver profile ID"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:121
+msgid "Receiver user name"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:127
+#: templates/admin/metabox-contents.php:6
+#: templates/profile/content-history.php:5
+msgid "Title"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:128
+msgid "Text"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:129
+msgid "Author user ID"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:130
+msgid "Author profile ID"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:131
+msgid "Author user name"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:209
+msgid "First name"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:210
+msgid "Last name"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:211
+#: templates/admin/metabox-personal.php:6
+#: templates/profile/tab-info.php:74
+msgid "Phone"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:213
+#: templates/admin/metabox-personal.php:9
+#: templates/profile/tab-info.php:61
+msgid "Gender"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:217
+msgid "— not set —"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:218
+#: templates/admin/metabox-personal.php:12
+#: templates/auth/registration-form.php:19
+msgid "Male"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:219
+#: templates/admin/metabox-personal.php:13
+#: templates/auth/registration-form.php:20
+msgid "Female"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:220
+#: src/Products/Fields.php:57
+#: src/Products/Fields.php:86
+#: src/Vendors/Fields.php:65
+#: templates/admin/metabox-personal.php:14
+#: templates/auth/registration-form.php:21
+msgid "Other"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:223
+msgid "Date of birth (YYYY-MM-DD)"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:227
+#: templates/admin/metabox-personal.php:7
+#: templates/profile/tab-info.php:80
+msgid "LinkedIn"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:228
+#: templates/admin/metabox-personal.php:22
+#: templates/profile/tab-info.php:87
+msgid "Bio"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:242
+msgid "Permanent address"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:243
+msgid "Permanent city"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:244
+msgid "Permanent state"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:245
+msgid "Permanent pincode"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:246
+msgid "Correspondence address"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:247
+msgid "Correspondence city"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:248
+msgid "Correspondence state"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:249
+msgid "Correspondence pincode"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:264
+msgid "Company name"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:265
+#: templates/admin/metabox-work.php:3
+#: templates/profile/tab-info.php:165
+msgid "Designation"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:266
+msgid "Company email"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:267
+msgid "Company phone"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:268
+msgid "Company address"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:280
+msgid "Profile image"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:281
+msgid "Cover image"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:294
+msgid "User name"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:295
+#: templates/admin/metabox-personal.php:5
+#: templates/profile/tab-info.php:45
+#: templates/shortcodes/contact-form.php:36
+msgid "Email"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:313
+msgid "Aadhaar card (private file)"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:314
+msgid "Driving license (private file)"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:315
+msgid "Company ID card (private file)"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:345
+msgid "Seller status"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:350
+#: src/Vendors/Admin.php:317
+msgid "Approved"
+msgstr ""
+
+#: src/Admin_Edit/Fields.php:352
+#: src/Vendors/Admin.php:318
+msgid "Suspended"
+msgstr ""
+
+#: src/Admin_Edit/Groups.php:55
+msgid "Administrator edit"
+msgstr ""
+
+#: src/Admin_Edit/History_Box.php:29
+msgid "Change history"
+msgstr ""
+
+#: src/Admin_Edit/History_Box.php:43
+msgid "No changes by an administrator have been recorded."
+msgstr ""
+
+#: src/Admin_Edit/History_Box.php:48
+msgid "When (UTC)"
+msgstr ""
+
+#: src/Admin_Edit/History_Box.php:48
+msgid "Who"
+msgstr ""
+
+#: src/Admin_Edit/History_Box.php:48
+#: templates/imports/format-guide.php:13
+msgid "Field"
+msgstr ""
+
+#: src/Admin_Edit/History_Box.php:48
+msgid "Before"
+msgstr ""
+
+#: src/Admin_Edit/History_Box.php:48
+msgid "After"
+msgstr ""
+
+#. translators: %d: user ID
+#: src/Admin_Edit/History_Box.php:56
+#, php-format
+msgid "user #%d"
+msgstr ""
+
+#: src/Admin_Edit/History_Box.php:62
+#: src/Admin_Edit/History_Box.php:63
+msgid "[value not recorded]"
+msgstr ""
+
+#: src/Admin_Edit/Notifications_Admin.php:38
+#: src/Vendors/Service.php:245
+msgid "Unknown action."
+msgstr ""
+
+#: src/Admin_Edit/Notifications_Admin.php:45
+#: src/Admin_Edit/Saver.php:51
+#: src/Admin_Edit/Saver.php:96
+#: src/Admin_Edit/Users.php:263
+#: src/Admin_Edit/Users.php:294
+#: src/Imports/Connections.php:276
+#: src/Imports/Importer.php:516
+#: src/Products/Service.php:370
+#: src/Vendors/Admin.php:262
+#: src/Vendors/Service.php:239
+#: src/Vendors/Service.php:301
+#: src/Vendors/Service.php:339
+#: src/Vendors/Vendor_Ajax.php:81
+msgid "You are not allowed to do that."
+msgstr ""
+
+#: src/Admin_Edit/Notifications_Admin.php:52
+msgid "Notification not found."
+msgstr ""
+
+#: src/Admin_Edit/Notifications_Admin.php:68
+msgid "The message must be 1 to 1,000 characters."
+msgstr ""
+
+#: src/Admin_Edit/Notifications_Admin.php:72
+msgid "Choose read or unread."
+msgstr ""
+
+#: src/Admin_Edit/Notifications_Admin.php:76
+#: src/Admin_Edit/Saver.php:108
+#: src/Imports/Connections.php:56
+#: src/Products/Service.php:380
+#: src/Vendors/Ajax.php:44
+#: src/Vendors/Service.php:402
+msgid "Please correct the highlighted fields."
+msgstr ""
+
+#: src/Admin_Edit/Row_Actions.php:43
+msgid "Restore"
+msgstr ""
+
+#: src/Admin_Edit/Row_Actions.php:44
+msgid "Delete Permanently"
+msgstr ""
+
+#: src/Admin_Edit/Row_Actions.php:46
+msgid "Move to Trash"
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:102
+msgid "Record not found."
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:193
+msgid "Choose pending, accepted, rejected or removed."
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:316
+#: src/Admin_Edit/Saver.php:421
+msgid "Choose an image from the Media Library."
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:318
+#: src/Profile/Ajax.php:153
+msgid "This file is a private document and cannot be used as a public image"
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:346
+#: src/Auth/Registration.php:228
+#: src/Vendors/Service.php:411
+msgid "This GSTIN is already registered."
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:370
+msgid "Choose a status from the list."
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:375
+#: src/Vendors/Service.php:263
+msgid "That status change is not allowed."
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:386
+msgid "This seller cannot be approved until the business details are complete and valid:"
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:426
+#: src/Products/Service.php:94
+msgid "This seller already has a product with this SKU."
+msgstr ""
+
+#: src/Admin_Edit/Saver.php:433
+msgid "Choose Published or Draft."
+msgstr ""
+
+#: src/Admin_Edit/Users.php:50
+msgid "This account belongs to a seller whose products appear in orders, so it cannot be deleted. Suspend the seller or move their record to the trash instead; the orders stay valid."
+msgstr ""
+
+#: src/Admin_Edit/Users.php:225
+msgid "Create seller record for this user"
+msgstr ""
+
+#: src/Admin_Edit/Users.php:267
+#: src/Vendors/Repository.php:230
+#: src/Vendors/Service.php:48
+#: src/Vendors/Service.php:87
+msgid "Account not found."
+msgstr ""
+
+#: src/Admin_Edit/Users.php:271
+msgid "This user already has a seller record."
 msgstr ""
 
 #: src/Auth/Login.php:78
@@ -230,7 +726,7 @@ msgstr ""
 
 #: src/Auth/Login.php:174
 #: src/Auth/Registration.php:186
-#: src/Profile/Ajax.php:195
+#: src/Profile/Ajax.php:193
 msgid "Password must be at least 8 characters"
 msgstr ""
 
@@ -297,22 +793,17 @@ msgid "Username must be 3-30 characters (letters, numbers, . _ -)"
 msgstr ""
 
 #: src/Auth/Registration.php:190
-#: src/Profile/Ajax.php:199
+#: src/Profile/Ajax.php:197
 msgid "Passwords do not match"
 msgstr ""
 
 #: src/Auth/Registration.php:201
-#: src/Profile/Ajax.php:57
+#: src/Profile/Validator.php:40
 msgid "Invalid date of birth"
 msgstr ""
 
 #: src/Auth/Registration.php:206
 msgid "User already exists"
-msgstr ""
-
-#: src/Auth/Registration.php:228
-#: src/Vendors/Service.php:313
-msgid "This GSTIN is already registered."
 msgstr ""
 
 #: src/Auth/Registration.php:246
@@ -434,20 +925,20 @@ msgstr ""
 msgid "Connection status updated"
 msgstr ""
 
-#: src/Content/Ajax.php:42
-msgid "Title is required"
-msgstr ""
-
-#: src/Content/Ajax.php:51
+#: src/Content/Ajax.php:52
 msgid "Invalid image selected"
 msgstr ""
 
-#: src/Content/Ajax.php:55
+#: src/Content/Ajax.php:56
 msgid "Failed to create post"
 msgstr ""
 
-#: src/Content/Ajax.php:58
+#: src/Content/Ajax.php:59
 msgid "Post created"
+msgstr ""
+
+#: src/Content/Validator.php:28
+msgid "Title is required"
 msgstr ""
 
 #: src/Http/Ajax.php:59
@@ -483,7 +974,7 @@ msgstr ""
 
 #: src/Imports/Admin.php:41
 #: templates/admin/metabox-contents.php:7
-#: templates/admin/notifications.php:14
+#: templates/admin/notifications.php:15
 #: templates/profile/content-history.php:6
 msgid "Date"
 msgstr ""
@@ -638,13 +1129,6 @@ msgstr ""
 msgid "You can save up to %d connections. Delete one first."
 msgstr ""
 
-#: src/Imports/Connections.php:56
-#: src/Products/Service.php:332
-#: src/Vendors/Ajax.php:44
-#: src/Vendors/Service.php:304
-msgid "Please correct the highlighted fields."
-msgstr ""
-
 #: src/Imports/Connections.php:67
 msgid "Could not save the connection. Please try again."
 msgstr ""
@@ -684,15 +1168,6 @@ msgstr ""
 
 #: src/Imports/Connections.php:225
 msgid "The key must be 1-512 visible characters without spaces."
-msgstr ""
-
-#: src/Imports/Connections.php:276
-#: src/Imports/Importer.php:516
-#: src/Products/Service.php:322
-#: src/Vendors/Admin.php:262
-#: src/Vendors/Service.php:239
-#: src/Vendors/Vendor_Ajax.php:81
-msgid "You are not allowed to do that."
 msgstr ""
 
 #: src/Imports/Connections.php:285
@@ -1033,7 +1508,7 @@ msgid "This product is not available."
 msgstr ""
 
 #: src/Notifications/Ajax.php:28
-#: src/Profile/Ajax.php:175
+#: src/Profile/Ajax.php:173
 msgid "Not logged in"
 msgstr ""
 
@@ -1126,45 +1601,6 @@ msgstr ""
 msgid "Product"
 msgstr ""
 
-#: src/Products/Admin.php:38
-#: src/Products/Fields.php:36
-#: templates/admin/metabox-product.php:16
-#: templates/orders/sale-order.php:24
-#: templates/orders/sales.php:42
-#: templates/products/form.php:33
-msgid "SKU"
-msgstr ""
-
-#: src/Products/Admin.php:39
-#: src/Products/Fields.php:34
-#: templates/admin/metabox-product.php:17
-#: templates/orders/my-orders.php:39
-#: templates/orders/sales.php:45
-#: templates/products/form.php:23
-msgid "Price"
-msgstr ""
-
-#: src/Products/Admin.php:40
-#: src/Products/Fields.php:35
-#: templates/admin/metabox-product.php:18
-#: templates/products/form.php:28
-msgid "Stock"
-msgstr ""
-
-#: src/Products/Admin.php:41
-#: src/Products/Fields.php:37
-#: templates/admin/metabox-product.php:19
-#: templates/products/form.php:38
-#: templates/profile/tab-marketplace.php:19
-msgid "Category"
-msgstr ""
-
-#: src/Products/Admin.php:42
-#: templates/admin/metabox-product.php:20
-#: templates/imports/api-popup.php:13
-msgid "Source"
-msgstr ""
-
 #: src/Products/Admin.php:99
 msgid "Product details"
 msgstr ""
@@ -1180,17 +1616,6 @@ msgstr ""
 #: src/Products/Fields.php:32
 #: templates/products/form.php:13
 msgid "Product name"
-msgstr ""
-
-#: src/Products/Fields.php:33
-#: templates/admin/metabox-product.php:21
-#: templates/products/form.php:18
-msgid "Description"
-msgstr ""
-
-#: src/Products/Fields.php:38
-#: templates/products/form.php:48
-msgid "Image"
 msgstr ""
 
 #: src/Products/Fields.php:49
@@ -1226,14 +1651,6 @@ msgstr ""
 msgid "Sports"
 msgstr ""
 
-#: src/Products/Fields.php:57
-#: src/Products/Fields.php:86
-#: src/Vendors/Fields.php:65
-#: templates/admin/metabox-personal.php:14
-#: templates/auth/registration-form.php:21
-msgid "Other"
-msgstr ""
-
 #: src/Products/Presenter.php:190
 #: templates/marketplace/card.php:37
 msgid "Out of stock"
@@ -1250,33 +1667,34 @@ msgid "In stock"
 msgstr ""
 
 #: src/Products/Service.php:43
-#: src/Products/Service.php:112
+#: src/Products/Service.php:160
 msgid "Choose one of your own uploaded images."
 msgstr ""
 
 #: src/Products/Service.php:53
-#: src/Products/Service.php:126
+#: src/Products/Service.php:89
+#: src/Products/Service.php:174
 msgid "This product is being saved right now. Please try again in a moment."
 msgstr ""
 
-#: src/Products/Service.php:160
+#: src/Products/Service.php:208
 msgid "You already have a different product with this SKU."
 msgstr ""
 
-#: src/Products/Service.php:166
-#: src/Products/Service.php:266
+#: src/Products/Service.php:214
+#: src/Products/Service.php:314
 msgid "You have reached the maximum number of products."
 msgstr ""
 
-#: src/Products/Service.php:180
+#: src/Products/Service.php:228
 msgid "Could not save the product."
 msgstr ""
 
-#: src/Products/Service.php:260
+#: src/Products/Service.php:308
 msgid "You already have a product with this SKU."
 msgstr ""
 
-#: src/Products/Service.php:272
+#: src/Products/Service.php:320
 msgid "Could not save the product. Please try again."
 msgstr ""
 
@@ -1318,47 +1736,39 @@ msgstr ""
 msgid "Invalid value."
 msgstr ""
 
-#: src/Profile/Ajax.php:68
+#: src/Profile/Ajax.php:65
 msgid "Personal Info Updated"
 msgstr ""
 
-#: src/Profile/Ajax.php:87
+#: src/Profile/Ajax.php:84
 msgid "Address Info Updated"
 msgstr ""
 
-#: src/Profile/Ajax.php:110
-msgid "Invalid company email"
-msgstr ""
-
-#: src/Profile/Ajax.php:117
+#: src/Profile/Ajax.php:115
 msgid "Work Info Updated"
 msgstr ""
 
-#: src/Profile/Ajax.php:148
+#: src/Profile/Ajax.php:146
 msgid "Invalid file selected"
 msgstr ""
 
-#: src/Profile/Ajax.php:155
-msgid "This file is a private document and cannot be used as a public image"
-msgstr ""
-
-#: src/Profile/Ajax.php:161
+#: src/Profile/Ajax.php:159
 msgid "This file is already used as a public image. Please upload a separate file for your document"
 msgstr ""
 
-#: src/Profile/Ajax.php:167
+#: src/Profile/Ajax.php:165
 msgid "Documents updated"
 msgstr ""
 
-#: src/Profile/Ajax.php:191
+#: src/Profile/Ajax.php:189
 msgid "Current password is incorrect"
 msgstr ""
 
-#: src/Profile/Ajax.php:203
+#: src/Profile/Ajax.php:201
 msgid "New password must be different"
 msgstr ""
 
-#: src/Profile/Ajax.php:212
+#: src/Profile/Ajax.php:210
 msgid "Password updated successfully"
 msgstr ""
 
@@ -1416,6 +1826,14 @@ msgstr ""
 
 #: src/Profile/Upload_Policy.php:217
 msgid "You have reached the maximum number of uploaded files. Please remove some before uploading more."
+msgstr ""
+
+#: src/Profile/Validator.php:33
+msgid "Invalid gender"
+msgstr ""
+
+#: src/Profile/Validator.php:48
+msgid "Invalid company email"
 msgstr ""
 
 #: src/Shortcodes/Contact_Form.php:41
@@ -1554,25 +1972,6 @@ msgstr ""
 msgid "That change was not possible for this vendor's current status."
 msgstr ""
 
-#: src/Vendors/Admin.php:316
-#: templates/admin/metabox-connection.php:39
-msgid "Pending"
-msgstr ""
-
-#: src/Vendors/Admin.php:317
-msgid "Approved"
-msgstr ""
-
-#: src/Vendors/Admin.php:318
-msgid "Suspended"
-msgstr ""
-
-#: src/Vendors/Admin.php:319
-#: templates/admin/metabox-connection.php:41
-#: templates/admin/metabox-vendor.php:14
-msgid "Rejected"
-msgstr ""
-
 #: src/Vendors/Admin.php:320
 msgid "Not a vendor"
 msgstr ""
@@ -1665,11 +2064,6 @@ msgstr ""
 msgid "Your seller application was not approved"
 msgstr ""
 
-#: src/Vendors/Service.php:48
-#: src/Vendors/Service.php:87
-msgid "Account not found."
-msgstr ""
-
 #: src/Vendors/Service.php:54
 #: src/Vendors/Service.php:91
 msgid "You have already applied to sell."
@@ -1677,6 +2071,7 @@ msgstr ""
 
 #: src/Vendors/Service.php:122
 #: src/Vendors/Service.php:209
+#: src/Vendors/Service.php:310
 msgid "This GSTIN is being registered right now. Please try again in a moment."
 msgstr ""
 
@@ -1697,16 +2092,8 @@ msgstr ""
 msgid "Nothing to update."
 msgstr ""
 
-#: src/Vendors/Service.php:245
-msgid "Unknown action."
-msgstr ""
-
 #: src/Vendors/Service.php:252
 msgid "Application not found."
-msgstr ""
-
-#: src/Vendors/Service.php:263
-msgid "That status change is not allowed."
 msgstr ""
 
 #: src/Vendors/Validator.php:111
@@ -1845,14 +2232,6 @@ msgstr ""
 msgid "Receiver User Name"
 msgstr ""
 
-#: templates/admin/metabox-connection.php:40
-msgid "Accepted"
-msgstr ""
-
-#: templates/admin/metabox-connection.php:42
-msgid "Removed"
-msgstr ""
-
 #: templates/admin/metabox-connections.php:3
 #: templates/profile/history.php:11
 msgid "📥 Received Requests"
@@ -1894,11 +2273,6 @@ msgstr ""
 msgid "User Name"
 msgstr ""
 
-#: templates/admin/metabox-contents.php:6
-#: templates/profile/content-history.php:5
-msgid "Title"
-msgstr ""
-
 #: templates/admin/metabox-contents.php:26
 #: templates/profile/content-history.php:29
 #: templates/profile/tab-notifications.php:55
@@ -1908,18 +2282,6 @@ msgstr ""
 #: templates/admin/metabox-contents.php:34
 #: templates/profile/content-history.php:38
 msgid "No content found"
-msgstr ""
-
-#: templates/admin/metabox-documents.php:13
-#: templates/admin/settings.php:24
-msgid "Upload"
-msgstr ""
-
-#: templates/admin/metabox-documents.php:14
-#: templates/admin/settings.php:25
-#: templates/products/form.php:53
-#: templates/profile/tab-connections.php:76
-msgid "Remove"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:3
@@ -1932,49 +2294,13 @@ msgstr ""
 msgid "Last Name"
 msgstr ""
 
-#: templates/admin/metabox-personal.php:5
-#: templates/profile/tab-info.php:45
-#: templates/shortcodes/contact-form.php:36
-msgid "Email"
-msgstr ""
-
-#: templates/admin/metabox-personal.php:6
-#: templates/profile/tab-info.php:74
-msgid "Phone"
-msgstr ""
-
-#: templates/admin/metabox-personal.php:7
-#: templates/profile/tab-info.php:80
-msgid "LinkedIn"
-msgstr ""
-
-#: templates/admin/metabox-personal.php:9
-#: templates/profile/tab-info.php:61
-msgid "Gender"
-msgstr ""
-
 #: templates/admin/metabox-personal.php:11
 msgid "Select Gender"
-msgstr ""
-
-#: templates/admin/metabox-personal.php:12
-#: templates/auth/registration-form.php:19
-msgid "Male"
-msgstr ""
-
-#: templates/admin/metabox-personal.php:13
-#: templates/auth/registration-form.php:20
-msgid "Female"
 msgstr ""
 
 #: templates/admin/metabox-personal.php:17
 #: templates/profile/tab-info.php:67
 msgid "Birthdate"
-msgstr ""
-
-#: templates/admin/metabox-personal.php:22
-#: templates/profile/tab-info.php:87
-msgid "Bio"
 msgstr ""
 
 #: templates/admin/metabox-seller-account.php:12
@@ -2041,11 +2367,6 @@ msgstr ""
 msgid "Company Name"
 msgstr ""
 
-#: templates/admin/metabox-work.php:3
-#: templates/profile/tab-info.php:165
-msgid "Designation"
-msgstr ""
-
 #: templates/admin/metabox-work.php:4
 #: templates/profile/tab-info.php:170
 msgid "Company Email"
@@ -2061,48 +2382,81 @@ msgstr ""
 msgid "Company Address"
 msgstr ""
 
-#: templates/admin/notifications.php:3
+#: templates/admin/notifications.php:4
 #: templates/profile/tab-notifications.php:11
 msgid "🔔 Notifications"
 msgstr ""
 
-#: templates/admin/notifications.php:8
+#: templates/admin/notifications.php:9
 msgid "ID"
 msgstr ""
 
-#: templates/admin/notifications.php:9
+#: templates/admin/notifications.php:10
 msgid "Actor"
 msgstr ""
 
-#: templates/admin/notifications.php:10
+#: templates/admin/notifications.php:11
 msgid "Receiver"
 msgstr ""
 
-#: templates/admin/notifications.php:11
+#: templates/admin/notifications.php:12
 #: templates/imports/format-guide.php:15
 msgid "Type"
 msgstr ""
 
-#: templates/admin/notifications.php:12
+#: templates/admin/notifications.php:13
 #: templates/shortcodes/contact-form.php:46
 msgid "Message"
 msgstr ""
 
-#: templates/admin/notifications.php:32
+#: templates/admin/notifications.php:17
+#: templates/imports/api-popup.php:75
+#: templates/profile/tab-my-products.php:39
+#: templates/profile/vendor-card.php:61
+msgid "Edit"
+msgstr ""
+
+#: templates/admin/notifications.php:36
+#: templates/admin/notifications.php:51
 #: templates/profile/tab-notifications.php:39
 msgid "Read"
 msgstr ""
 
-#: templates/admin/notifications.php:34
+#: templates/admin/notifications.php:38
+#: templates/admin/notifications.php:50
 msgid "Unread"
 msgstr ""
 
-#: templates/admin/notifications.php:42
+#: templates/admin/notifications.php:53
+msgid "Save"
+msgstr ""
+
+#: templates/admin/notifications.php:54
+msgid "Delete this notification for good?"
+msgstr ""
+
+#: templates/admin/notifications.php:54
+#: templates/imports/api-popup.php:76
+#: templates/profile/tab-my-products.php:40
+msgid "Delete"
+msgstr ""
+
+#: templates/admin/notifications.php:62
 msgid "No notifications found"
 msgstr ""
 
 #: templates/admin/settings.php:10
 msgid "Profile System Settings"
+msgstr ""
+
+#: templates/admin/settings.php:24
+msgid "Upload"
+msgstr ""
+
+#: templates/admin/settings.php:25
+#: templates/products/form.php:53
+#: templates/profile/tab-connections.php:76
+msgid "Remove"
 msgstr ""
 
 #: templates/admin/settings.php:31
@@ -2561,17 +2915,6 @@ msgstr ""
 msgid "Saved connections (up to %d)"
 msgstr ""
 
-#: templates/imports/api-popup.php:75
-#: templates/profile/tab-my-products.php:39
-#: templates/profile/vendor-card.php:61
-msgid "Edit"
-msgstr ""
-
-#: templates/imports/api-popup.php:76
-#: templates/profile/tab-my-products.php:40
-msgid "Delete"
-msgstr ""
-
 #: templates/imports/api-popup.php:80
 msgid "No saved connections yet. Choose \"My own API...\" to add one."
 msgstr ""
@@ -2611,10 +2954,6 @@ msgstr ""
 
 #: templates/imports/format-guide.php:10
 msgid "Each entry of \"products\""
-msgstr ""
-
-#: templates/imports/format-guide.php:13
-msgid "Field"
 msgstr ""
 
 #: templates/imports/format-guide.php:14

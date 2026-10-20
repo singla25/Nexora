@@ -78,7 +78,7 @@ $h = do_shortcode( '[nexora_auth_buttons]' );
 nx_assert( false !== strpos( $h, rawurlencode( $alice['login'] ) ) && false !== strpos( $h, 'Log out' ) && false !== strpos( $h, 'action=logout' ), 'auth buttons (member): profile link + logout' );
 wp_set_current_user( 0 );
 delete_transient( Nexora_Home_Page::STATS_TRANSIENT );
-$members = (int) wp_count_posts( 'nexora_customer' )->publish;
+$members = (int) wp_count_posts( 'nexora_customer' )->publish + (int) wp_count_posts( 'nexora_seller' )->publish; // a direct seller is a member too (whatever real data the site has)
 nx_assert_same( Nexora_Home_Page::short_number( $members ), do_shortcode( '[nexora_stat type="members"]' ), '[nexora_stat members] matches published profiles' );
 nx_assert_same( '', do_shortcode( '[nexora_stat type="bogus"]' ), '[nexora_stat] unknown type renders nothing' );
 foreach ( array( 'connections', 'posts', 'chats' ) as $t ) {

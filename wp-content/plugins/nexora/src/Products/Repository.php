@@ -87,6 +87,30 @@ class Repository {
 	}
 
 	/**
+	 * Sets a product's status (publish lists it in the marketplace, draft hides it).
+	 *
+	 * @param int    $id     Product ID.
+	 * @param string $status publish | draft.
+	 */
+	public static function set_status( $id, $status ) {
+
+		if ( ! in_array( $status, array( 'publish', 'draft' ), true ) ) {
+			return;
+		}
+
+		self::internally(
+			function () use ( $id, $status ) {
+				wp_update_post(
+					array(
+						'ID'          => (int) $id,
+						'post_status' => $status,
+					)
+				);
+			}
+		);
+	}
+
+	/**
 	 * Deletes a product for good (past orders keep their own snapshot).
 	 *
 	 * @param int $id Product ID.

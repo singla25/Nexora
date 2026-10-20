@@ -67,6 +67,13 @@ class Plugin {
 		new \Nexora\Orders\Ajax();
 		new \Nexora\Vendors\Assets();
 		new \Nexora\Connections\Cache();
+		new \Nexora\Admin_Edit\Acf_Bridge();
+		new \Nexora\Admin_Edit\History_Box();
+		new \Nexora\Admin_Edit\Core_Lock();
+		new \Nexora\Admin_Edit\Deletion();
+		new \Nexora\Admin_Edit\Users();
+		new \Nexora\Admin_Edit\Notifications_Admin();
+		new \Nexora\Admin_Edit\Row_Actions();
 
 		new I18n();
 		new Assets();

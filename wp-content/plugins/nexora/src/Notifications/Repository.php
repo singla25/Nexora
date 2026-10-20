@@ -155,6 +155,54 @@ class Repository {
 	}
 
 	/**
+	 * An administrator's edit of one notification: its message and read flag. Nothing else about the row changes.
+	 *
+	 * @param int    $id      Notification ID.
+	 * @param string $message Cleaned message.
+	 * @param int    $is_read 0 or 1.
+	 */
+	public function update_row( $id, $message, $is_read ) {
+
+		global $wpdb;
+
+		$wpdb->update(
+			$this->table,
+			array(
+				'message' => $message,
+				'is_read' => (int) $is_read,
+			),
+			array( 'id' => (int) $id ),
+			array( '%s', '%d' ),
+			array( '%d' )
+		);
+	}
+
+	/**
+	 * Deletes one notification.
+	 *
+	 * @param int $id Notification ID.
+	 */
+	public function delete_row( $id ) {
+
+		global $wpdb;
+
+		$wpdb->delete( $this->table, array( 'id' => (int) $id ), array( '%d' ) );
+	}
+
+	/**
+	 * Deletes every notification a member sent or received (their account is being deleted).
+	 *
+	 * @param int $user_id User ID.
+	 */
+	public function delete_for_user( $user_id ) {
+
+		global $wpdb;
+
+		$wpdb->delete( $this->table, array( 'receiver_user_id' => (int) $user_id ), array( '%d' ) );
+		$wpdb->delete( $this->table, array( 'actor_user_id' => (int) $user_id ), array( '%d' ) );
+	}
+
+	/**
 	 * Number of unread notifications of a member.
 	 *
 	 * @param int $user_id User ID.

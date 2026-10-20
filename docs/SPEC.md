@@ -1,6 +1,6 @@
 # Nexora Marketplace: SPEC
 
-Status: the Phase 0 decisions (2026-10-14) are below. Phases 1 to 6 are built; sections 8a to 8a4 describe what is built. Sections 11 and 12 (Phases 7a and 7b) are specified, not built.
+Status: the Phase 0 decisions (2026-10-14) are below. Phases 1 to 6 are built; sections 8a to 8a4 describe what is built. Section 11 (Phase 7a) is built, awaiting review; section 12 (Phase 7b) is built, awaiting review.
 
 ## 0. Decisions log
 
@@ -361,7 +361,7 @@ Nothing in this section is open.
 
 Status: **specified, not built.** Recorded from the owner's requirement and answers (2026-10-19). Depends on Phase 7a.
 
-**Who and how.** Administrators (`manage_options`) can edit, trash and delete every Nexora post type through **ACF Pro** field groups registered in code, using the existing meta keys as the field names. *Prerequisite:* ACF Pro installed and licensed (through wp-admin, not committed); the site has the free ACF 6.8.10 today.
+**Who and how.** Administrators (`manage_options`) can edit, trash and delete every Nexora post type through ACF field groups registered in code (`acf_add_local_field_group`), using the existing meta keys as the field names. *Edition (decided at 7b):* the **free** ACF (6.8.x) is enough, because ACF only draws the form: saving is done by `Admin_Edit\Saver` (ACF's save is skipped through `acf/form-post/skip_save`). ACF Pro also works. Without any ACF the screens stay read-only and show a notice.
 
 **Validation.** Admin saves go through the same validators as the front end.
 
@@ -386,3 +386,17 @@ Status: **specified, not built.** Recorded from the owner's requirement and answ
 **Row action for seller-only accounts** (decided for 7b): an administrator can create a seller-only account by hand through an admin row action that uses the shared linking method of section 11.
 
 Nothing in this section is open.
+
+
+### 12a. What was built (Phase 7b, 2026-10-20)
+
+- **Gate:** `Core\Admin_Gate::open( $post_id, $operation )` is the one switch past `Core\Post_Guard`: `manage_options`, the wp-admin `post.php` screen (not AJAX, REST, cron), a POST `editpost` for that post or a GET `trash|untrash|delete` for that post, and the nonce for that exact post and action. Creating is never lifted; `keep_fields` still blocks core-field rewrites.
+- **Saver:** `Admin_Edit\Saver` validates every submitted value with the front end's validators (`Profile\Validator`, `Vendors\Validator` + GSTIN uniqueness across both seller types, `Products\Validator` + SKU per seller, `Content\Validator`, connection statuses), is all-or-nothing, writes through the Services/Repositories and records changes. Seller status uses `Vendors\Service::action_for()` then `change_status()` (same promote/suspend/reject logic and mails; rejected to approved, approved to pending and the like are refused). `Admin_Edit\Fields` is the one registry of editable and read-only fields (identity, owner, links, import origin, ID documents, all order snapshots are read-only).
+- **History:** table `{prefix}nexora_audit` (DB 1.2.0), append-only (`Admin_Edit\Audit` has no change/remove method), survives deletion; secret-named fields record only that they changed.
+- **Delete rules:** see `Admin_Edit\Deletion` (trash allowed with orders: products to draft, orders untouched; permanent delete refused while any order line refers to the seller, on every route; no orders: products, API connections and import history go, the member drops to subscriber and a direct seller gets a customer post; a customer post with a seller record cannot be trashed or deleted; a user whose seller record has orders cannot be deleted from Users, otherwise their Nexora records cascade). Users screen row action "Create seller record for this user" (`Vendors\Service::open_blank()`, pending, shared linker).
+- **Notifications:** edit message / read flag and delete on the admin screen (`Admin_Edit\Notifications_Admin`), nonce per row and action. Chat is untouched. API connections and import logs get no edit form (they hold keys); trash/delete only under the same gate.
+
+### 12b. Known limits (Phase 7b)
+
+- **`wp_delete_user()` called from code is not blocked.** The refusal to delete a user whose seller record has order lines is enforced on the Users screen (the delete link is withdrawn through the `delete_user` capability, and a delete request that includes such a user stops with a plain message). WordPress offers no way to cancel `wp_delete_user()` itself, so code that calls it directly (another plugin, WP-CLI, a script) deletes the account. In that case `Admin_Edit\Users::cascade()` leaves the seller record alone, because `Vendors\Repository::delete()` and `Admin_Edit\Deletion` refuse to delete a record that orders refer to: the user is gone, the seller record, its products and the orders stay as they were, and the record points at a user that no longer exists.
+- **Approval needs complete business details.** `Vendors\Service::change_status( $id, 'approve' )` (the one path for the decision buttons, the admin edit form and records made from the Users screen) validates the stored details with `Vendors\Validator`, the same rules as registration; rejecting or suspending is not held up by it.

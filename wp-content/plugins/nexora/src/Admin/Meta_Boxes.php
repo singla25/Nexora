@@ -13,17 +13,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * The edit-screen panels for user profiles, connections and content, and saving them.
- * Markup lives in templates/admin/metabox-*.php.
+ * The edit-screen panels for user profiles, connections and content: read-only views. Nothing is saved from here: an administrator
+ * edits through the ACF field groups (Admin_Edit), which validate every value. Where ACF draws the editable fields these panels
+ * are not added a second time; without ACF they stay as read-only views. Markup lives in templates/admin/metabox-*.php.
  */
 class Meta_Boxes {
 
 	/**
-	 * Hooks the meta boxes and the save handler.
+	 * Hooks the meta boxes.
 	 */
 	public function __construct() {
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
-		add_action( 'save_post', array( $this, 'save_meta_boxes' ) );
 	}
 
 	/**
@@ -31,20 +31,31 @@ class Meta_Boxes {
 	 */
 	public function add_meta_boxes() {
 
+		$plain = ! \Nexora\Admin_Edit\Acf_Bridge::active();
+
 		foreach ( \Nexora\Core\Post_Types::profiles() as $type ) {
-			add_meta_box( 'user_personal_details', __( 'User Personal Details', 'nexora' ), array( $this, 'user_personal_details' ), $type );
-			add_meta_box( 'user_address_details', __( 'User Address Details', 'nexora' ), array( $this, 'user_address_details' ), $type );
-			add_meta_box( 'user_work_details', __( 'User Work Details', 'nexora' ), array( $this, 'user_work_details' ), $type );
+
+			if ( $plain ) {
+				add_meta_box( 'user_personal_details', __( 'User Personal Details', 'nexora' ), array( $this, 'user_personal_details' ), $type );
+				add_meta_box( 'user_address_details', __( 'User Address Details', 'nexora' ), array( $this, 'user_address_details' ), $type );
+				add_meta_box( 'user_work_details', __( 'User Work Details', 'nexora' ), array( $this, 'user_work_details' ), $type );
+			}
+
 			add_meta_box( 'user_document_details', __( 'User Document Details', 'nexora' ), array( $this, 'user_document_details' ), $type );
 			add_meta_box( 'user_connection_details', __( 'User Connection Details', 'nexora' ), array( $this, 'user_connection_details' ), $type );
 			add_meta_box( 'user_content_details', __( 'User Content Details', 'nexora' ), array( $this, 'user_content_details' ), $type );
 			add_meta_box( 'user_chat_details', __( 'User Chat Details', 'nexora' ), array( $this, 'user_chat_details' ), $type );
 		}
 
-		add_meta_box( 'user_connection_meta_box', __( 'User Connection Details', 'nexora' ), array( $this, 'user_connection_meta_box' ), 'user_connections' );
+		if ( $plain ) {
+			add_meta_box( 'user_connection_meta_box', __( 'User Connection Details', 'nexora' ), array( $this, 'user_connection_meta_box' ), 'user_connections' );
+		}
+
 		add_meta_box( 'user_connection_chat_box', __( 'User Connection Chat Details', 'nexora' ), array( $this, 'user_connection_chat_box' ), 'user_connections' );
 
-		add_meta_box( 'user_content_meta_box', __( 'User Content Info', 'nexora' ), array( $this, 'render_user_content_meta_box' ), 'user_content' );
+		if ( $plain ) {
+			add_meta_box( 'user_content_meta_box', __( 'User Content Info', 'nexora' ), array( $this, 'render_user_content_meta_box' ), 'user_content' );
+		}
 	}
 
 	/**
@@ -342,92 +353,5 @@ class Meta_Boxes {
 	public function render_user_content_meta_box( $post ) {
 
 		View::output( 'admin/metabox-content', array( 'm' => $this->meta_of( $post->ID, array( 'user_id', 'user_profile_id', 'user_name' ) ) ) );
-	}
-
-	/**
-	 * Saves the fields of the three edit screens. Administrators only; ignored for autosaves, revisions, AJAX and bad nonces.
-	 *
-	 * @param int $post_id Post ID.
-	 */
-	public function save_meta_boxes( $post_id ) {
-
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
-		}
-
-		if ( wp_is_post_revision( $post_id ) ) {
-			return;
-		}
-
-		// Only react to the real admin edit screen. Front-end AJAX handlers also
-		// call wp_insert_post() and must never be overwritten with raw $_POST data.
-		if ( ! is_admin() || wp_doing_ajax() ) {
-			return;
-		}
-
-		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'update-post_' . $post_id ) ) {
-			return;
-		}
-
-		if ( ! current_user_can( 'edit_post', $post_id ) || ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		$post_type = get_post_type( $post_id );
-
-		// ===============================
-		// USER PROFILE SAVE
-		// ===============================
-		if ( in_array( $post_type, \Nexora\Core\Post_Types::profiles(), true ) ) {
-
-			$fields = Fields::admin_editable();
-
-			foreach ( $fields as $field ) {
-				if ( isset( $_POST[ $field ] ) ) {
-
-					if ( in_array( $field, Fields::DOCUMENTS, true ) ) {
-						update_post_meta( $post_id, $field, absint( $_POST[ $field ] ) );
-					} else {
-						update_post_meta( $post_id, $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
-					}
-				}
-			}
-		}
-
-		// ===============================
-		// USER CONTENT SAVE
-		// ===============================
-		if ( 'user_content' === $post_type ) {
-
-			$fields = array( 'user_id', 'user_profile_id', 'user_name' );
-
-			foreach ( $fields as $field ) {
-				if ( isset( $_POST[ $field ] ) ) {
-					update_post_meta( $post_id, $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
-				}
-			}
-		}
-
-		// ===============================
-		// USER CONNECTION SAVE
-		// ===============================
-		if ( 'user_connections' === $post_type ) {
-
-			$fields = array(
-				'sender_user_id',
-				'sender_profile_id',
-				'sender_user_name',
-				'receiver_user_id',
-				'receiver_profile_id',
-				'receiver_user_name',
-				'status',
-			);
-
-			foreach ( $fields as $field ) {
-				if ( isset( $_POST[ $field ] ) ) {
-					update_post_meta( $post_id, $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
-				}
-			}
-		}
 	}
 }
