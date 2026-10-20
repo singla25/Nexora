@@ -65,6 +65,7 @@ The suite runs inside WordPress against the real DB, so a careless test can dest
 
 - Bump `NEXORA_VERSION` in `nexora.php` (header and constant) whenever plugin PHP/CSS/JS ships, and regenerate the `.pot` if strings changed. Shared design tokens are enqueued via `Core\Assets::enqueue_tokens()`.
 - Commit messages end with the `Co-Authored-By` line given by the harness; commits are made by explicit path; pushing is the user's call.
+- New tests must be run and shown failing before the code is written (red first), then the code, then green.
 - Set `WP_DEBUG` to `true` in your local `wp-config.php` to surface notices.
 
 ## Planned changes
