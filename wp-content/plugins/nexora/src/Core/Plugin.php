@@ -44,7 +44,10 @@ class Plugin {
 		new \Nexora\Accounts\Account_Types();
 		new \Nexora\Vendors\Ajax();
 		new \Nexora\Vendors\Admin();
-		new \Nexora\Core\Post_Guard( \Nexora\Vendors\Repository::POST_TYPE, array( '\Nexora\Vendors\Repository', 'is_internal' ) );
+		foreach ( \Nexora\Vendors\Repository::types() as $nx_seller_type ) {
+			new \Nexora\Core\Post_Guard( $nx_seller_type, array( '\Nexora\Vendors\Repository', 'is_internal' ) );
+		}
+		new \Nexora\Accounts\Migration();
 		new \Nexora\Products\Ajax();
 		new \Nexora\Products\Marketplace_Ajax();
 		new \Nexora\Products\Admin();

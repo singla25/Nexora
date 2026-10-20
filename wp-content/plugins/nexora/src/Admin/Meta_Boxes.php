@@ -31,13 +31,15 @@ class Meta_Boxes {
 	 */
 	public function add_meta_boxes() {
 
-		add_meta_box( 'user_personal_details', __( 'User Personal Details', 'nexora' ), array( $this, 'user_personal_details' ), 'user_profile' );
-		add_meta_box( 'user_address_details', __( 'User Address Details', 'nexora' ), array( $this, 'user_address_details' ), 'user_profile' );
-		add_meta_box( 'user_work_details', __( 'User Work Details', 'nexora' ), array( $this, 'user_work_details' ), 'user_profile' );
-		add_meta_box( 'user_document_details', __( 'User Document Details', 'nexora' ), array( $this, 'user_document_details' ), 'user_profile' );
-		add_meta_box( 'user_connection_details', __( 'User Connection Details', 'nexora' ), array( $this, 'user_connection_details' ), 'user_profile' );
-		add_meta_box( 'user_content_details', __( 'User Content Details', 'nexora' ), array( $this, 'user_content_details' ), 'user_profile' );
-		add_meta_box( 'user_chat_details', __( 'User Chat Details', 'nexora' ), array( $this, 'user_chat_details' ), 'user_profile' );
+		foreach ( \Nexora\Core\Post_Types::profiles() as $type ) {
+			add_meta_box( 'user_personal_details', __( 'User Personal Details', 'nexora' ), array( $this, 'user_personal_details' ), $type );
+			add_meta_box( 'user_address_details', __( 'User Address Details', 'nexora' ), array( $this, 'user_address_details' ), $type );
+			add_meta_box( 'user_work_details', __( 'User Work Details', 'nexora' ), array( $this, 'user_work_details' ), $type );
+			add_meta_box( 'user_document_details', __( 'User Document Details', 'nexora' ), array( $this, 'user_document_details' ), $type );
+			add_meta_box( 'user_connection_details', __( 'User Connection Details', 'nexora' ), array( $this, 'user_connection_details' ), $type );
+			add_meta_box( 'user_content_details', __( 'User Content Details', 'nexora' ), array( $this, 'user_content_details' ), $type );
+			add_meta_box( 'user_chat_details', __( 'User Chat Details', 'nexora' ), array( $this, 'user_chat_details' ), $type );
+		}
 
 		add_meta_box( 'user_connection_meta_box', __( 'User Connection Details', 'nexora' ), array( $this, 'user_connection_meta_box' ), 'user_connections' );
 		add_meta_box( 'user_connection_chat_box', __( 'User Connection Chat Details', 'nexora' ), array( $this, 'user_connection_chat_box' ), 'user_connections' );
@@ -376,7 +378,7 @@ class Meta_Boxes {
 		// ===============================
 		// USER PROFILE SAVE
 		// ===============================
-		if ( 'user_profile' === $post_type ) {
+		if ( in_array( $post_type, \Nexora\Core\Post_Types::profiles(), true ) ) {
 
 			$fields = Fields::admin_editable();
 

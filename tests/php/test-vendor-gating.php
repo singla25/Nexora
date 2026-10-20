@@ -93,12 +93,12 @@ nx_assert( ! empty( $r['success'] ) && $r['data']['user_id'] === $approved['user
 
 // Both the status AND the role are needed.
 $sneak = nx_test_user( 'gtsneak' );
-( new WP_User( $sneak['user_id'] ) )->add_role( Account_Types::ROLE );
+( new WP_User( $sneak['user_id'] ) )->add_role( Account_Types::ROLE_CUSTOMER_SELLER );
 nx_assert( $forbidden( $call( $sneak['user_id'], 'nexora_test_probe_sell' ) ), 'sell: the vendor role without an approved status is refused' );
 $norole = nx_test_user( 'gtnorole' ); $apply_as( $norole, 4 ); $approve( $norole );
-( new WP_User( $norole['user_id'] ) )->remove_role( Account_Types::ROLE );
-nx_assert( $forbidden( $call( $norole['user_id'], 'nexora_test_probe_sell' ) ), 'sell: an approved status without the role is refused' );
-( new WP_User( $norole['user_id'] ) )->add_role( Account_Types::ROLE );
+( new WP_User( $norole['user_id'] ) )->set_role( 'subscriber' );
+nx_assert( $forbidden( $call( $norole['user_id'], 'nexora_test_probe_sell' ) ), 'sell: an approved status without a seller role is refused' );
+( new WP_User( $norole['user_id'] ) )->set_role( Account_Types::ROLE_CUSTOMER_SELLER );
 nx_assert( ! empty( $call( $norole['user_id'], 'nexora_test_probe_sell' )['success'] ), 'sell: with both, the vendor passes' );
 
 /* ---------- earnings: approved and suspended (read-only), nobody else ---------- */

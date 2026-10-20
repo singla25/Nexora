@@ -141,7 +141,7 @@ $real = Uninstaller::defaults();
 foreach ( $tables as $t ) {
 	nx_assert( in_array( $wpdb->prefix . $t, $real['tables'], true ), "default uninstall drops $t" );
 }
-foreach ( array( 'user_profile', 'user_connections', 'user_content' ) as $cpt ) {
+foreach ( array( 'nexora_customer', 'user_connections', 'user_content' ) as $cpt ) {
 	nx_assert( in_array( $cpt, $real['post_types'], true ), "default uninstall removes $cpt posts" );
 }
 foreach ( array( '_profile_id', 'reset_otp', 'reset_token', 'reset_token_expiry', 'otp_attempts', 'otp_expiry' ) as $key ) {
@@ -216,7 +216,7 @@ nx_assert_same( (bool) ( '__unset__' === $real_setting ? 0 : $real_setting ), (b
 // Read the database, not the object cache: the uninstaller deletes with SQL.
 $sentinels = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name IN ('_transient_nexora_nxtest_sentinel','_transient_nx_rl_nxtest_sentinel')" );
 nx_assert_same( 2, $sentinels, 'real nexora_/nx_rl_ transients survived the uninstall run' );
-nx_assert( null !== get_role( 'nexora_vendor' ), 'the real vendor role survived' );
+nx_assert( null !== get_role( 'nexora_customer_seller' ) && null !== get_role( 'nexora_seller' ), 'the real seller roles survived' );
 delete_transient( 'nexora_nxtest_sentinel' );
 delete_transient( 'nx_rl_nxtest_sentinel' );
 

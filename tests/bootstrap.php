@@ -383,11 +383,11 @@ function nx_assert_same( $expected, $actual, $label ) {
 	nx_assert( $ok, $label . ( $ok ? '' : ' (expected ' . var_export( $expected, true ) . ', got ' . var_export( $actual, true ) . ')' ) );
 }
 
-/** Create a throwaway WP user plus linked user_profile post (same links as registration). */
+/** Create a throwaway WP user plus linked nexora_customer post (same links as registration). */
 function nx_test_user( $name ) {
 	$login = 'nxtest_' . $name . '_' . wp_generate_password( 4, false );
 	$uid   = wp_insert_user( array( 'user_login' => $login, 'user_pass' => wp_generate_password(), 'user_email' => $login . '@example.test' ) );
-	$pid   = wp_insert_post( array( 'post_type' => 'user_profile', 'post_status' => 'publish', 'post_title' => $login ) );
+	$pid   = wp_insert_post( array( 'post_type' => 'nexora_customer', 'post_status' => 'publish', 'post_title' => $login ) );
 	update_post_meta( $pid, '_wp_user_id', $uid );
 	update_post_meta( $pid, 'user_name', $login );
 	update_user_meta( $uid, '_profile_id', $pid );
@@ -431,6 +431,42 @@ function nx_test_vendor( $name, $state = 'approved', $gstin = null ) {
 		wp_set_current_user( $was );
 	}
 	return $u;
+}
+
+/** A bare WP user with no profile post at all (the starting point of seller registration). Returns its ID. */
+function nx_test_user_only( $name ) {
+	$login = 'nxtest_' . $name . '_' . wp_generate_password( 4, false );
+	$uid   = wp_insert_user( array( 'user_login' => $login, 'user_pass' => wp_generate_password(), 'user_email' => $login . '@example.test' ) );
+	$GLOBALS['nx_test']['users'][] = $uid;
+	return $uid;
+}
+
+/**
+ * A member who registered directly as a seller: a user and ONE nexora_seller post (their primary profile), no customer post.
+ * $state is 'pending', 'approved', 'suspended' or 'rejected'. Returns user_id, profile_id (= seller_id), seller_id, login, gstin.
+ */
+function nx_test_direct_seller( $name, $state = 'pending', $gstin = null ) {
+	static $n = 0;
+	$n++;
+	$login = 'nxtest_' . $name . '_' . wp_generate_password( 4, false );
+	$uid   = wp_insert_user( array( 'user_login' => $login, 'user_pass' => wp_generate_password(), 'user_email' => $login . '@example.test', 'first_name' => 'Dir', 'last_name' => ucfirst( $name ) ) );
+	$GLOBALS['nx_test']['users'][] = $uid;
+	$gstin = $gstin ? $gstin : sprintf( '27ABCD%s%04dB1Z5', chr( 65 + ( $n % 26 ) ), wp_rand( 0, 9999 ) );
+	$r     = \Nexora\Vendors\Service::register_seller(
+		$uid,
+		array( 'user_name' => $login, 'email' => $login . '@example.test', 'first_name' => 'Dir', 'last_name' => ucfirst( $name ), 'phone' => '9811100001', 'gender' => 'other', 'birthdate' => '1990-01-01' ),
+		array( 'business_name' => 'Direct Shop ' . $name, 'business_type' => 'other', 'gstin' => $gstin, 'business_email' => $name . '@example.test',
+			'business_phone' => '9811100002', 'business_address' => '2 Test Road', 'business_city' => 'Delhi', 'business_state' => 'Delhi', 'business_pincode' => '110001' )
+	);
+	if ( ! is_array( $r ) ) { throw new RuntimeException( 'nx_test_direct_seller: failed: ' . ( is_wp_error( $r ) ? wp_json_encode( $r->get_error_data() ) . $r->get_error_message() : 'unknown' ) ); }
+	$GLOBALS['nx_test']['posts'][] = $r['vendor_id'];
+	$was = get_current_user_id();
+	wp_set_current_user( nx_test_admin() );
+	if ( in_array( $state, array( 'approved', 'suspended' ), true ) ) { \Nexora\Vendors\Service::change_status( $r['vendor_id'], 'approve' ); }
+	if ( 'suspended' === $state ) { \Nexora\Vendors\Service::change_status( $r['vendor_id'], 'suspend' ); }
+	if ( 'rejected' === $state ) { \Nexora\Vendors\Service::change_status( $r['vendor_id'], 'reject' ); }
+	wp_set_current_user( $was );
+	return array( 'user_id' => $uid, 'profile_id' => $r['vendor_id'], 'seller_id' => $r['vendor_id'], 'vendor_id' => $r['vendor_id'], 'login' => $login, 'gstin' => $gstin );
 }
 
 /** Track any extra post (connection, content) for cleanup. */

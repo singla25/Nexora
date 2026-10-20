@@ -36,16 +36,16 @@ $track = function ( $uid ) {
 	return $vid;
 };
 $count_vendor_posts = function () use ( $wpdb ) {
-	return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'nexora_vendor'" );
+	return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'nexora_cust_seller'" );
 };
 $count_profiles = function () use ( $wpdb ) {
-	return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'user_profile'" );
+	return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'nexora_customer'" );
 };
 $admin_mail = get_option( 'default_admin_mail' ) ?: get_option( 'admin_email' );
 
 /* ---------- the CPT ---------- */
-$pt = get_post_type_object( 'nexora_vendor' );
-nx_assert( (bool) $pt, 'nexora_vendor post type is registered' );
+$pt = get_post_type_object( 'nexora_cust_seller' );
+nx_assert( (bool) $pt, 'nexora_cust_seller post type is registered' );
 nx_assert( $pt && false === $pt->public && true === $pt->show_ui && 'nexora-system' === $pt->show_in_menu, 'it is private and sits under "Nexora System"' );
 nx_assert( $pt && false === $pt->publicly_queryable && true === $pt->exclude_from_search && ! $pt->has_archive, 'it has no front-end URL and is not searchable' );
 
@@ -57,11 +57,11 @@ $r = Service::apply( $alice['user_id'], $biz( 0 ) );
 nx_assert( is_array( $r ) && ! empty( $r['vendor_id'] ), 'a valid application succeeds' );
 $vid = $track( $alice['user_id'] );
 nx_assert_same( $r['vendor_id'] ?? 0, $vid, 'the user is linked to the vendor post (_vendor_id)' );
-nx_assert( 'nexora_vendor' === get_post_type( $vid ) && (int) get_post_meta( $vid, '_wp_user_id', true ) === $alice['user_id'], 'the post links back to the user (_wp_user_id)' );
+nx_assert( 'nexora_cust_seller' === get_post_type( $vid ) && (int) get_post_meta( $vid, '_wp_user_id', true ) === $alice['user_id'], 'the post links back to the user (_wp_user_id)' );
 nx_assert_same( $biz( 0 ), Repository::data( $vid ), 'business details are stored' );
 nx_assert_same( 'Sharma Textiles 0', get_the_title( $vid ), 'the post title is the business name' );
 nx_assert_same( 'pending', Account_Types::vendor_status( $alice['user_id'] ), 'the applicant is pending' );
-nx_assert( ! in_array( Account_Types::ROLE, (array) get_userdata( $alice['user_id'] )->roles, true ) && ! Account_Types::can_sell( $alice['user_id'] ), 'pending: no vendor role, cannot sell' );
+nx_assert( ! in_array( Account_Types::ROLE_CUSTOMER_SELLER, (array) get_userdata( $alice['user_id'] )->roles, true ) && ! Account_Types::can_sell( $alice['user_id'] ), 'pending: no vendor role, cannot sell' );
 nx_assert_same( $base + 1, $count_vendor_posts(), 'exactly one vendor post created' );
 nx_assert_same( $alice['user_id'], Repository::user_for( $vid ), 'Repository::user_for resolves the owner' );
 nx_assert_same( $vid, Repository::find_by_gstin( strtolower( $GST[0] ) ), 'find_by_gstin is case-insensitive' );
@@ -110,7 +110,7 @@ nx_assert( is_array( $r ), 'with the lock gone the application succeeds' );
 
 /* ---------- rollback when the vendor post cannot be created ---------- */
 $dave = nx_test_user( 'vadave' );
-$fail = function ( $empty, $postarr ) { return 'nexora_vendor' === ( $postarr['post_type'] ?? '' ) ? true : $empty; };
+$fail = function ( $empty, $postarr ) { return 'nexora_cust_seller' === ( $postarr['post_type'] ?? '' ) ? true : $empty; };
 add_filter( 'wp_insert_post_empty_content', $fail, 10, 2 );
 $before = $count_vendor_posts();
 $r = Service::apply( $dave['user_id'], $biz( 3 ) );
@@ -215,10 +215,10 @@ $r = $reg( 'se', array( 'intent' => 'seller' ) + $biz( 5 ) + array( 'vendor_stat
 $u = ! empty( $r['success'] ) ? $find( $r['data']['redirect'] ) : null;
 nx_assert( $u instanceof WP_User, 'sign-up as Seller creates the member' );
 nx_assert( $u && 'pending' === Account_Types::vendor_status( $u->ID ), 'sign-up as Seller: pending, whatever status was posted' );
-nx_assert( $u && array( 'subscriber' ) === array_values( $u->roles ), 'sign-up as Seller: only the default role' );
+nx_assert( $u && array( Account_Types::ROLE_SELLER ) === array_values( $u->roles ), 'sign-up as Seller: the Seller role (not permission to sell: the status is pending)' );
 nx_assert( $u && Repository::data( Repository::id_for_user( $u->ID ) )['gstin'] === $GST[5], 'sign-up as Seller: business details saved' );
 nx_assert_same( 3, count( $mail ) - $sent, 'sign-up as Seller: new-member mail + application mail to admin + acknowledgement' );
-nx_assert( $u && (int) get_user_meta( $u->ID, '_profile_id', true ) > 0, 'sign-up as Seller: the normal profile exists too' );
+nx_assert( $u && (int) get_user_meta( $u->ID, '_profile_id', true ) > 0 && 'nexora_seller' === get_post_type( (int) get_user_meta( $u->ID, '_profile_id', true ) ), 'sign-up as Seller: the seller post is their profile (no separate customer post)' );
 
 // seller intent with bad data: nothing is created
 nx_test_reset_limits();
@@ -310,11 +310,11 @@ wp_set_current_user( $admin_id );
 $bob_vid = Repository::id_for_user( $bob['user_id'] );
 nx_assert( true === Service::change_status( $bob_vid, 'reject' ), 'an admin can reject a pending application' );
 wp_set_current_user( 0 );
-nx_assert( 'none' === Account_Types::vendor_status( $bob['user_id'] ) && 0 === Repository::id_for_user( $bob['user_id'] ), 'rejected: back to a plain customer, link removed' );
+nx_assert( 'rejected' === Account_Types::vendor_status( $bob['user_id'] ) && $bob_vid === Repository::id_for_user( $bob['user_id'] ), 'rejected: status rejected, the record stays linked' );
 nx_assert( 0 === Repository::find_by_gstin( $GST[1] ), 'rejected: the GSTIN is free again' );
-nx_assert( 'trash' === get_post_status( $bob_vid ), 'rejected: the application is kept in the trash for the record' );
+nx_assert( 'publish' === get_post_status( $bob_vid ), 'rejected: the application is kept (not trashed) for the record' );
 $r = Service::apply( $bob['user_id'], $biz( 1 ) );
 $track( $bob['user_id'] );
-nx_assert( is_array( $r ) && 'pending' === Account_Types::vendor_status( $bob['user_id'] ), 'a rejected applicant may apply again' );
+nx_assert( is_array( $r ) && 'pending' === Account_Types::vendor_status( $bob['user_id'] ) && $bob_vid === $r['vendor_id'], 'a rejected applicant may apply again, on the same record' );
 
 nx_test_finish();

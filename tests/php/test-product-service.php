@@ -107,7 +107,7 @@ foreach ( array( 'a vendor application' => $A['vendor_id'], 'a profile' => $C['p
 	nx_assert( is_wp_error( Service::delete( $A['user_id'], $bad ) ), "deleting $label is refused" );
 	nx_assert( is_wp_error( Service::save( $A['user_id'], $form( 'ZZ-9' ), $bad ) ) || 0 === $bad, "editing $label is refused" );
 }
-nx_assert_same( 'nexora_vendor', get_post_type( $A['vendor_id'] ), 'a vendor application was not touched by those attempts' );
+nx_assert_same( 'nexora_cust_seller', get_post_type( $A['vendor_id'] ), 'a vendor application was not touched by those attempts' );
 
 /* ---------- delete own ---------- */
 $tmp = $track( Service::save( $A['user_id'], $form( 'TMP-1' ) ) );

@@ -45,7 +45,7 @@ class Documents_Migration {
 		$ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT DISTINCT pm.meta_value FROM {$wpdb->postmeta} pm
-             INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_type = 'user_profile'
+             INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_type IN ('nexora_customer','nexora_seller')
              WHERE pm.meta_key IN ($placeholders) AND pm.meta_value REGEXP '^[0-9]+$' AND pm.meta_value <> '0'",
 				Private_Documents::DOC_KEYS
 			)

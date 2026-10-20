@@ -52,7 +52,7 @@ class Ajax extends Member_Ajax {
 
 		$users = get_posts(
 			array(
-				'post_type'      => 'user_profile',
+				'post_type'      => \Nexora\Core\Post_Types::profiles(),
 				// Capped list of members to offer (a search box is the longer-term fix).
 				// phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page
 				'posts_per_page' => 200,
@@ -84,7 +84,7 @@ class Ajax extends Member_Ajax {
 
 		$receiver_profile_id = absint( $_POST['receiver_profile_id'] ?? 0 );
 
-		if ( ! $receiver_profile_id || get_post_type( $receiver_profile_id ) !== 'user_profile' ) {
+		if ( ! $receiver_profile_id || ! \Nexora\Core\Post_Types::is_profile( $receiver_profile_id ) ) {
 			wp_send_json_error( __( 'User not found', 'nexora' ) );
 		}
 
@@ -210,7 +210,7 @@ class Ajax extends Member_Ajax {
 
 		$profile_id = absint( $_POST['profile_id'] ?? 0 );
 
-		if ( ! $profile_id || get_post_type( $profile_id ) !== 'user_profile' ) {
+		if ( ! $profile_id || ! \Nexora\Core\Post_Types::is_profile( $profile_id ) ) {
 			wp_send_json_error( __( 'Profile not found', 'nexora' ) );
 		}
 
@@ -234,7 +234,7 @@ class Ajax extends Member_Ajax {
 		$auth             = $this->member();
 		$other_profile_id = absint( $_POST['profile_id'] ?? 0 );
 
-		if ( ! $other_profile_id || get_post_type( $other_profile_id ) !== 'user_profile' ) {
+		if ( ! $other_profile_id || ! \Nexora\Core\Post_Types::is_profile( $other_profile_id ) ) {
 			wp_send_json_error( __( 'Profile not found', 'nexora' ) );
 		}
 

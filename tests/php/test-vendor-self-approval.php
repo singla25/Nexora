@@ -11,7 +11,7 @@ global $wp_filter;
 /* ---------- 1. every registered Nexora AJAX action, called by a member with tampered input ---------- */
 $tamper = array(
 	'vendor_status' => 'approved', '_nexora_vendor_status' => 'approved', 'status' => 'approved',
-	'role' => Account_Types::ROLE, 'roles' => array( 'administrator', Account_Types::ROLE ), 'account_type' => 'vendor',
+	'role' => Account_Types::ROLE_CUSTOMER_SELLER, 'roles' => array( 'administrator', Account_Types::ROLE_CUSTOMER_SELLER ), 'account_type' => 'vendor',
 	'intent' => 'seller', 'meta_key' => Account_Types::STATUS_META, 'meta_value' => 'approved',
 	'user_id' => 0, 'profile_id' => 0, 'connection_id' => 0, 'thread_id' => 0,
 );
@@ -44,7 +44,7 @@ foreach ( array( 'member' => $member, 'pending applicant' => $applicant ) as $wh
 	clean_user_cache( $u['user_id'] );
 	$roles = (array) get_userdata( $u['user_id'] )->roles;
 	nx_assert_same( $expected, Account_Types::vendor_status( $u['user_id'] ), "$who: status unchanged after tampering with all " . count( $actions ) . ' AJAX actions' );
-	nx_assert( ! in_array( Account_Types::ROLE, $roles, true ) && ! in_array( 'administrator', $roles, true ), "$who: no vendor or admin role gained" );
+	nx_assert( ! in_array( Account_Types::ROLE_CUSTOMER_SELLER, $roles, true ) && ! in_array( 'administrator', $roles, true ), "$who: no vendor or admin role gained" );
 	nx_assert( ! Account_Types::can_sell( $u['user_id'] ), "$who: cannot sell" );
 }
 
@@ -62,7 +62,7 @@ nx_assert( false === add_user_meta( $member['user_id'], Account_Types::STATUS_ME
 wp_set_current_user( 0 );
 $legacy = get_userdata( $member['user_id'] );
 $legacy->add_role( 'subscriber' );
-nx_assert( ! user_can( $member['user_id'], Account_Types::CAP_PRODUCTS ), 'no vendor capability without the role' );
+nx_assert( ! Account_Types::can_sell( $member['user_id'] ), 'no selling without the status and a seller role' );
 
 /* ---------- 3. no other code path in the plugin can change a status or a role ---------- */
 // Rule A: who may write the vendor status / role or add or remove capabilities. Each entry says WHY it is allowed.
@@ -70,8 +70,9 @@ $allowed_writers = array(
 	'src/Accounts/Account_Types.php' => 'owns the status and the role',
 	'src/Database/Uninstaller.php'   => 'removes them on a data-deleting uninstall',
 	'src/Profile/Upload_Policy.php'  => 'strips the old upload_files cap from the subscriber role (reviewed: removal only)',
+	'src/Accounts/Migration.php'     => 'the one-off 7a conversion (wp nexora migrate-accounts): moves approved and suspended sellers to the new role, takes the old one away; never writes the status',
 	'src/Vendors/Repository.php'     => 'reads the status meta in one JOIN to list approved vendors (read-only: a check below proves it never writes it)',
-	'src/Vendors/Service.php'        => 'the ONLY caller of Account_Types::set_status(): applicant -> pending in apply(); approve/suspend/reactivate/reject in change_status(), which requires manage_options',
+	'src/Vendors/Service.php'        => 'the ONLY caller of Account_Types::set_status(): applicant -> pending in apply() / register_seller(); approve/suspend/reactivate/reject in change_status(), which requires manage_options',
 );
 // Rule B: who may mention the vendor post type slug. It is a post type, not a permission, so this is only
 // about keeping the vendor code in one place. Each entry says WHY.
@@ -92,11 +93,11 @@ foreach ( $files as $f ) {
 	$code = file_get_contents( $f->getPathname() );
 	$code = preg_replace( '#/\*.*?\*/#s', '', $code ); // block comments
 	$code = preg_replace( '#^\s*//.*$#m', '', $code ); // line comments
-	if ( ! isset( $allowed_writers[ $rel ] ) && preg_match( '/Account_Types::set_status|STATUS_META|_nexora_vendor_status|Account_Types::ROLE|->add_role\(|->set_role\(|->remove_role\(|add_role\(|remove_role\(|->add_cap\(|->remove_cap\(|add_cap\(/', $code, $mm ) ) {
+	if ( ! isset( $allowed_writers[ $rel ] ) && preg_match( '/Account_Types::set_status|STATUS_META|_nexora_vendor_status|Account_Types::ROLE_CUSTOMER_SELLER|->add_role\(|->set_role\(|->remove_role\(|add_role\(|remove_role\(|->add_cap\(|->remove_cap\(|add_cap\(/', $code, $mm ) ) {
 		$hits[] = $rel . ' (' . $mm[0] . ')';
 	}
 	// Service may call set_status but nothing else on that list.
-	if ( 'src/Vendors/Service.php' === $rel && preg_match( '/STATUS_META|_nexora_vendor_status|Account_Types::ROLE|add_role\(|remove_role\(|add_cap\(|remove_cap\(|set_role\(/', $code, $mm ) ) {
+	if ( 'src/Vendors/Service.php' === $rel && preg_match( '/STATUS_META|_nexora_vendor_status|Account_Types::ROLE_CUSTOMER_SELLER|add_role\(|remove_role\(|add_cap\(|remove_cap\(|set_role\(/', $code, $mm ) ) {
 		$hits[] = $rel . ' (' . $mm[0] . ')';
 	}
 	if ( ! isset( $allowed_cpt[ $rel ] ) && ! isset( $allowed_writers[ $rel ] ) && preg_match( '/[\'"]nexora_vendor[\'"]/', $code, $mm ) ) {

@@ -8,10 +8,14 @@
  */
 $state  = $vendor['status'];
 $labels = \Nexora\Vendors\Fields::labels();
+$apply  = in_array( $state, array( 'none', 'rejected' ), true ); // A rejected applicant sees the application again (their earlier details filled in).
 ?>
 <div class="info-card nx-vendor-card" data-status="<?php echo esc_attr( $state ); ?>"<?php echo 'none' !== $state ? ' id="business-details"' : ''; ?>>
-	<?php if ( 'none' === $state ) : ?>
+	<?php if ( $apply ) : ?>
 		<h3><?php esc_html_e( 'Become a seller', 'nexora' ); ?></h3>
+		<?php if ( 'rejected' === $state ) : ?>
+			<p class="nx-vendor-status" role="status"><?php esc_html_e( 'Your earlier application was not approved. You can correct your details and apply again.', 'nexora' ); ?></p>
+		<?php endif; ?>
 		<p><?php esc_html_e( 'Sell your products on the Nexora marketplace. Tell us about your business; we review every application.', 'nexora' ); ?></p>
 		<button type="button" class="nx-vendor-open" data-template="nx-vendor-tpl-apply" data-title="<?php echo esc_attr__( 'Become a seller', 'nexora' ); ?>"><?php esc_html_e( 'Become a seller', 'nexora' ); ?></button>
 

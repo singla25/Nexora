@@ -6,7 +6,7 @@ global $wpdb;
 require_once ABSPATH . 'wp-admin/includes/user.php';
 
 $user_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->users} WHERE user_login LIKE 'nxtest\\_%'" ) );
-$post_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'user_profile' AND post_title LIKE 'nxtest\\_%'" ) );
+$post_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'nexora_customer' AND post_title LIKE 'nxtest\\_%'" ) );
 
 $removed = array( 'users' => 0, 'posts' => 0, 'threads' => 0, 'notifications' => 0, 'orders' => 0 );
 

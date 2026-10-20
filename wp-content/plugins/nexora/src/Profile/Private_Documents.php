@@ -248,7 +248,7 @@ class Private_Documents {
 	 */
 	public function on_meta_change( $meta_id, $post_id, $key, $value ) {
 
-		if ( ! in_array( $key, self::DOC_KEYS, true ) || get_post_type( $post_id ) !== 'user_profile' ) {
+		if ( ! in_array( $key, self::DOC_KEYS, true ) || ! \Nexora\Core\Post_Types::is_profile( $post_id ) ) {
 			return;
 		}
 

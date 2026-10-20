@@ -3,6 +3,7 @@
 namespace Nexora\Vendors;
 
 use Nexora\Accounts\Account_Types;
+use Nexora\Core\Post_Types;
 use Nexora\Core\View;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,8 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * The administrator's screens for vendor applications: list columns, a details box with the decision
- * buttons, and the admin-post action behind them (nonce + manage_options, then Service::change_status()).
+ * The administrator's screens for seller records (both types): list columns, a details box with the decision
+ * buttons, and the admin-post action behind them (nonce + manage_options, then Service::change_status()). The
+ * customer's own edit screen gets a read-only "Seller account" box.
  */
 class Admin {
 
@@ -21,8 +23,11 @@ class Admin {
 	 * Hooks the list columns, the details box, the decision action and its notice.
 	 */
 	public function __construct() {
-		add_filter( 'manage_nexora_vendor_posts_columns', array( $this, 'columns' ) );
-		add_action( 'manage_nexora_vendor_posts_custom_column', array( $this, 'column' ), 10, 2 );
+		foreach ( Repository::types() as $type ) {
+			add_filter( 'manage_' . $type . '_posts_columns', array( $this, 'columns' ) );
+			add_action( 'manage_' . $type . '_posts_custom_column', array( $this, 'column' ), 10, 2 );
+		}
+
 		add_filter( 'post_row_actions', array( $this, 'row_actions' ), 10, 2 );
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_status_request' ) );
@@ -81,7 +86,7 @@ class Admin {
 	 */
 	public function row_actions( $actions, $post ) {
 
-		if ( Repository::POST_TYPE !== $post->post_type ) {
+		if ( ! in_array( $post->post_type, Repository::types(), true ) ) {
 			return $actions;
 		}
 
@@ -91,15 +96,42 @@ class Admin {
 	}
 
 	/**
-	 * Registers the details box on the vendor edit screen.
+	 * Registers the details box on both seller edit screens, and the read-only "Seller account" box on the customer's.
 	 */
 	public function add_meta_boxes() {
-		add_meta_box( 'nexora_vendor_details', __( 'Seller application', 'nexora' ), array( $this, 'render_details_box' ), Repository::POST_TYPE, 'normal', 'high' );
 
-		// The decision buttons: administrators only, top of the side column where the Publish box sits.
-		if ( current_user_can( 'manage_options' ) ) {
-			add_meta_box( 'nexora_vendor_decision', __( 'Application decision', 'nexora' ), array( $this, 'render_decision_box' ), Repository::POST_TYPE, 'side', 'high' );
+		foreach ( Repository::types() as $type ) {
+			add_meta_box( 'nexora_vendor_details', __( 'Seller application', 'nexora' ), array( $this, 'render_details_box' ), $type, 'normal', 'high' );
+
+			// The decision buttons: administrators only, top of the side column where the Publish box sits.
+			if ( current_user_can( 'manage_options' ) ) {
+				add_meta_box( 'nexora_vendor_decision', __( 'Application decision', 'nexora' ), array( $this, 'render_decision_box' ), $type, 'side', 'high' );
+			}
 		}
+
+		add_meta_box( 'nexora_seller_account', __( 'Seller account', 'nexora' ), array( $this, 'render_seller_account_box' ), Post_Types::CUSTOMER, 'side', 'default' );
+	}
+
+	/**
+	 * Prints the read-only "Seller account" box on a customer's edit screen: is this customer also a seller, the
+	 * status, and a link to the seller record.
+	 *
+	 * @param \WP_Post $post Customer post.
+	 */
+	public function render_seller_account_box( $post ) {
+
+		$user_id   = (int) get_post_meta( $post->ID, '_wp_user_id', true );
+		$vendor_id = $user_id ? Repository::id_for_user( $user_id ) : 0;
+
+		View::output(
+			'admin/metabox-seller-account',
+			array(
+				'is_seller' => (bool) $vendor_id,
+				'business'  => $vendor_id ? (string) get_post_meta( $vendor_id, 'business_name', true ) : '',
+				'status'    => $vendor_id ? self::status_label( Account_Types::vendor_status( $user_id ) ) : '',
+				'edit_url'  => $vendor_id ? admin_url( 'post.php?post=' . $vendor_id . '&action=edit' ) : '',
+			)
+		);
 	}
 
 	/**
@@ -121,7 +153,7 @@ class Admin {
 		View::output(
 			'admin/metabox-vendor-decision',
 			array(
-				'status'   => $trashed ? __( 'Rejected', 'nexora' ) : self::status_label( $user ? Account_Types::vendor_status( $user_id ) : Account_Types::NONE ),
+				'status'   => $trashed ? self::status_label( Account_Types::REJECTED ) : self::status_label( $user ? Account_Types::vendor_status( $user_id ) : Account_Types::NONE ),
 				'name'     => $user ? $user->display_name : '',
 				'account'  => $user ? $user->user_login : '',
 				'business' => (string) get_post_meta( $post->ID, 'business_name', true ),
@@ -141,16 +173,19 @@ class Admin {
 		$user    = get_userdata( $user_id );
 		$status  = $user ? Account_Types::vendor_status( $user_id ) : Account_Types::NONE;
 
+		$customer_id = (int) get_post_meta( $post->ID, \Nexora\Accounts\Links::CUSTOMER_LINK, true );
+
 		View::output(
 			'admin/metabox-vendor',
 			array(
-				'data'    => Repository::data( $post->ID ),
-				'labels'  => Fields::labels(),
-				'types'   => Fields::business_types(),
-				'account' => $user ? $user->user_login : '',
-				'email'   => $user ? $user->user_email : '',
-				'status'  => self::status_label( $status ),
-				'trashed' => 'trash' === $post->post_status,
+				'customer_url' => $customer_id && Post_Types::CUSTOMER === get_post_type( $customer_id ) ? admin_url( 'post.php?post=' . $customer_id . '&action=edit' ) : '',
+				'data'         => Repository::data( $post->ID ),
+				'labels'       => Fields::labels(),
+				'types'        => Fields::business_types(),
+				'account'      => $user ? $user->user_login : '',
+				'email'        => $user ? $user->user_email : '',
+				'status'       => self::status_label( $status ),
+				'trashed'      => 'trash' === $post->post_status,
 			)
 		);
 	}
@@ -187,7 +222,7 @@ class Admin {
 
 			$class   = $buttons ? ' class="button' . ( in_array( $action, array( 'approve', 'reactivate' ), true ) ? ' button-primary' : '' ) . '"' : '';
 			$confirm = 'reject' === $action
-				? ' onclick="return confirm(' . esc_attr( wp_json_encode( __( 'Are you sure? The application moves to the trash and the applicant goes back to being a regular member.', 'nexora' ) ) ) . ');"'
+				? ' onclick="return confirm(' . esc_attr( wp_json_encode( __( 'Are you sure? The application is marked rejected and kept. The applicant stays a regular member and can apply again.', 'nexora' ) ) ) . ');"'
 				: '';
 
 			$out[ $action ] = '<a' . $class . ' href="' . esc_url( self::action_url( $vendor_id, $action ) ) . '"' . $confirm . '>' . esc_html( $labels[ $action ] ) . '</a>';
@@ -233,7 +268,7 @@ class Admin {
 		$action    = isset( $_GET['do'] ) ? sanitize_key( wp_unslash( $_GET['do'] ) ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		if ( ! $vendor_id || get_post_type( $vendor_id ) !== Repository::POST_TYPE || ! isset( Service::actions()[ $action ] ) ) {
+		if ( ! $vendor_id || ! in_array( get_post_type( $vendor_id ), Repository::types(), true ) || ! isset( Service::actions()[ $action ] ) ) {
 			wp_die( esc_html__( 'Invalid request.', 'nexora' ), '', array( 'response' => 400 ) );
 		}
 
@@ -244,7 +279,7 @@ class Admin {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
-					'post_type'            => Repository::POST_TYPE,
+					'post_type'            => get_post_type( $vendor_id ),
 					'nexora_vendor_notice' => is_wp_error( $result ) ? 'error' : 'ok',
 				),
 				admin_url( 'edit.php' )
@@ -281,6 +316,7 @@ class Admin {
 			Account_Types::PENDING   => __( 'Pending', 'nexora' ),
 			Account_Types::APPROVED  => __( 'Approved', 'nexora' ),
 			Account_Types::SUSPENDED => __( 'Suspended', 'nexora' ),
+			Account_Types::REJECTED  => __( 'Rejected', 'nexora' ),
 			Account_Types::NONE      => __( 'Not a vendor', 'nexora' ),
 		);
 

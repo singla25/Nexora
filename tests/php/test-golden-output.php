@@ -48,9 +48,9 @@ $clean();
 
 /* ---------- isolation: during this test the plugin only "sees" the fixture rows ---------- */
 // get_posts() suppresses the posts_* filters but still runs pre_get_posts: hide every pre-existing row of the three types
-$real_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE ID < 9000000 AND post_type IN ('user_profile','user_connections','user_content')" ) );
+$real_ids = array_map( 'intval', $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE ID < 9000000 AND post_type IN ('nexora_customer','user_connections','user_content')" ) );
 add_action( 'pre_get_posts', function ( $query ) use ( $real_ids ) {
-	if ( array_intersect( (array) $query->get( 'post_type' ), array( 'user_profile', 'user_connections', 'user_content' ) ) ) {
+	if ( array_intersect( (array) $query->get( 'post_type' ), array( 'nexora_customer', 'user_connections', 'user_content' ) ) ) {
 		$query->set( 'post__not_in', array_merge( (array) $query->get( 'post__not_in' ), $real_ids ) );
 	}
 } );
@@ -84,7 +84,7 @@ $mkpost = function ( $id, $type, $title, $date, $extra = array() ) {
 $PA = NXG_P + 1; $PB = NXG_P + 2; $PE = NXG_P + 3;
 $CA = NXG_U + 5; $PC = NXG_P + 4;
 foreach ( array( array( $PA, 'nxgold_alice', $A ), array( $PB, 'nxgold_bob', $B ), array( $PE, 'nxgold_eve', $E ), array( $PC, 'nxgold_carol', $CA ) ) as list( $pid, $login, $uid ) ) {
-	$mkpost( $pid, 'user_profile', $login, '2026-01-10 09:00:00' );
+	$mkpost( $pid, 'nexora_customer', $login, '2026-01-10 09:00:00' );
 	update_post_meta( $pid, '_wp_user_id', $uid );
 	update_post_meta( $pid, 'user_name', $login );
 	update_user_meta( $uid, '_profile_id', $pid );
@@ -231,7 +231,7 @@ nx_assert_golden( 'chat-popup-admin', $capture( function () use ( $chat ) { $cha
 
 /* ================= ADMIN SAVE ================= */
 wp_set_current_user( $AD );
-set_current_screen( 'edit-user_profile' );
+set_current_screen( 'edit-nexora_customer' );
 $_POST = array( '_wpnonce' => wp_create_nonce( 'update-post_' . $PB ), 'first_name' => '<i>Bobby</i>', 'bio' => "line1\nline2", 'profile_image' => '123abc', 'aadhaar_card' => (string) $ATT1, 'email' => 'bob@new.test' );
 $boxes->save_meta_boxes( $PB );
 nx_assert_same( 'Bobby', get_post_meta( $PB, 'first_name', true ), 'admin save: text sanitized' );

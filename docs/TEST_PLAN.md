@@ -75,6 +75,9 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - Upsert scope: vendor B uploads (CSV) and imports (API) a sku/external_id that vendor A already has; A's product is byte-identical afterwards (price, stock, name, modified date) and B gets its own product. Re-importing B's file updates only B's.
 - Both: customers, pending and suspended vendors blocked; rate limits.
 
+## Phase 7a (BUILT, awaiting review): accounts and record types
+`test-accounts-model.php` (the three record types and their two lists, helpers for every status, Become a seller, approve promotes, suspend keeps the role, reject keeps the record and re-apply reuses it, GSTIN across both seller types, direct seller = one post and no customer post, links both ways and repair by the one linking method, shared guards accept a direct seller, record deletion demotes and gives a direct seller a plain customer post, the read-only "Seller account" box, no cross-account edits), `test-accounts-migration.php` (fixtures put into the OLD shape; dry-run writes nothing; apply keeps IDs; roles per status; running twice changes nothing; orders, earnings, listing and product owner unchanged; the old role leaves only when nobody holds it). `test-account-types.php`, `test-vendor-*.php` and the golden snapshots were changed only for renamed identifiers and the decided behaviour (reject keeps the record; approve promotes; suspension keeps the role).
+
 ## Phase 6a (DONE): the cart
 `test-marketplace-item.php` (hidden item: shape, idempotent, restored, recreated, hidden everywhere, not editable by vendors), `test-cart-rules.php` (every refusal code, quantity forms, snapshot from the DB), `test-cart-bridge.php` (add stores only the product id; hostile requests: tampered price/name/vendor/quantity/ids, direct add of the hidden item, forged cart data; deleted, unpublished, suspended-vendor, 0-stock and price-changed products already in the cart; own product; several vendors grouped with subtotals; fresh checkout errors; rate limit), `test-cart-routes.php` (guest 401 on every Store API cart/checkout/order route, guarded `wc-ajax`, `?add-to-cart=`, Woo handlers removed, guest checkout forced off, cart/checkout pages redirect guests), `test-cart-ui.php` (button states, tamper-free markup and script, flat query count), `test-cart-http.php` (real HTTP: add with a tampered request, Store API cart JSON, forged add-item, edited price, suspended vendor, guest). `test-endpoint-matrix.php` lists `add_to_cart`.
 
@@ -92,13 +95,13 @@ Done: baseline, environment check, SPEC and TEST_PLAN. No code.
 - Multi-vendor order carries each item's vendor id.
 - HPOS on and off. `wc-ajax` and COD/BACS checkout complete end to end.
 
-## Phase 7: Analytics (`test-vendor-analytics.php`)
+## Phase 8: Analytics and admin overview (`test-vendor-analytics.php`)
 - Only processing and completed orders count; refunded, cancelled and pending are excluded.
 - Commission rounding (e.g. 10% of ₹33.33 gives ₹3.33).
-- Vendor A never sees vendor B's lines or buyers; the per-order list exposes only buyer name, date, qty and amount.
+- Vendor A never sees vendor B's lines or buyers; the per-order list exposes the order number, date, the vendor's own products, quantities and earnings, and no buyer name (the shipping name and address only while the order still ships, as in 6b).
 - Date filter edges; zero state; the admin overview totals equal the sum of the vendors.
 
-## Phase 8: Hardening and end to end (`test-e2e-marketplace.php`)
+## Phase 10: Hardening and end to end (`test-e2e-marketplace.php`)
 - One flow: customer signs up, becomes a seller, admin approves, adds products manually, by CSV and by API, another customer buys with COD, the vendor sees the earning.
 - Security checklist: nonces, capabilities, object-level checks, prepared SQL, escaped output (grep review).
 - Performance: query counts on marketplace list, profile page and analytics.
