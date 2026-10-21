@@ -49,9 +49,8 @@ class Earnings {
 		$awaiting = 0;
 		$orders   = 0;
 
-		foreach ( self::order_ids( $vendor_id ) as $order_id ) {
+		foreach ( self::orders( $vendor_id ) as $order ) {
 
-			$order = wc_get_order( $order_id );
 			$lines = self::vendor_lines( $order, $vendor_id );
 
 			if ( ! $lines ) {
@@ -256,6 +255,36 @@ class Earnings {
 		}
 
 		return array_map( 'intval', wc_get_orders( $args ) );
+	}
+
+	/**
+	 * Every order that has a line of this vendor, as objects, loaded in one batch (WooCommerce reads the items of all of them in a
+	 * few queries instead of a few per order). Same selection as order_ids().
+	 *
+	 * @param int      $vendor_id The vendor application post id.
+	 * @param int|null $since     Only orders created at or after this time (a Unix time), or null for all.
+	 * @return \WC_Order[]
+	 */
+	public static function orders( $vendor_id, $since = null ) {
+
+		if ( (int) $vendor_id <= 0 ) {
+			return array();
+		}
+
+		$args = array(
+			'status'     => self::statuses(),
+			'limit'      => -1,
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- see sales().
+			'meta_query' => self::vendor_query( $vendor_id ),
+		);
+
+		if ( null !== $since ) {
+			$args['date_created'] = '>=' . (int) $since;
+		}
+
+		return array_values( array_filter( wc_get_orders( $args ), function ( $order ) {
+			return $order instanceof \WC_Order;
+		} ) );
 	}
 
 	/**

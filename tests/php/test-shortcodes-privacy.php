@@ -60,10 +60,18 @@ foreach ( array( 'email', 'phone', 'perm_address', 'perm_city', 'perm_pincode' )
 	nx_assert( false === strpos( $html, $secret[ $k ] ), "other member's page HTML does not contain owner's $k" );
 }
 nx_assert( false === strpos( $html, $doc_url ), "other member's page HTML does not contain a document URL" );
-// [DECISION] Work info is rendered server-side for every logged-in viewer, although the JS data treats company_* as owner-only.
+// Phase 10 (decided with the owner on 2026-10-21): work contact details and LinkedIn are owner-only in the page HTML too, like Profile\Privacy
+// says; other members still see the company name and the designation.
 update_post_meta( $alice['profile_id'], 'company_name', 'Acme Corp' );
+update_post_meta( $alice['profile_id'], 'designation', 'Chief Tester' );
+update_post_meta( $alice['profile_id'], 'company_email', 'hr@acme.example' );
+update_post_meta( $alice['profile_id'], 'company_address', '1 Acme Park' );
+update_post_meta( $alice['profile_id'], 'linkedin_id', 'alice-linked' );
 $html_work = $render( $bob['user_id'], $alice['login'] );
-nx_assert( false !== strpos( $html_work, '+91-1111' ) && false !== strpos( $html_work, 'Acme Corp' ), '[DECISION] other members currently SEE work info (company name/phone) in the page HTML' );
+nx_assert( false !== strpos( $html_work, 'Acme Corp' ) && false !== strpos( $html_work, 'Chief Tester' ), 'other members see the company name and the designation' );
+foreach ( array( '+91-1111', 'hr@acme.example', '1 Acme Park', 'alice-linked' ) as $private_work ) { nx_assert( false === strpos( $html_work, $private_work ), "other members do NOT see the work contact detail '$private_work' in the page HTML" ); }
+$html_owner_work = $render( $alice['user_id'], $alice['login'] );
+nx_assert( false !== strpos( $html_owner_work, '+91-1111' ) && false !== strpos( $html_owner_work, 'hr@acme.example' ) && false !== strpos( $html_owner_work, 'alice-linked' ), 'the owner sees all of them' );
 $html = $render( $alice['user_id'], $alice['login'] );
 nx_assert( false !== strpos( $html, $secret['email'] ) && false !== strpos( $html, $secret['phone'] ), 'owner sees own email and phone' );
 $html = $render( $bob['user_id'], 'no_such_member_zz' );
