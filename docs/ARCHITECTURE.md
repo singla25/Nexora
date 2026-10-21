@@ -54,7 +54,7 @@ flowchart TD
 2. `Admin\Settings`, `Admin\Menu` (with `Admin\Pages`), `PostTypes\Registrar`, `Admin\Meta_Boxes`, `Admin\List_Columns`
 3. `Profile\Page`, `Profile\Ajax`, `Connections\Ajax`, `Notifications\Ajax`, `Content\Ajax`
 4. `Profile\Private_Documents`, `Profile\Documents_Migration`, `Profile\Upload_Policy`
-5. `Shortcodes\Home`, `Integrations\Better_Messages`, `Chat\Module`, `Auth\Recaptcha`, `Shortcodes\Stats`, `Shortcodes\Contact_Form`
+5. `Shortcodes\Home`, `Chat\Module`, `Auth\Recaptcha`, `Shortcodes\Stats`, `Shortcodes\Contact_Form`
 6. `Database\Migrations`, `Connections\Cache`, `Core\I18n`, `Core\Assets`, `Core\Access_Control`
 
 Constants (all in `nexora.php`):
@@ -142,7 +142,7 @@ nexora/                          (repository root = a full WordPress install)
 | `PostTypes/` | The 3 custom post types | `Registrar` | |
 | `Admin/` | The "Nexora System" admin area | `Menu`, `Settings`, `Pages`, `Meta_Boxes`, `List_Columns` | front-end |
 | `Shortcodes/` | Public shortcodes not tied to a module | `Home`, `Stats`, `Contact_Form` | |
-| `Integrations/` | Third-party plugins | `Better_Messages` | |
+| `Integrations/` | Third-party plugins | `Woo_Routes` | |
 | `Database/` | Schema lifecycle | `Installer`, `Migrations`, `Uninstaller` | queries for features (those are in each `Repository`) |
 
 Per-class method tables are in [CODE-REFERENCE.md](CODE-REFERENCE.md).
@@ -310,7 +310,6 @@ Verified from `git ls-tree main wp-content/plugins/nexora` (the original layout)
 | `includes/class-home-page.php` | `[nexora_home]`, stats | `Shortcodes\Home` |
 | `includes/class-shortcodes.php` | `[nexora_stat]`, `[nexora_auth_buttons]` | `Shortcodes\Stats` |
 | `includes/class-contact-form.php` | contact form | `Shortcodes\Contact_Form` |
-| `includes/class-better-message-chat.php` | Better Messages filter | `Integrations\Better_Messages` |
 | `chat/class-chat-core.php` | chat assets + popup | `Chat\Module` |
 | `chat/class-chat-ajax.php` | chat endpoints | `Chat\Ajax` |
 | `chat/class-chat-db.php` | chat tables | `Chat\Repository` |

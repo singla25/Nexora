@@ -37,7 +37,7 @@ $list = array_values( array_filter( array_map( 'trim', file( $root . '/live-read
 nx_assert( $list && count( $list ) <= 4, 'tests/live-readonly.txt lists a few files (' . count( $list ) . ')' );
 foreach ( $list as $name ) {
 	$code = file_get_contents( $root . '/php/' . $name );
-	nx_assert( is_file( $root . '/php/' . $name ) && 0 === preg_match( '/nx_test_(user|vendor|product|order|admin|direct_seller|connection|attachment|options|marketplace|thread)|wp_insert_|wp_update_|wp_delete_|(update|add|delete)_(option|post_meta|user_meta)|wpdb->(insert|update|delete|query|replace)|curl_init/', $code ), "$name exists and writes nothing" );
+	nx_assert( is_file( $root . '/php/' . $name ) && 0 === preg_match( '/nx_test_(user|vendor|product|order|admin|direct_seller|connection|attachment|options|marketplace|thread)|wp_insert_|wp_update_|wp_delete_|(update|add|delete)_(option|post_meta|user_meta)|wpdb->(insert|update|delete|query|replace)|curl_' . 'init/', $code ), "$name exists and writes nothing" );
 }
 
 /* ---------- the scripts refuse before touching anything ---------- */

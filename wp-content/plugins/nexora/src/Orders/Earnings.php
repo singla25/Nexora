@@ -49,9 +49,8 @@ class Earnings {
 		$awaiting = 0;
 		$orders   = 0;
 
-		foreach ( self::order_ids( $vendor_id ) as $order_id ) {
+		foreach ( self::orders( $vendor_id ) as $order ) {
 
-			$order = wc_get_order( $order_id );
 			$lines = self::vendor_lines( $order, $vendor_id );
 
 			if ( ! $lines ) {
@@ -103,8 +102,10 @@ class Earnings {
 				'status'     => array_merge( array_keys( wc_get_order_statuses() ), array( 'trash', 'wc-checkout-draft' ) ),
 				'limit'      => 1,
 				'return'     => 'ids',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one existence check per delete.
-				'meta_query' => self::vendor_query( $vendor_id ),
+				// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- one existence check per delete.
+				'meta_key'   => Lines::VENDOR_META,
+				'meta_value' => (string) (int) $vendor_id,
+				// phpcs:enable
 			)
 		);
 
@@ -128,10 +129,15 @@ class Earnings {
 			'limit'      => $per,
 			'page'       => $page,
 			'paginate'   => true,
-			'orderby'    => 'date',
-			'order'      => 'DESC',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- the one lookup of "orders of this vendor"; the order meta is the index.
-			'meta_query' => self::vendor_query( $vendor_id ),
+			// Newest first; orders of the very same second are told apart by id, so a page boundary never repeats or skips one.
+			'orderby'    => array(
+				'date' => 'DESC',
+				'id'   => 'DESC',
+			),
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- the one lookup of "orders of this vendor"; the order meta is the index.
+			'meta_key'   => Lines::VENDOR_META,
+			'meta_value' => (string) (int) $vendor_id,
+			// phpcs:enable
 		);
 
 		if ( null !== $since ) {
@@ -247,8 +253,10 @@ class Earnings {
 			'status'     => self::statuses(),
 			'limit'      => -1,
 			'return'     => 'ids',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- see sales().
-			'meta_query' => self::vendor_query( $vendor_id ),
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- see sales().
+			'meta_key'   => Lines::VENDOR_META,
+			'meta_value' => (string) (int) $vendor_id,
+			// phpcs:enable
 		);
 
 		if ( null !== $since ) {
@@ -259,20 +267,41 @@ class Earnings {
 	}
 
 	/**
-	 * The order query for "has a line of this vendor".
+	 * Every order that has a line of this vendor, as objects, loaded in one batch (WooCommerce reads the items of all of them in a
+	 * few queries instead of a few per order). Same selection as order_ids().
 	 *
-	 * @param int $vendor_id The vendor application post id.
-	 * @return array
+	 * @param int      $vendor_id The vendor application post id.
+	 * @param int|null $since     Only orders created at or after this time (a Unix time), or null for all.
+	 * @return \WC_Order[]
 	 */
-	private static function vendor_query( $vendor_id ) {
+	public static function orders( $vendor_id, $since = null ) {
 
-		return array(
-			array(
-				'key'     => Lines::VENDOR_META,
-				'value'   => (string) (int) $vendor_id,
-				'compare' => '=',
-			),
+		if ( (int) $vendor_id <= 0 ) {
+			return array();
+		}
+
+		$args = array(
+			'status'     => self::statuses(),
+			'limit'      => -1,
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- see sales().
+			'meta_key'   => Lines::VENDOR_META,
+			'meta_value' => (string) (int) $vendor_id,
+			// phpcs:enable
 		);
+
+		if ( null !== $since ) {
+			$args['date_created'] = '>=' . (int) $since;
+		}
+
+		$orders = array();
+
+		foreach ( wc_get_orders( $args ) as $order ) {
+			if ( $order instanceof \WC_Order ) {
+				$orders[] = $order;
+			}
+		}
+
+		return $orders;
 	}
 
 	/**

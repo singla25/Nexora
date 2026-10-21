@@ -38,6 +38,7 @@ class Rate_Limiter {
 			'otp_verify'         => array( 20, 15 * MINUTE_IN_SECONDS ),
 			'reset_password'     => array( 10, 15 * MINUTE_IN_SECONDS ),
 			'register'           => array( 5, HOUR_IN_SECONDS ),
+			'register_probe'     => array( 30, HOUR_IN_SECONDS ),
 			'contact'            => array( 3, 10 * MINUTE_IN_SECONDS ),
 			'password_change'    => array( 5, 15 * MINUTE_IN_SECONDS ),
 			'connection_request' => array( 20, HOUR_IN_SECONDS ),

@@ -76,10 +76,12 @@
 									</div>
 									<?php endif; ?>
 									
+									<?php if ( $is_owner ) : ?>
 									<div class="info-item">
 										<span class="info-label"><?php esc_html_e( 'LinkedIn', 'nexora' ); ?></span>
 										<span class="info-value"><?php echo esc_html( $meta['linkedin_id'] ); ?></span>
 									</div>
+									<?php endif; ?>
 
 								</div>
 
@@ -166,6 +168,7 @@
 										<span class="info-value"><?php echo esc_html( $meta['designation'] ); ?></span>
 									</div>
 
+									<?php if ( $is_owner ) : ?>
 									<div class="info-item">
 										<span class="info-label"><?php esc_html_e( 'Company Email', 'nexora' ); ?></span>
 										<span class="info-value"><?php echo esc_html( $meta['company_email'] ); ?></span>
@@ -180,6 +183,7 @@
 										<span class="info-label"><?php esc_html_e( 'Company Address', 'nexora' ); ?></span>
 										<span class="info-value"><?php echo esc_html( $meta['company_address'] ); ?></span>
 									</div>
+									<?php endif; ?>
 								</div>
 							</div>
 

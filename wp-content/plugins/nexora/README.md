@@ -39,13 +39,19 @@ Layers: **Ajax/Page classes** read the request and call a **Service**; **Service
 
 ## Tests
 
-From the repository root (needs WP-CLI; runs against the local dev database with self-cleaning fixtures):
+The suite runs inside WordPress through WP-CLI and **only on a scratch copy of the database**: the runner, `tests/bootstrap.php`, `tests/purge.php` and `tests/guard.sh` refuse (exit 3) to run on the database named in `wp-config.php`. Make a copy of the site database, then, from the repository root:
 
 ```
-tests/run.sh                          # everything
-tests/run.sh tests/php/test-foo.php   # one file
-NX_UPDATE_GOLDEN=1 tests/run.sh tests/php/test-golden-output.php   # re-record markup snapshots (review the diff!)
+NX_TEST_DB=<scratch database> NX_SKIP_LIVE=1 tests/run.sh                          # everything
+NX_TEST_DB=<scratch database> NX_SKIP_LIVE=1 tests/run.sh tests/php/test-foo.php   # one file
+NX_TEST_DB=<scratch database> NX_UPDATE_GOLDEN=1 tests/run.sh tests/php/test-golden-output.php   # re-record markup snapshots (review the diff!)
 ```
+
+`NX_SKIP_LIVE=1` skips the few tests that make real web requests (the web server only sees the live database). The suite needs WooCommerce with high-performance order storage, the free ACF, and the pages `login-page`, `registration-page`, `profile-page`; Elementor and the other third-party plugins are not needed. New tests are written first and run to see them fail (`tdd-workflow`), the rules for tests that share a database are in `CLAUDE.md`, and every entry point must be listed in `docs/SECURITY-MATRIX.md` (`test-security-matrix.php` fails otherwise).
+
+### Automatic tests on every push
+
+`.github/workflows/tests.yml` runs on every push and pull request, with read-only permissions, no secrets and pinned actions. It starts MySQL with two databases (the site and a scratch test one), builds a fixture site with `tests/ci/setup-site.sh` (WordPress is in the repository; WooCommerce and the free ACF are installed from wordpress.org at pinned versions; `wp-config.php` is written inside the job and never committed), then runs PHPCS, a syntax check of every PHP file, and the whole suite. To rebuild the same site by hand, set `CI_DB_HOST`, `CI_DB_USER`, `CI_DB_PASSWORD`, `CI_SITE_DB`, `CI_TEST_DB` and `CI_SITE_URL` and run `bash tests/ci/setup-site.sh` in a **fresh clone** (it refuses to run where a `wp-config.php` already exists).
 
 ## Coding standards
 

@@ -168,9 +168,8 @@ class Reports {
 		$days     = array();
 		$products = array();
 
-		foreach ( Earnings::order_ids( $vendor_id, $since ) as $order_id ) {
+		foreach ( Earnings::orders( $vendor_id, $since ) as $order ) {
 
-			$order = wc_get_order( $order_id );
 			$lines = Earnings::vendor_lines( $order, $vendor_id );
 
 			if ( ! $lines ) {
@@ -309,14 +308,11 @@ class Reports {
 		$args  = array(
 			'status'     => array( 'wc-processing', 'wc-completed' ),
 			'limit'      => -1,
-			'return'     => 'ids',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- the marketplace orders; the order meta is the index.
-			'meta_query' => array(
-				array(
-					'key'   => Lines::ORDER_FLAG,
-					'value' => '1',
-				),
-			),
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- the marketplace orders; the order meta is the index.
+			// meta_key / meta_value (not meta_query) because they work on both WooCommerce order stores.
+			'meta_key'   => Lines::ORDER_FLAG,
+			'meta_value' => '1',
+			// phpcs:enable
 		);
 
 		if ( null !== $since ) {
@@ -326,9 +322,10 @@ class Reports {
 		$sellers = array();
 		$orders  = 0;
 
-		foreach ( wc_get_orders( $args ) as $order_id ) {
+		// The orders come back as objects in one batch (WooCommerce reads their items together), so the cost does not grow per order.
+		foreach ( wc_get_orders( $args ) as $wc_order ) {
 
-			$lines = Lines::of( wc_get_order( $order_id ) );
+			$lines = Lines::of( $wc_order );
 
 			if ( ! $lines ) {
 				continue;

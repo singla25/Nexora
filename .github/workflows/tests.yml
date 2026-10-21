@@ -1,0 +1,85 @@
+# Runs the Nexora test suite and the coding-standards check on every push and every pull request.
+#
+# Safety: the token may only read the repository; no secrets are used anywhere; the workflow does not use pull_request_target (so a pull
+# request from a fork runs with no access to anything); every action is pinned to a commit. The database runs inside the job and holds only
+# throwaway data. The versions below match the local site at the time of writing: PHP 8.3, MySQL 8.0.46, WordPress 7.1.3 (it is in the
+# repository), WooCommerce 11.2.1, ACF 6.8.10, WP-CLI 2.12.0.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    services:
+      mysql:
+        image: mysql:8.0.46
+        env:
+          # A throwaway password for a database that only exists inside this job. It is not a secret.
+          MYSQL_ROOT_PASSWORD: ci-throwaway
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --user=root --password=ci-throwaway"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+
+    env:
+      CI_DB_HOST: 127.0.0.1
+      CI_DB_USER: root
+      CI_DB_PASSWORD: ci-throwaway
+      # Two databases: the SITE (named in wp-config.php) and a scratch TEST one. The test runner refuses to run on the site database.
+      CI_SITE_DB: nexora_site
+      CI_TEST_DB: nexora_test
+      # The golden-output snapshots contain the development site's address, so the fixture site uses the same one.
+      CI_SITE_URL: http://localhost83.local.com/nexora
+      WOOCOMMERCE_VERSION: 11.2.1
+      ACF_VERSION: 6.8.10
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP, Composer and WP-CLI
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          extensions: mbstring, mysqli, gd, intl, zip, curl, dom, xml, sodium, openssl
+          tools: composer:v2, wp-cli:2.12.0
+          coverage: none
+
+      - name: Point the site's name at this machine (private address, as on the development site)
+        run: echo '127.0.0.1 localhost83.local.com' | sudo tee -a /etc/hosts > /dev/null
+
+      - name: Build the fixture site (databases, wp-config.php, WooCommerce, ACF, Nexora)
+        run: bash tests/ci/setup-site.sh
+
+      - name: Coding standards (PHPCS, must report nothing)
+        working-directory: wp-content/plugins/nexora
+        run: |
+          composer install --no-interaction --no-progress
+          vendor/bin/phpcs
+
+      - name: Syntax check (every PHP file of the plugin and the theme)
+        run: |
+          if find wp-content/plugins/nexora wp-content/themes/nexora-theme -name '*.php' -not -path '*/vendor/*' -print0 | xargs -0 -n1 php -l | grep -v '^No syntax errors'; then
+            echo "Syntax errors found" >&2
+            exit 1
+          fi
+
+      - name: Test suite (on the scratch database; the tests that need the live web server are skipped)
+        run: NX_TEST_DB="$CI_TEST_DB" NX_SKIP_LIVE=1 tests/run.sh

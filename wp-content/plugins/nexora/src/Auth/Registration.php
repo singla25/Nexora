@@ -202,6 +202,12 @@ class Registration {
 			}
 		}
 
+		// Every attempt that gets as far as asking "does this name or address exist?" is counted (not only the ones that succeed), so the
+		// form cannot be used to test a list of names; over the limit the answer is the same whatever was typed.
+		if ( Rate_Limiter::hit( 'register_probe' ) ) {
+			wp_send_json_error( __( 'Too many registrations. Please try again later.', 'nexora' ) );
+		}
+
 		if ( username_exists( $input['user_name'] ) || email_exists( $input['email'] ) ) {
 			wp_send_json_error( __( 'User already exists', 'nexora' ) );
 		}

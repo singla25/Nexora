@@ -439,16 +439,6 @@ Fixed-window rate limiter. Counting is a single atomic statement (object-cache i
 | `public static hit($name, $subject = null)` | Record one hit. Returns true when this hit is OVER the limit. |
 | `public static message()` | Standard message for AJAX replies. |
 
-### `Nexora\Integrations\Better_Messages`  
-`src/Integrations/Better_Messages.php`
-
-Third-party Better Messages plugin: its user search only offers people the member is connected with (accepted connections, either direction).
-
-| Method | What it does |
-|---|---|
-| `public __construct()` | Hooks the Better Messages user-search filter. |
-| `public nexora_filter_search_query_users($conditions, $included_ids, $search, $user_id)` | Limits Better Messages' user search to the searching member's accepted connections. |
-
 ### `Nexora\Notifications\Ajax`  
 `src/Notifications/Ajax.php`
 

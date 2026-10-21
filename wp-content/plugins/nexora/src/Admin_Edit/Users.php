@@ -31,6 +31,7 @@ class Users {
 	public function __construct() {
 		add_filter( 'map_meta_cap', array( $this, 'map_cap' ), 10, 4 );
 		add_action( 'load-users.php', array( $this, 'check_screen' ) );
+		add_action( 'delete_user', array( $this, 'refuse' ), 1 );
 		add_action( 'delete_user', array( $this, 'cascade' ), 5 );
 		add_filter( 'user_row_actions', array( $this, 'row_actions_filter' ), 10, 2 );
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_create' ) );
@@ -123,6 +124,21 @@ class Users {
 					'back_link' => true,
 				)
 			);
+		}
+	}
+
+	/**
+	 * The last line of defence, for EVERY way of deleting a user (the Users screen, REST, WP-CLI, plugin code): WordPress has no filter to
+	 * refuse a deletion, but this action fires before anything is removed, so ending the request here leaves everything as it was.
+	 *
+	 * @param int $user_id User ID.
+	 */
+	public function refuse( $user_id ) {
+
+		$message = self::refusal( (int) $user_id );
+
+		if ( '' !== $message ) {
+			wp_die( esc_html( $message ), '', array( 'response' => 409 ) );
 		}
 	}
 

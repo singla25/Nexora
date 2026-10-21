@@ -120,7 +120,6 @@ Registered with `Ajax::register(..., true)`, so they exist for visitors too. All
 |---|---|---|---|
 | ID document download | `wp_ajax_nexora_document` (GET, `?id=<attachment>&size=`) | `Profile\Private_Documents::serve` | logged in (401 otherwise), `can_view()` owner/admin only (403), file must exist (404); `nosniff`, `private, no-store` headers. Not JSON. Logged-in only: there is no `nopriv` hook |
 | Contact form | `admin_post_nopriv_nexora_contact` and `admin_post_nexora_contact` | `Shortcodes\Contact_Form::handle` | form POST (not AJAX): nonce field `nx_contact_nonce`, honeypot, limiter `contact` (3 / 10 min), then redirect with a result flag |
-| Better Messages filter | `better_messages_search_user_sql_condition` | `Integrations\Better_Messages` | restricts the third-party plugin's user search to accepted connections |
 
 REST API: the plugin registers **no** REST routes, and its post types are not exposed to REST.
 
