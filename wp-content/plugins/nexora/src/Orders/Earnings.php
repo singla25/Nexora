@@ -129,8 +129,11 @@ class Earnings {
 			'limit'      => $per,
 			'page'       => $page,
 			'paginate'   => true,
-			'orderby'    => 'date',
-			'order'      => 'DESC',
+			// Newest first; orders of the very same second are told apart by id, so a page boundary never repeats or skips one.
+			'orderby'    => array(
+				'date' => 'DESC',
+				'id'   => 'DESC',
+			),
 			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- the one lookup of "orders of this vendor"; the order meta is the index.
 			'meta_key'   => Lines::VENDOR_META,
 			'meta_value' => (string) (int) $vendor_id,

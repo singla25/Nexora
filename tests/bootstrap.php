@@ -14,6 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/live-guard.php';
 nx_live_guard_enforce( true );
 
+// WooCommerce loads its admin helper functions only on admin requests; tests that build the admin menu or render admin screens (WP-CLI is not
+// an admin request) need them, and a development site happens to have them loaded by other plugins.
+if ( defined( 'WC_ABSPATH' ) && ! function_exists( 'wc_get_page_screen_id' ) && is_readable( WC_ABSPATH . 'includes/admin/wc-admin-functions.php' ) ) {
+	require_once WC_ABSPATH . 'includes/admin/wc-admin-functions.php';
+}
+
 // CLI has no headers to send; keep auth-cookie calls from emitting warnings.
 add_filter( 'send_auth_cookies', '__return_false' );
 

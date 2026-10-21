@@ -95,6 +95,8 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 
 ### Phase 10: Hardening and automated tests on every push
 
+**Status: built on `feature/hardening-ci`, awaiting the owner's review (not merged, not pushed).** Specified and recorded in `docs/SPEC.md` section 14, `docs/SECURITY-MATRIX.md` and `docs/LAUNCH-CHECKLIST.md`. Not part of the scope the owner defined for it, so moved to the backlog: the end-to-end test `test-e2e-marketplace.php`, the accessibility pass on the new forms and the 403/404/checkout error pages.
+
 - **Goal.** Make the whole marketplace safe and sturdy, and make sure the tests run by themselves.
 - **Main pieces.**
   - A security review (nonces, capabilities, object-level access, SQL, escaping).
@@ -112,6 +114,7 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 - **Customer cancel and return requests.**
 - **Data retention and erasure.** Order lines keep buyer and seller names as frozen text; a policy for personal-data erasure requests is needed.
 - **The earnings summary table.** Earnings are read from each vendor's orders on every request. Fine for thousands of orders; a summary table is the next step if volume grows.
+- **End-to-end test** (`test-e2e-marketplace.php`), an **accessibility pass** on the forms, and friendly **403 / 404 / checkout error pages** (moved out of Phase 10).
 - **CSV export** of the seller report and the admin overview (moved out of Phase 8).
 - **Coupons on marketplace lines.** Refused today: a discounted line no longer equals the product price, so placing the order is refused with the price message. Needs a rule for who pays the discount and how commission is worked out.
 - **Admin-only platform catalog import.** The "Platform" vendor that owns catalog items was dropped from Phase 5 (imported items belong to the importing vendor); an administrator-only import into a platform-owned catalog can be added later.
