@@ -43,7 +43,8 @@ jobs:
       # Two databases: the SITE (named in wp-config.php) and a scratch TEST one. The test runner refuses to run on the site database.
       CI_SITE_DB: nexora_site
       CI_TEST_DB: nexora_test
-      CI_SITE_URL: http://localhost
+      # The golden-output snapshots contain the development site's address, so the fixture site uses the same one.
+      CI_SITE_URL: http://localhost83.local.com/nexora
       WOOCOMMERCE_VERSION: 11.2.1
       ACF_VERSION: 6.8.10
 
@@ -60,6 +61,9 @@ jobs:
           extensions: mbstring, mysqli, gd, intl, zip, curl, dom, xml, sodium, openssl
           tools: composer:v2, wp-cli:2.12.0
           coverage: none
+
+      - name: Point the site's name at this machine (private address, as on the development site)
+        run: echo '127.0.0.1 localhost83.local.com' | sudo tee -a /etc/hosts > /dev/null
 
       - name: Build the fixture site (databases, wp-config.php, WooCommerce, ACF, Nexora)
         run: bash tests/ci/setup-site.sh

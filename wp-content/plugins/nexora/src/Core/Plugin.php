@@ -34,7 +34,6 @@ class Plugin {
 		new \Nexora\Profile\Documents_Migration();
 		new \Nexora\Profile\Upload_Policy();
 		new \Nexora\Shortcodes\Home();
-		new \Nexora\Integrations\Better_Messages();
 		new \Nexora\Chat\Module();
 		new \Nexora\Auth\Recaptcha();
 		new \Nexora\Shortcodes\Stats();

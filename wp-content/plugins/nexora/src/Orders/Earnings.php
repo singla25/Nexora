@@ -102,8 +102,10 @@ class Earnings {
 				'status'     => array_merge( array_keys( wc_get_order_statuses() ), array( 'trash', 'wc-checkout-draft' ) ),
 				'limit'      => 1,
 				'return'     => 'ids',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one existence check per delete.
-				'meta_query' => self::vendor_query( $vendor_id ),
+				// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- one existence check per delete.
+				'meta_key'   => Lines::VENDOR_META,
+				'meta_value' => (string) (int) $vendor_id,
+				// phpcs:enable
 			)
 		);
 
@@ -129,8 +131,10 @@ class Earnings {
 			'paginate'   => true,
 			'orderby'    => 'date',
 			'order'      => 'DESC',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- the one lookup of "orders of this vendor"; the order meta is the index.
-			'meta_query' => self::vendor_query( $vendor_id ),
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- the one lookup of "orders of this vendor"; the order meta is the index.
+			'meta_key'   => Lines::VENDOR_META,
+			'meta_value' => (string) (int) $vendor_id,
+			// phpcs:enable
 		);
 
 		if ( null !== $since ) {
@@ -246,8 +250,10 @@ class Earnings {
 			'status'     => self::statuses(),
 			'limit'      => -1,
 			'return'     => 'ids',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- see sales().
-			'meta_query' => self::vendor_query( $vendor_id ),
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- see sales().
+			'meta_key'   => Lines::VENDOR_META,
+			'meta_value' => (string) (int) $vendor_id,
+			// phpcs:enable
 		);
 
 		if ( null !== $since ) {
@@ -274,34 +280,25 @@ class Earnings {
 		$args = array(
 			'status'     => self::statuses(),
 			'limit'      => -1,
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- see sales().
-			'meta_query' => self::vendor_query( $vendor_id ),
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- see sales().
+			'meta_key'   => Lines::VENDOR_META,
+			'meta_value' => (string) (int) $vendor_id,
+			// phpcs:enable
 		);
 
 		if ( null !== $since ) {
 			$args['date_created'] = '>=' . (int) $since;
 		}
 
-		return array_values( array_filter( wc_get_orders( $args ), function ( $order ) {
-			return $order instanceof \WC_Order;
-		} ) );
-	}
+		$orders = array();
 
-	/**
-	 * The order query for "has a line of this vendor".
-	 *
-	 * @param int $vendor_id The vendor application post id.
-	 * @return array
-	 */
-	private static function vendor_query( $vendor_id ) {
+		foreach ( wc_get_orders( $args ) as $order ) {
+			if ( $order instanceof \WC_Order ) {
+				$orders[] = $order;
+			}
+		}
 
-		return array(
-			array(
-				'key'     => Lines::VENDOR_META,
-				'value'   => (string) (int) $vendor_id,
-				'compare' => '=',
-			),
-		);
+		return $orders;
 	}
 
 	/**

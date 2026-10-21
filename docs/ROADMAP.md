@@ -122,7 +122,6 @@ Order (the owner's): **7a, 7b, 8, 9, 10**, then the pre-launch checklist (sectio
 - **Housekeeping.**
   - Push the local tag `phase-6-complete` (the owner does the pushing).
   - The 833 third-party files are already in commit `16cb22e5` ("marketplace") on the remote; nothing to decide about them.
-  - Remove the leftover `Integrations\Better_Messages` class, its alias and test.
   - Tidy the stale text listed in section 2, including the phase numbering in `docs/TEST_PLAN.md`.
 
 ## 5. Pre-launch checklist (at the very end)

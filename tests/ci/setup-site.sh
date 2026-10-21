@@ -58,10 +58,16 @@ for slug in login-page registration-page profile-page; do
 done
 wp rewrite flush --path=. --quiet
 
-if [ -f tests/ci/woocommerce-fixture.sh ]; then
-  echo "== WooCommerce settings the tests assume"
-  bash tests/ci/woocommerce-fixture.sh
-fi
+echo "== settings the tests assume (the same as the development site)"
+# High-performance order storage is on (WooCommerce's default for new stores is not reliable under WP-CLI), the shop currency is the rupee,
+# and the captcha has placeholder keys so the captcha tests have something to switch. These are made-up values, not credentials.
+wp wc hpos enable --path=. --quiet
+wp option update woocommerce_currency INR --path=. --quiet
+wp option update woocommerce_default_country 'IN:DL' --path=. --quiet
+wp option update recaptcha_enabled 1 --path=. --quiet
+wp option update recaptcha_site_key ci-placeholder-site-key --path=. --quiet
+wp option update recaptcha_secret_key ci-placeholder-secret-key --path=. --quiet
+wp option update default_admin_mail ci-admin@example.test --path=. --quiet
 
 echo "== the scratch test database (a copy of the finished site)"
 dump="$(mktemp)"

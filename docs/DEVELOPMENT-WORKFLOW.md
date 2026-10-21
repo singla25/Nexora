@@ -77,7 +77,6 @@ Requires WP-CLI (`wp`) and the site's `wp-config.php`. Run it before every commi
 | `test-rate-limits.php`, `test-captcha-policy.php` | limiter and captcha rules |
 | `test-access-control.php` | wp-admin / wp-login redirects |
 | `test-asset-loading.php` | scripts load only on the pages that need them |
-| `test-better-messages.php` | the Better Messages search filter |
 | `test-lifecycle.php` | migrations, indexes, deactivation, gated uninstall, caches |
 | `test-golden-output.php` | exact markup of each screen |
 | `test-i18n.php` | strings translatable, `.pot` current, a French `.mo` loads |

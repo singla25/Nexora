@@ -65,7 +65,7 @@ What the pieces provide:
 | Plugin `nexora` | front-end registration and login, password reset by emailed one-time code (OTP), the profile dashboard (info, connections, notifications, posts), the connection workflow, chat, notifications, private ID documents, upload limits, rate limiting, the "Nexora System" admin area, the home-page statistics, a contact form |
 | Theme `nexora-theme` | site header, footer, 404, archive/single/search templates, a branding settings page, and an installer that builds sample Elementor pages. It holds no member logic |
 | WordPress core | users and passwords, posts and meta, options, hooks, the `admin-ajax.php` endpoint, the media library, rewrite rules |
-| Third-party (never edit) | Elementor, Elementor Pro, ACF, and optionally the Better Messages plugin (Nexora only adds one search filter for it, see [Hooks](#hooks)) |
+| Third-party (never edit) | Elementor, Elementor Pro, ACF (the Better Messages plugin was removed) |
 
 Custom code lives in exactly two places: `wp-content/plugins/nexora/` and `wp-content/themes/nexora-theme/`. The rest of the repository is a committed WordPress install.
 
@@ -125,7 +125,7 @@ For every folder: why it exists, what belongs there, and what must not go there.
 | `src/PostTypes/` | the three custom post types | `Registrar` | |
 | `src/Admin/` | the "Nexora System" admin area | `Menu`, `Settings`, `Pages`, `Meta_Boxes`, `List_Columns` | front-end code |
 | `src/Shortcodes/` | public shortcodes not owned by another module | `Home`, `Stats`, `Contact_Form` | |
-| `src/Integrations/` | third-party plugins | `Better_Messages` | |
+| `src/Integrations/` | third-party plugins | `Woo_Routes` | |
 | `src/Database/` | schema lifecycle | `Installer`, `Migrations`, `Uninstaller` | feature queries (each module's `Repository` owns those) |
 | `templates/` | markup only, escaped where printed | see [Templates](#templates) | queries, business rules |
 | `assets/` | CSS and JS | see [Assets](#assets-and-cache-busting) | PHP |
@@ -335,7 +335,6 @@ Registered by Nexora (grepped from `src/`). Hooks Nexora *fires* for others are 
 | `added_post_meta`, `updated_post_meta` | `Profile\Private_Documents` | move a newly assigned ID document to the private folder |
 | `wp_get_attachment_url`, `wp_get_attachment_image_src`, `wp_prepare_attachment_for_js`, `wp_calculate_image_srcset` | `Profile\Private_Documents` | rewrite private file URLs to the gated download |
 | `user_has_cap`, `upload_size_limit`, `wp_handle_upload_prefilter`, `ajax_query_attachments_args`, `upload_mimes` | `Profile\Upload_Policy` | upload rules for members |
-| `better_messages_search_user_sql_condition` | `Integrations\Better_Messages` | limit the third-party search to accepted connections |
 
 Nexora's own hooks:
 

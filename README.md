@@ -33,7 +33,7 @@ nexora/
 │   ├── Admin/                       # Menu, Settings, Pages, Meta_Boxes, List_Columns ("Nexora System")
 │   ├── PostTypes/                   # Registrar (user_profile, user_connections, user_content)
 │   ├── Shortcodes/                  # Home, Stats, Contact_Form
-│   ├── Integrations/                # Better_Messages (dead code, slated for removal; chat is fully custom)
+│   ├── Integrations/                # Woo_Routes (closes WooCommerce's own front doors)
 │   └── Database/                    # Installer, Migrations, Uninstaller
 ├── templates/                       # HTML only (auth, profile, chat, admin, mail, shortcodes)
 ├── languages/                       # nexora.pot (text domain `nexora`)
