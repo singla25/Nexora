@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'NXT_VERSION', '1.0.0' );
+define( 'NXT_VERSION', '1.0.5' );
 define( 'NXT_DIR', get_template_directory() );
 define( 'NXT_URI', get_template_directory_uri() );
 

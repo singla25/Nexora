@@ -1,10 +1,10 @@
 /* Nexora My Orders and Sales. Prefix nx-order-*, nx-sale-*, nx-sales-*, nx-orders-*. */
 .nx-order-card {
-	border: 1px solid var(--nx-border, #e5e7eb);
-	border-radius: var(--nx-radius, 10px);
-	padding: 14px 16px;
-	margin: 0 0 14px;
-	background: var(--nx-surface, #fff);
+	border: 1px solid var(--nx-border);
+	border-radius: var(--nx-radius-md);
+	padding: var(--nx-space-4) var(--nx-space-4);
+	margin: 0 0 var(--nx-space-4);
+	background: var(--nx-surface);
 }
 
 .nx-order-head {
@@ -12,7 +12,7 @@
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
-	gap: 8px;
+	gap: var(--nx-space-2);
 }
 
 .nx-order-title {
@@ -23,105 +23,134 @@
 .nx-order-meta,
 .nx-order-ship,
 .nx-order-total {
-	margin: 6px 0;
+	margin: var(--nx-space-2) 0;
 	font-size: 0.92em;
-	color: var(--nx-muted, #4b5563);
+	color: var(--nx-text-muted);
 }
 
 .nx-order-status {
 	display: inline-block;
-	padding: 2px 10px;
-	border-radius: 999px;
-	font-size: 0.82em;
-	background: #e5e7eb;
-	color: #111827;
+	padding: var(--nx-space-0) var(--nx-space-3);
+	border-radius: var(--nx-radius-pill);
+	font-size: var(--nx-text-xs);
+	font-weight: 600;
+	background: var(--nx-neutral-bg);
+	color: var(--nx-neutral-text);
 }
 
-.nx-status-processing,
+.nx-status-processing {
+	background: var(--nx-info-bg);
+	color: var(--nx-info-text);
+}
+
 .nx-status-completed {
-	background: #dcfce7;
-	color: #166534;
+	background: var(--nx-success-bg);
+	color: var(--nx-success-text);
 }
 
-.nx-status-on-hold,
 .nx-status-pending {
-	background: #fef3c7;
-	color: #92400e;
+	background: var(--nx-accent-bg);
+	color: var(--nx-accent-text);
+}
+
+.nx-status-on-hold {
+	background: var(--nx-warning-bg);
+	color: var(--nx-warning-text);
 }
 
 .nx-status-cancelled,
 .nx-status-failed,
 .nx-status-refunded {
-	background: #fee2e2;
-	color: #991b1b;
+	background: var(--nx-danger-bg);
+	color: var(--nx-danger-text);
 }
 
 .nx-order-lines {
 	width: 100%;
 	border-collapse: collapse;
 	font-size: 0.92em;
-	margin: 8px 0;
+	margin: var(--nx-space-2) 0;
 }
 
 .nx-order-lines th,
 .nx-order-lines td {
 	text-align: left;
-	padding: 6px 8px;
-	border-bottom: 1px solid var(--nx-border, #e5e7eb);
+	padding: var(--nx-space-2) var(--nx-space-3);
+	border-bottom: 1px solid var(--nx-border);
+}
+
+.nx-order-lines th {
+	background: var(--nx-surface-muted);
+	color: var(--nx-ink);
+	font-weight: 600;
 }
 
 .nx-order-sku {
-	color: var(--nx-muted, #6b7280);
+	color: var(--nx-text-muted);
 	font-size: 0.85em;
 }
 
 .nx-sale-view,
 .nx-orders-page {
-	padding: 6px 12px;
+	padding: var(--nx-space-2) var(--nx-space-3);
 	border: 0;
-	border-radius: var(--nx-radius, 6px);
-	background: var(--nx-primary, #2563eb);
-	color: #fff;
+	border-radius: var(--nx-radius-sm);
+	background: var(--nx-primary);
+	color: var(--nx-white);
 	cursor: pointer;
 }
 
 .nx-sale-view:focus-visible,
 .nx-orders-page:focus-visible {
-	outline: 2px solid var(--nx-primary, #2563eb);
+	outline: 2px solid var(--nx-primary);
 	outline-offset: 2px;
 }
 
 .nx-orders-page[disabled] {
-	background: #9ca3af;
+	background: var(--nx-disabled-bg);
 	cursor: not-allowed;
 }
 
 .nx-orders-pager {
-	margin: 10px 0;
+	margin: var(--nx-space-3) 0;
 	text-align: center;
 }
 
 .nx-orders-empty {
-	color: var(--nx-muted, #6b7280);
+	color: var(--nx-text-muted);
 }
 
 .nx-sales-totals {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-	gap: 8px 16px;
-	margin: 0 0 14px;
+	grid-template-columns: minmax(0, 1fr) auto;
+	margin: 0 0 var(--nx-space-4);
+	border: 1px solid var(--nx-border);
+	border-radius: var(--nx-radius-md);
+	background: var(--nx-surface);
+	overflow: hidden;
+}
+
+.nx-sales-totals dt,
+.nx-sales-totals dd {
+	margin: 0;
+	padding: var(--nx-space-3) var(--nx-space-4);
+}
+
+.nx-sales-totals dt:not(:first-of-type),
+.nx-sales-totals dt:not(:first-of-type) + dd {
+	border-top: 1px solid var(--nx-border);
 }
 
 .nx-sales-totals dt {
-	font-size: 0.85em;
-	color: var(--nx-muted, #4b5563);
-	margin: 0;
+	color: var(--nx-text-muted);
+	font-size: var(--nx-text-sm);
 }
 
 .nx-sales-totals dd {
-	font-size: 1.25em;
-	font-weight: 600;
-	margin: 0 0 6px;
+	color: var(--nx-ink);
+	font-size: var(--nx-text-md);
+	font-weight: 700;
+	text-align: right;
 }
 
 @media (max-width: 600px) {

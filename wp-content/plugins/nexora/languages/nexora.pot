@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Nexora 1.0.16\n"
+"Project-Id-Version: Nexora 1.0.25\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nexora\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -131,6 +131,10 @@ msgstr ""
 #: src/Admin/Meta_Boxes.php:105
 #: src/Profile/Page.php:313
 msgid "Company ID Card"
+msgstr ""
+
+#: src/Profile/Page.php:303
+msgid "Unread notifications"
 msgstr ""
 
 #: src/Admin/Meta_Boxes.php:237
@@ -2338,8 +2342,10 @@ msgstr ""
 
 #. translators: %s: member's display name.
 #. translators: %s: administrator's display name.
+#. translators: %s: the member's first name.
 #: templates/auth/login-state.php:12
 #: templates/profile/admin-mode.php:13
+#: templates/profile/page.php:54
 #: templates/shortcodes/home.php:39
 #, php-format
 msgid "Welcome back, %s"

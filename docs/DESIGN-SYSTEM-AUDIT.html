@@ -1,0 +1,153 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nexora Design System Audit</title><style>
+:root{--bg:#fff;--fg:#171717;--mut:#5b5f6b;--bd:#dbe8f4;--tint:#eaf4fc;--navy:#14275c;--code:#f3f6fa}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1420;--fg:#e8ecf3;--mut:#a3adc2;--bd:#26304a;--tint:#16203a;--navy:#8fb8ff;--code:#1a2238}}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,"Segoe UI",Roboto,sans-serif;margin:0}
+main{max-width:980px;margin:0 auto;padding:32px 16px 64px}
+h1{color:var(--navy);font-size:2rem;margin:0 0 .5rem}h2{color:var(--navy);margin-top:2.4rem;border-bottom:1px solid var(--bd);padding-bottom:.3rem}h3{margin-top:1.6rem}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.88em;overflow-wrap:anywhere}
+.tw{overflow-x:auto;margin:1rem 0}table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--bd);padding:8px 10px;text-align:left;vertical-align:top}th{background:var(--tint)}
+li{margin:.3rem 0}p{overflow-wrap:anywhere}
+</style></head><body><main>
+<h1>Nexora Design System Audit</h1>
+<p>Date: 2026-10-18. Scope: all CSS in <code>wp-content/plugins/nexora/assets/css/</code> (9 files, 3,614 lines) and <code>wp-content/themes/nexora-theme/assets/css/</code> (2 files, 1,905 lines), plus how they are enqueued. Static analysis only (grep and contrast arithmetic); nothing was rendered in a browser, so visual findings still need a <code>verify-like-a-user</code> pass.</p>
+<h2>1. Summary</h2>
+<p>Nexora has a real but thin design system: one brand palette (navy/blue), one font (Plus Jakarta Sans), three radii, two shadows, defined as <code>--nx-*</code> tokens in the plugin and duplicated as <code>--nxt-*</code> in the theme. Core surfaces (profile, login, registration, chat) use the tokens heavily. The newer marketplace work (orders, vendor, marketplace CSS) drifts from them: it references tokens that do not exist and hard-codes its own colours.</p>
+<div class="tw"><table><thead><tr><th>Area</th><th>Rating</th><th>One-line verdict</th></tr></thead><tbody>
+<tr><td>Colour tokens</td><td>Needs work</td><td>Brand colours tokenised; status/semantic colours and neutrals are not</td></tr>
+<tr><td>Typography</td><td>Needs work</td><td>One family, no type scale: 52 distinct font-size values</td></tr>
+<tr><td>Spacing</td><td>Poor</td><td>No spacing tokens; 32 distinct literal values</td></tr>
+<tr><td>Radius / shadow / motion</td><td>Fair</td><td>Radius and shadow tokenised, motion is not</td></tr>
+<tr><td>Components</td><td>Poor</td><td>No shared button, badge, form or modal base; each screen re-styles its own</td></tr>
+<tr><td>Naming / scoping</td><td>Needs work</td><td>Three prefixes done well; ~120 unprefixed global selectors in <code>profile-page.css</code></td></tr>
+<tr><td>Accessibility</td><td>Needs work</td><td>Several contrast failures from tokens themselves; no reduced-motion support</td></tr>
+<tr><td>Responsive</td><td>Fair</td><td>Max-width only, eight different breakpoints, no shared set</td></tr>
+<tr><td>Governance</td><td>Fair</td><td>Convention documented in a skill, nothing enforces it</td></tr>
+</tbody></table></div>
+<p>Top priorities: fix the five undefined tokens (bug, section 3.1), fix the contrast failures (3.2), add semantic status tokens, then consolidate the plugin and theme token sets.</p>
+<h2>2. What exists</h2>
+<ul>
+<li><strong>Tokens</strong> (<code>plugins/nexora/assets/css/tokens.css</code>, 28 lines): 12 colours, 3 radii, 2 shadows, 1 gradient, 1 font stack. Enqueued as handle <code>nexora-tokens</code>, a dependency of every plugin stylesheet (verified in each <code>Assets</code>/<code>Login</code>/<code>Registration</code>/<code>Page</code>/<code>Module</code> class).</li>
+<li><strong>Theme tokens</strong> (<code>themes/nexora-theme/assets/css/style.css:1-40</code>, <code>--nxt-*</code>): the same palette again plus blue-bg/blue-text, amber-bg/amber-text, a fourth radius (<code>xl</code> 22px), 4 shadows, 2 gradients, a transition, a container width and a heading font.</li>
+<li><strong>Prefixes</strong>: plugin <code>nx-*</code> (256 uses), theme chrome <code>nxt-*</code> (188), Elementor sections <code>nxe-*</code> (133). Documented in <code>CLAUDE.md</code> and the <code>nexora-frontend-style</code> skill.</li>
+<li><strong>Font loading</strong>: Google Fonts, weights 400-800, requested from three places (<code>Core/Assets.php:50</code>, <code>theme/inc/elementor/support.php:31</code>, <code>theme/inc/theme-setup.php:39</code>).</li>
+<li><strong>Third-party UI</strong>: SweetAlert2 (vendored in <code>assets/lib</code>) is restyled by global <code>.swal2-*</code> overrides.</li>
+<li><strong>Convention doc</strong>: <code>.claude/skills/nexora-frontend-style/SKILL.md</code> ("tokens first, don't add new hex values or fonts"). No standalone design-system document exists in <code>docs/</code>; <code>THEME.md</code> is the closest.</li>
+</ul>
+<h2>3. Findings</h2>
+<h3>3.1 Undefined tokens (bug, high)</h3>
+<p>Five custom properties are used but defined nowhere in the repo's CSS. They only work because of the fallback value (or silently fail where there is none):</p>
+<div class="tw"><table><thead><tr><th>Token</th><th>Used in</th><th>Effect</th></tr></thead><tbody>
+<tr><td><code>--nx-radius</code></td><td>chat, marketplace, orders, profile-login, profile-page, profile-registration, style, vendor</td><td>Always resolves to its inline fallback (6px or 10px). The tokens file has <code>-sm/-md/-lg</code> only. The fallbacks disagree with each other.</td></tr>
+<tr><td><code>--nx-primary</code></td><td>marketplace, orders</td><td>Falls back to <code>#2563eb</code> (a generic Tailwind blue), not brand blue <code>#2c8fd1</code>. Primary buttons and focus rings in orders/marketplace are off-brand.</td></tr>
+<tr><td><code>--nx-muted</code></td><td>orders</td><td>Falls back to grays <code>#4b5563</code>/<code>#6b7280</code>, not <code>--nx-text-muted</code> <code>#5b5f6b</code>.</td></tr>
+<tr><td><code>--nx-surface</code></td><td>orders</td><td>Falls back to <code>#fff</code>.</td></tr>
+<tr><td><code>--nx-space-2</code></td><td>marketplace</td><td>No spacing scale exists, so there is no fallback to land on. Check the rule for a collapsed gap.</td></tr>
+</tbody></table></div>
+<p>Fix: either define these or (better) replace them with the real tokens (<code>--nx-blue</code>, <code>--nx-text-muted</code>, <code>--nx-white</code>, <code>--nx-radius-sm</code>).</p>
+<h3>3.2 Colour</h3>
+<ul>
+<li><strong>Hard-coded colour</strong>: 54 hex literals outside <code>tokens.css</code> in the plugin and 22 in the theme. <code>orders.css</code> is the worst (19 hex, 11 <code>var()</code>): status pills, grays and the off-brand blue are all literal. Stray Tailwind-style values (<code>#e5e7eb</code>, <code>#111827</code>, <code>#9ca3af</code>, <code>#6b7280</code>, <code>#4b5563</code>, <code>#2563eb</code>, <code>#991b1b</code>, <code>#166534</code>) do not appear in the palette.</li>
+<li><strong>No semantic status palette</strong>: only <code>--nx-danger</code> and <code>--nx-success</code> exist. Statuses are implemented four separate ways: orders (<code>.nx-status-*</code>, green/amber/red/gray literals), vendor (<code>.nx-vendor-status</code>), connection history (<code>.history-status.*</code>) and notifications (<code>.noti-status.*</code>). The theme has an amber pair (<code>--nxt-amber-*</code>) the plugin cannot see.</li>
+<li><strong>Duplicated palettes</strong>: <code>--nx-*</code> and <code>--nxt-*</code> hold identical values under two names. A palette change must be made twice. No stylesheet crosses over (<code>var(--nxt-</code> is never used in the plugin or vice versa), so the two systems cannot share components.</li>
+<li><strong>Unused</strong>: <code>--nxt-shadow-pop</code> is defined and never used.</li>
+<li><strong>Contrast</strong> (WCAG 2.x, computed from the token values):</li>
+</ul>
+<div class="tw"><table><thead><tr><th>Pair</th><th>Ratio</th><th>Result</th></tr></thead><tbody>
+<tr><td><code>--nx-text-faint</code> <code>#9a9a95</code> on white</td><td>2.83</td><td>Fails AA (4.5) for text; fails 3.0 for UI</td></tr>
+<tr><td>White on <code>--nx-success</code> <code>#16a34a</code></td><td>3.30</td><td>Fails AA for normal text</td></tr>
+<tr><td>White on <code>--nx-blue</code> <code>#2c8fd1</code></td><td>3.53</td><td>Fails AA for normal text (passes only for large text)</td></tr>
+<tr><td><code>--nx-blue</code> <code>#2c8fd1</code> as link/text on white</td><td>3.53</td><td>Fails AA</td></tr>
+<tr><td><code>--nx-blue</code> on <code>--nx-bg-tint</code></td><td>3.16</td><td>Fails AA</td></tr>
+<tr><td>White on <code>#9ca3af</code> (disabled button, <code>orders.css:95</code>)</td><td>2.54</td><td>Fails</td></tr>
+<tr><td>White on <code>--nx-danger</code></td><td>4.83</td><td>Pass</td></tr>
+<tr><td>White on <code>--nx-blue-dark</code></td><td>5.50</td><td>Pass</td></tr>
+<tr><td><code>--nx-text-muted</code> on white / tint</td><td>6.38 / 5.72</td><td>Pass</td></tr>
+<tr><td>Order status pills (3 checked)</td><td>6.4-6.8</td><td>Pass</td></tr>
+</tbody></table></div>
+<p>  The brand gradient runs navy to <code>#2c8fd1</code>, so white text on its light end is 3.53. Primary buttons that use the gradient or flat <code>--nx-blue</code> with small white text inherit the failure.</p>
+<ul>
+<li><strong>No dark mode</strong> (no <code>prefers-color-scheme</code> anywhere). Reasonable for the current scope; noted so it is a decision, not an oversight.</li>
+</ul>
+<h3>3.3 Typography</h3>
+<ul>
+<li>One family everywhere (good): 11 declarations use <code>var(--nx-font)</code>/<code>--nxt-font</code>, 2 use <code>inherit</code>. The heading font token exists only in the theme.</li>
+<li><strong>No type scale.</strong> Font-size values in use include 0.68, 0.7, 0.72, 0.75, 0.78, 0.8, 0.82, 0.85, 0.88, 0.9, 0.92, 0.95, 0.98, 1.0, 1.05, 1.1, 1.2, 1.3, 1.7 rem plus 11, 12, 13, 14, 16 px and two <code>clamp()</code> headings. The most common (<code>0.85rem</code>, <code>0.9rem</code>, <code>0.95rem</code>, <code>0.92rem</code>) are almost identical sizes with no reason to differ. rem and px are mixed.</li>
+<li>Two sizes are below 12px: <code>marketplace.css:98</code> (11px) and <code>chat.css:370</code> (0.68rem, about 11px).</li>
+<li>Weights are used consistently (400-800 loaded); no weight tokens, none needed.</li>
+</ul>
+<h3>3.4 Spacing and layout</h3>
+<ul>
+<li>No spacing tokens (<code>--nx-space-2</code> is a dangling reference). 32 distinct padding/margin/gap values. Frequent: <code>gap: 10px</code> (13), <code>8px</code> (10), <code>14px</code> (7), <code>20px</code> (5); paddings such as <code>10px 12px</code>, <code>12px 14px</code>, <code>12px 16px</code>, <code>10px 14px</code> differ by 2px for no visible reason.</li>
+<li>Container width exists only in the theme (<code>--nxt-container: 1200px</code>).</li>
+<li><strong>z-index</strong>: <code>500</code>, <code>500</code>, <code>1</code>, <code>10000</code>, <code>99999</code> with no scale. The <code>99999</code> (chat/overlay) and <code>10000</code> values are arbitrary and will lose to any third-party widget that picks bigger.</li>
+</ul>
+<h3>3.5 Radius, shadow, motion</h3>
+<ul>
+<li>Radius is the best-adopted token: 47 uses of <code>--nx-radius-sm</code>, 19 <code>-md</code>, 12 <code>-lg</code>. Remaining literals: <code>50%</code> (18, fine for circles), <code>999px</code> (8) and <code>50px</code> (2) for pills (two spellings of one idea), plus stray <code>2px</code>, <code>6px</code>, <code>10px</code>, <code>34px</code>. The theme adds an <code>xl</code> (22px) that the plugin lacks.</li>
+<li>Shadows: two plugin tokens (<code>card</code>, <code>hover</code>), four in the theme; some rules hard-code <code>rgba(20,39,92,…)</code> instead.</li>
+<li><strong>Motion</strong>: no timing tokens in the plugin. Durations are <code>0.3s</code> (6), <code>0.2s</code>, <code>0.22s</code>, <code>220ms</code> in various spellings; the theme has <code>--nxt-transition</code> and uses it, the plugin does not. <strong>No <code>prefers-reduced-motion</code> handling in any file</strong>, although cards lift on hover with <code>transform</code> transitions.</li>
+</ul>
+<h3>3.6 Components</h3>
+<p>There is no component layer. <code>nx-btn</code> (<code>style.css:103</code>) is the only reusable button and is used for the home/contact screens only. Everywhere else a button is a one-off class:</p>
+<p><code>.tab-btn</code>, <code>.submit-btn</code>, <code>.upload-btn</code>, <code>.connect-btn</code>, <code>.accept-btn</code>, <code>.reject-btn</code>, <code>.remove-btn</code>, <code>.remove-connection-btn</code>, <code>.view-all-btn</code>, <code>.view-content-btn</code>, <code>.profile-registration-form-btn</code>, <code>.nx-product-add</code>, <code>.nx-product-edit</code>, <code>.nx-import-*</code>, <code>.nx-api-*</code>, <code>.nx-add-to-cart</code>, <code>.nx-sale-view</code> plus the theme's <code>.nxt-btn</code> family (<code>--primary/--secondary/--sm/--nav/--ghost-inverse</code>) and <code>.nxt-btn-home--primary</code>.</p>
+<p>That is roughly 25 button implementations across two vocabularies. The same holds for badges/pills (section 3.2) and form fields (<code>.form-group</code>, <code>.content-form</code>, <code>.profile-login-card input</code>, <code>.profile-registration-form-grid input</code>, <code>.nx-contact-form input</code> each restyle inputs and repeat the identical focus ring <code>border-color: blue; box-shadow: 0 0 0 3px rgba(44,143,209,.18)</code>).</p>
+<p><strong>Modals</strong>: SweetAlert2 is restyled in <code>profile-page.css:344-366</code> using 15 <code>!important</code> declarations, and only loads where that file loads. <code>marketplace.css</code> and <code>vendor.css</code> then add <code>.swal2-popup .nx-…</code> rules relying on those overrides being present. A popup opened on a page where <code>profile-page.css</code> is not enqueued would be unstyled.</p>
+<h3>3.7 Naming and specificity</h3>
+<ul>
+<li><code>profile-page.css</code> (1,342 lines, the largest file) has about 120 selectors with no prefix at the top level (<code>.tab-btn</code>, <code>.form-group</code>, <code>.info-*</code>, <code>.content-*</code>, <code>.doc-*</code>, <code>.history-*</code>, <code>.conn-*</code>, <code>.noti-*</code>). The file loads only on the profile page, which limits blast radius, but any theme or plugin using <code>.form-group</code> or <code>.tab-btn</code> on that page collides. The documented <code>nx-*</code> convention is followed by marketplace/vendor/orders but not by the older files.</li>
+<li>Chat styles are keyed on ids (<code>#chat-search</code>, <code>#chat-input</code>, <code>#chat-send</code>, <code>#nexora-chat-modal</code>, …), which are high-specificity and make overrides awkward.</li>
+<li><code>!important</code>: 15 in <code>profile-page.css</code> (all SweetAlert), 2 in <code>elementor.css</code> (Elementor override, acceptable).</li>
+<li>BEM-style modifiers (<code>nx-btn--inverse</code>, <code>nxt-btn--sm</code>) are used in the newer code; the older code uses compound classes (<code>.history-status.pending</code>).</li>
+</ul>
+<h3>3.8 Accessibility (CSS-level)</h3>
+<ul>
+<li>Focus: the marketplace and orders files add <code>:focus-visible</code> rings consistently (good). The theme has a global <code>:focus-visible</code> rule (<code>style.css:120</code>) and a skip link. The five older files (chat, login, registration, profile form, contact form) set <code>outline: none</code> on inputs and replace it with a border-colour change plus a 3px 18%-opacity ring; the ring is faint (the blue at 18% on white has well under 3:1 contrast against the background), so keyboard focus on those inputs relies on the border colour change alone. Buttons in these files have no focus style of their own and fall back to the browser default, which is fine unless the theme's global rule is not loaded.</li>
+<li>No <code>prefers-reduced-motion</code> (section 3.5).</li>
+<li>Contrast failures (section 3.2), including the most common secondary text colour <code>--nx-text-faint</code>.</li>
+<li>Touch targets, tab order and screen-reader behaviour were not assessed (need a browser).</li>
+</ul>
+<h3>3.9 Responsive</h3>
+<ul>
+<li>Eight distinct <code>max-width</code> breakpoints across the files: 480, 500, 600 (6x), 640 (2x), 760 (2x), 860 (2x), 900, 1024. Only <code>chat</code>, <code>marketplace</code>, <code>profile-page</code>, <code>vendor</code> and the theme <code>style.css</code> use any <code>min-width</code> query (one each). Mobile-last (desktop-first) throughout.</li>
+<li>600px is the de facto breakpoint; the 640/760/860 values are near-duplicates that make pages break at slightly different widths.</li>
+<li>The project's own check list (1440, 1000, 640, 400) does not match any actual breakpoint.</li>
+</ul>
+<h3>3.10 Governance and tooling</h3>
+<ul>
+<li>Convention lives in prose only (<code>nexora-frontend-style</code> skill, <code>CLAUDE.md</code>). Nothing fails when a hex value or an undefined <code>var()</code> is added; the five undefined tokens above shipped through the existing test suite.</li>
+<li>No stylelint, no token documentation page, no component gallery. <code>nexora-release-assets</code> covers version bumps, not design conformance.</li>
+<li>Asset versioning is handled (<code>NEXORA_VERSION</code>/<code>NXT_VERSION</code>), which keeps token changes from being cached.</li>
+<li>Google Fonts is requested from three enqueue sites (the plugin and two theme files); handles differ (<code>nxt-fonts</code> vs the theme-setup call vs the plugin), so the font CSS can be requested twice on one page. Not verified in the browser.</li>
+</ul>
+<h2>4. Recommendations</h2>
+<p>Ordered by value for effort.</p>
+<ol>
+<li><strong>Fix the undefined tokens</strong> (hour). Replace <code>--nx-primary</code>, <code>--nx-muted</code>, <code>--nx-surface</code>, <code>--nx-radius</code>, <code>--nx-space-2</code> with real tokens in <code>orders.css</code>, <code>marketplace.css</code> and the rest. Visible result: orders/marketplace primary buttons become brand blue.</li>
+<li><strong>Add a test for it</strong> (hour). A PHP test (same pattern as <code>test-isolation-lint.php</code>) that scans plugin and theme CSS and fails on any <code>var(--x)</code> with no definition. Prevents recurrence.</li>
+<li><strong>Fix contrast</strong> (small). Add <code>--nx-blue-text</code> (the theme already has <code>#1a5f8c</code>) for blue text and links; darken <code>--nx-success</code> (e.g. <code>#15803d</code>, about 5.0:1); use <code>--nx-blue-dark</code> for white-on-blue buttons or increase button weight/size to qualify as large text; replace <code>--nx-text-faint</code> for text with <code>--nx-text-muted</code> and keep faint only for decoration; set the disabled button to a darker gray or a dimmed navy.</li>
+<li><strong>Add semantic tokens</strong> (small). <code>--nx-success-bg/-text</code>, <code>--nx-warning-bg/-text</code>, <code>--nx-danger-bg/-text</code>, <code>--nx-info-bg/-text</code>, and one <code>.nx-badge</code> + modifier set to replace the four status implementations.</li>
+<li><strong>Add scales</strong> (small). Spacing (<code>--nx-space-1…8</code>: 4, 8, 12, 16, 20, 24, 32, 48), font sizes (<code>--nx-text-xs/sm/base/lg/xl/2xl</code>, about six steps), z-index (<code>--nx-z-dropdown/modal/chat/toast</code>), motion (<code>--nx-ease</code>, <code>--nx-duration</code>), and a <code>--nx-radius-pill</code>. Migrate opportunistically, file by file, rather than all at once.</li>
+<li><strong>Add <code>prefers-reduced-motion</code></strong> (small) in <code>tokens.css</code> or <code>style.css</code> to neutralise transforms and transitions.</li>
+<li><strong>Unify plugin and theme tokens</strong> (medium). Make the theme's <code>--nxt-*</code> aliases of the plugin's <code>--nx-*</code> (or the reverse), keep one source of truth and delete duplicated hex. Needs a decision on which side owns the palette since the theme can run without the plugin.</li>
+<li><strong>Build a minimal component layer</strong> (medium). <code>.nx-btn</code> (primary/secondary/ghost/danger, sm/md), <code>.nx-input</code>, <code>.nx-badge</code>, <code>.nx-card</code>, <code>.nx-modal</code> (a single place to style SweetAlert2 instead of inside <code>profile-page.css</code>). Then migrate the ~25 one-off buttons gradually. Load this layer as part of <code>nexora-tokens</code> or a sibling handle so every page has it.</li>
+<li><strong>Standardise breakpoints</strong> (small). Pick three (suggest 600, 900, 1200), document them, and collapse 480/500/640/760/860.</li>
+<li><strong>Rename legacy selectors</strong> (large, low urgency). Prefix <code>profile-page.css</code> classes with <code>nx-</code> only when touching a section; <code>test-golden-output.php</code> snapshots markup, so renames need <code>NX_UPDATE_GOLDEN=1</code> and review.</li>
+<li><strong>Consolidate Google Fonts</strong> into one enqueue with a single handle (small); consider self-hosting for privacy and performance.</li>
+<li><strong>Governance</strong>: add stylelint (<code>color-no-hex</code>, <code>declaration-property-value-disallowed-list</code>, <code>no-unknown-custom-properties</code>) or the test from item 2; add <code>docs/DESIGN-SYSTEM.md</code> documenting tokens, scales, components and the rules; add a design-conformance line to <code>nexora-release-assets</code>.</li>
+</ol>
+<h2>5. What is working</h2>
+<ul>
+<li>A single tokens file loaded as a declared dependency of every plugin stylesheet.</li>
+<li>Radius tokens are widely adopted.</li>
+<li>One font family, loaded with <code>display=swap</code> and preconnect hints.</li>
+<li>Per-page asset loading, so most CSS never reaches pages that do not need it.</li>
+<li>Clear prefix ownership between plugin, theme chrome and Elementor sections.</li>
+<li>Newer marketplace CSS uses <code>:focus-visible</code> and BEM-style modifiers.</li>
+<li>Cache busting via version constants.</li>
+</ul>
+<h2>6. Not covered</h2>
+<p>Rendered appearance, real contrast over the gradient and images, JS-built markup (<code>products.js</code>, <code>chat.js</code>, etc. inject classes and inline styles not checked here), the Elementor Pro/Elementor-generated CSS, wp-admin screens (Nexora admin pages, meta boxes), email templates and print styles. A browser pass using <code>verify-like-a-user</code> at 1440/1000/640/400px is the natural next step.</p>
+<h2>Appendix: method</h2>
+<p>Counts come from <code>grep</code> over the 11 CSS files listed in the scope line. Contrast ratios use the WCAG 2.x relative-luminance formula on the token hex values. Undefined and unused token lists compare every <code>var(--x)</code> reference with every <code>--x:</code> declaration across both folders (declared inline fallbacks were not counted as definitions). "Distinct values" counts exclude <code>0</code> and <code>auto</code>.</p>
+</main></body></html>

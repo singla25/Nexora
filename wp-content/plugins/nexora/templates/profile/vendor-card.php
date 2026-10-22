@@ -1,7 +1,7 @@
 <?php
 /**
  * Owner-only card on the profile. A customer sees "Become a seller"; anyone with an application sees their
- * Business Details as read-only text. Both forms live in <template> elements and open in a SweetAlert2 popup
+ * Business Details as read-only text (edited through the Business sub-tab of User Information). Both forms live in <template> elements and open in a SweetAlert2 popup
  * (assets/js/vendor.js), like the other sections.
  *
  * @var array $vendor status, data, types, locked (from Vendors\Service::card_data()).
@@ -53,8 +53,6 @@ $labels = \Nexora\Vendors\Fields::labels();
 				</div>
 			<?php endforeach; ?>
 		</div>
-
-		<button type="button" class="nx-vendor-open" data-template="nx-vendor-tpl-edit" data-title="<?php echo esc_attr__( 'Edit business details', 'nexora' ); ?>"><?php esc_html_e( 'Edit', 'nexora' ); ?></button>
 
 		<template id="nx-vendor-tpl-edit">
 			<form class="nx-vendor-form" data-action="nexora_vendor_update" novalidate>

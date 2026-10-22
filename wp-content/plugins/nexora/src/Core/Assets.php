@@ -35,7 +35,7 @@ class Assets {
 	}
 
 	/**
-	 * Shared design tokens (+ the brand font when the Nexora theme, which
+	 * Shared design tokens and components (+ the brand font when the Nexora theme, which
 	 * already loads it, is not active). Safe to call repeatedly.
 	 */
 	public static function enqueue_tokens() {
@@ -47,7 +47,7 @@ class Assets {
 			// phpcs:disable WordPress.WP.EnqueuedResourceParameters.MissingVersion
 			wp_enqueue_style(
 				'nexora-font',
-				'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
+				'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
 				array(),
 				null
 			);
@@ -55,7 +55,10 @@ class Assets {
 			$deps[] = 'nexora-font';
 		}
 
-		wp_enqueue_style( 'nexora-tokens', NEXORA_URL . 'assets/css/tokens.css', $deps, NEXORA_VERSION );
+		// `nexora-tokens` is the handle every feature stylesheet depends on: it is components.css, which itself depends on the
+		// token variables, so tokens and shared components always print before any feature CSS.
+		wp_enqueue_style( 'nexora-token-vars', NEXORA_URL . 'assets/css/tokens.css', $deps, NEXORA_VERSION );
+		wp_enqueue_style( 'nexora-tokens', NEXORA_URL . 'assets/css/components.css', array( 'nexora-token-vars' ), NEXORA_VERSION );
 	}
 
 	/**

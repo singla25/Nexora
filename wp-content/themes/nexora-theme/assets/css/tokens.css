@@ -1,0 +1,137 @@
+/* Nexora design tokens: the single source of truth for colour, type, spacing, radius, shadow, motion and layering.
+   Look: a calm, flat app UI (neutral canvas, white bordered cards, one blue, near-black ink, pastel status pills).
+   Loaded on every Nexora page (front end and admin) and by the Nexora theme, which keeps a byte-identical copy in
+   themes/nexora-theme/assets/css/tokens.css for when the plugin is not active (tests/php/test-design-system.php enforces both).
+   Raw colour values live ONLY in this :root block; every other stylesheet uses var(--nx-*).
+   Text/background pairs below meet WCAG AA (4.5:1); the test checks them. */
+
+:root {
+    /* Brand */
+    --nx-primary: #2563eb;       /* buttons, active nav, links on dark-enough surfaces (5.2:1 under white text) */
+    --nx-primary-dark: #1d4ed8;  /* hover, pressed, link text */
+    --nx-primary-soft: #eaf0ff;  /* selected rows, soft highlights */
+    --nx-primary-text: #1d4ed8;  /* blue text on white or soft backgrounds */
+    --nx-ink: #111113;           /* headings and strong text */
+
+    /* Surfaces */
+    --nx-bg: #f5f5f7;            /* page canvas behind cards */
+    --nx-surface: #ffffff;
+    --nx-surface-muted: #f7f7f8; /* table headers, stat bars, inputs at rest */
+    --nx-white: #ffffff;
+
+    /* Neutrals */
+    --nx-border: #e8e8ec;
+    --nx-border-strong: #d4d4da;
+    --nx-text: #27272a;
+    --nx-text-muted: #5b5f6b;
+    --nx-text-faint: #6b6e78;    /* captions and placeholders, still 4.7:1 on every surface */
+    --nx-disabled-bg: #6b6e78;
+
+    /* Status. Solid colours sit under white text; -bg/-text pairs are pastel pills and notices. */
+    --nx-danger: #dc2626;
+    --nx-success: #15803d;
+    --nx-warning: #b45309;
+    --nx-info: #2563eb;
+    --nx-success-bg: #d9f7e3;
+    --nx-success-text: #166534;
+    --nx-warning-bg: #fdebc8;
+    --nx-warning-text: #92400e;
+    --nx-danger-bg: #fde2e2;
+    --nx-danger-text: #991b1b;
+    --nx-danger-border: #fecaca;
+    --nx-info-bg: #dbe7ff;
+    --nx-info-text: #1e40af;
+    --nx-accent-bg: #f7d3f0;     /* "pending" pink */
+    --nx-accent-text: #86198f;
+    --nx-neutral-bg: #eeeef1;
+    --nx-neutral-text: #3f3f46;
+
+    /* Translucent colours (on dark/photo backgrounds and overlays) */
+    --nx-on-dark: rgba(255, 255, 255, 0.78);
+    --nx-on-dark-border: rgba(255, 255, 255, 0.55);
+    --nx-glass: rgba(255, 255, 255, 0.78);
+    --nx-overlay: rgba(17, 17, 19, 0.5);
+    --nx-focus-halo: rgba(37, 99, 235, 0.28);
+
+    /* Backgrounds for hero areas (public pages). Flat colour is preferred everywhere else. */
+    --nx-gradient-wash: linear-gradient(135deg, var(--nx-white) 0%, var(--nx-surface-muted) 55%, var(--nx-primary-soft) 100%);
+    --nx-scrim-light: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(247, 247, 248, 0.9) 55%, rgba(234, 240, 255, 0.92) 100%);
+    --nx-scrim-brand: linear-gradient(135deg, rgba(17, 17, 19, 0.88) 0%, rgba(37, 99, 235, 0.86) 100%);
+    --nx-glow: radial-gradient(circle at 30% 30%, rgba(37, 99, 235, 0.16), rgba(17, 17, 19, 0.04) 60%, transparent 72%);
+
+    /* Type */
+    --nx-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --nx-font-heading: var(--nx-font);
+    --nx-text-xs: 0.75rem;
+    --nx-text-sm: 0.875rem;
+    --nx-text-base: 1rem;
+    --nx-text-md: 1.125rem;
+    --nx-text-lg: 1.25rem;
+    --nx-text-xl: 1.5rem;
+    --nx-text-2xl: 1.75rem;
+    --nx-text-3xl: 2.25rem;
+    --nx-text-4xl: 3rem;
+
+    /* Spacing (4px base) */
+    --nx-space-0: 0.125rem;
+    --nx-space-1: 0.25rem;
+    --nx-space-2: 0.5rem;
+    --nx-space-3: 0.75rem;
+    --nx-space-4: 1rem;
+    --nx-space-5: 1.25rem;
+    --nx-space-6: 1.5rem;
+    --nx-space-8: 2rem;
+    --nx-space-10: 2.5rem;
+    --nx-space-12: 3rem;
+    --nx-space-16: 4rem;
+    --nx-space-20: 5rem;
+    --nx-space-24: 6rem;
+
+    /* Shape */
+    --nx-radius-xs: 4px;
+    --nx-radius-sm: 8px;
+    --nx-radius-md: 12px;
+    --nx-radius-lg: 16px;
+    --nx-radius-xl: 20px;
+    --nx-radius-pill: 999px;
+
+    /* Elevation: cards rely on a 1px border; shadows stay faint. */
+    --nx-shadow-xs: 0 1px 2px rgba(17, 17, 19, 0.05);
+    --nx-shadow-card: 0 1px 2px rgba(17, 17, 19, 0.04);
+    --nx-shadow-hover: 0 12px 28px -14px rgba(17, 17, 19, 0.22);
+    --nx-shadow-pop: 0 10px 30px -12px rgba(17, 17, 19, 0.3);
+    --nx-shadow-button: 0 1px 2px rgba(37, 99, 235, 0.3);
+    --nx-shadow-button-hover: 0 4px 12px -4px rgba(37, 99, 235, 0.45);
+    --nx-shadow-modal: 0 24px 60px -20px rgba(17, 17, 19, 0.4);
+
+    /* Motion */
+    --nx-duration: 160ms;
+    --nx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Focus: a field swaps its border to --nx-primary and adds this halo. */
+    --nx-focus-ring: 0 0 0 3px var(--nx-focus-halo);
+
+    /* Layering */
+    --nx-z-sticky: 500;          /* site header */
+    --nx-z-dropdown: 600;
+    --nx-z-chat: 99999;          /* chat window: above the WP admin bar */
+    --nx-z-modal: 100000;        /* SweetAlert dialogs: above chat */
+    --nx-z-toast: 100100;        /* skip link and notices: above everything */
+
+    /* Layout */
+    --nx-container: 1200px;
+    --nx-sidebar: 220px;
+    --nx-rail: 280px;            /* right-hand profile panel */
+}
+
+/* Motion preference: no transforms or animated transitions for people who ask for less. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms;
+        animation-iteration-count: 1;
+        scroll-behavior: auto;
+        transition-duration: 0.01ms;
+    }
+}

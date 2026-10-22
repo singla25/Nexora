@@ -12,6 +12,17 @@
 					<h4><?php echo esc_html( $name ); ?></h4>
 					<?php if ( $is_owner ) : ?>
 						<p><?php echo esc_html( $email ); ?> | <?php echo esc_html( $phone ); ?></p>
+						<p class="profile-welcome">
+							<?php
+							/* translators: %s: the member's first name. */
+							echo esc_html( sprintf( __( 'Welcome back, %s', 'nexora' ), $welcome_name ) );
+							?>
+						</p>
+						<div class="nx-stat-bar profile-stats">
+							<?php foreach ( $stats as $nx_stat ) : ?>
+								<span class="nx-stat" data-stat="<?php echo esc_attr( $nx_stat['key'] ); ?>"><strong><?php echo (int) $nx_stat['value']; ?></strong> <?php echo esc_html( $nx_stat['label'] ); ?></span>
+							<?php endforeach; ?>
+						</div>
 					<?php endif; ?>
 				</div>
 
@@ -47,7 +58,6 @@
 
 				<!-- MAIN CONTENT -->
 				<div class="profile-content">
-					
 <?php foreach ( array( 'tab-info', 'tab-connections', 'tab-notifications', 'tab-content' ) as $partial ) : ?>
 	<?php \Nexora\Core\View::output( 'profile/' . $partial, $vars ); ?>
 <?php endforeach; ?>
@@ -65,15 +75,5 @@ foreach ( array(
 <?php endforeach; ?>
 				</div>
 			</div>
-
-			<!-- LOG OUT -->
-			<?php if ( $is_owner ) : ?>                    
-				<div style="text-align:center; margin-top:30px;">
-					<a class="logout-btn" href="<?php echo esc_url( $logout_url ); ?>" 
-					style="display:inline-block; padding:12px 25px; background:#ef4444; color:#fff; border-radius:10px; text-decoration:none;">
-						<?php esc_html_e( 'Logout', 'nexora' ); ?>
-					</a>
-				</div>
-			<?php endif; ?>
 		</div>
 
