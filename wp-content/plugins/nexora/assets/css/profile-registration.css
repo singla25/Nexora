@@ -4,9 +4,9 @@
 
 .profile-registration-form-div,
 .register-state-wrapper {
-    padding: 48px 16px;
+    padding: var(--nx-space-12) var(--nx-space-4);
     font-family: var(--nx-font);
-    background: linear-gradient(135deg, #ffffff 0%, var(--nx-bg-tint) 60%, #dbeefb 100%);
+    background: var(--nx-gradient-wash);
 }
 
 .register-state-wrapper {
@@ -20,7 +20,7 @@
 .profile-registration-form {
     max-width: 640px;
     margin: 0 auto;
-    padding: 40px;
+    padding: var(--nx-space-10);
     background: var(--nx-white);
     border: 1px solid var(--nx-border);
     border-radius: var(--nx-radius-lg);
@@ -30,17 +30,17 @@
 
 .profile-registration-form h2 {
     text-align: center;
-    margin: 0 0 28px;
-    font-size: 1.7rem;
+    margin: 0 0 var(--nx-space-8);
+    font-size: var(--nx-text-2xl);
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: var(--nx-navy);
+    color: var(--nx-ink);
 }
 
 .profile-registration-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    gap: var(--nx-space-5);
 }
 
 .profile-registration-form-grid .full-width {
@@ -50,15 +50,15 @@
 .profile-registration-form-grid input,
 .profile-registration-form-grid select {
     width: 100%;
-    padding: 13px 14px;
+    padding: var(--nx-space-3) var(--nx-space-4);
     border: 1px solid var(--nx-border-strong);
     border-radius: var(--nx-radius-sm);
     font: inherit;
-    font-size: 0.95rem;
+    font-size: var(--nx-text-base);
     background: var(--nx-white);
     color: var(--nx-text);
     box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color var(--nx-duration) var(--nx-ease), box-shadow var(--nx-duration) var(--nx-ease);
 }
 
 .profile-registration-form-grid input::placeholder {
@@ -67,56 +67,56 @@
 
 .profile-registration-form-grid input:focus,
 .profile-registration-form-grid select:focus {
-    border-color: var(--nx-blue);
-    box-shadow: 0 0 0 3px rgba(44, 143, 209, 0.18);
+    border-color: var(--nx-primary-text);
+    box-shadow: var(--nx-focus-ring);
     outline: none;
 }
 
 .profile-registration-form-btn {
     display: block;
     width: 100%;
-    margin-top: 22px;
-    padding: 14px;
-    background: var(--nx-gradient);
+    margin-top: var(--nx-space-6);
+    padding: var(--nx-space-4);
+    background: var(--nx-primary);
     color: var(--nx-white);
     border: 0;
     border-radius: var(--nx-radius-sm);
     font: inherit;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: var(--nx-text-base);
     cursor: pointer;
-    box-shadow: 0 6px 16px -8px rgba(20, 39, 92, 0.5);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: var(--nx-shadow-button);
+    transition: transform var(--nx-duration) var(--nx-ease), box-shadow var(--nx-duration) var(--nx-ease);
 }
 
 .profile-registration-form-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 24px -10px rgba(20, 39, 92, 0.55);
+    box-shadow: var(--nx-shadow-button-hover);
 }
 
 .profile-registration-extra {
     text-align: center;
-    margin-top: 16px;
-    font-size: 0.9rem;
+    margin-top: var(--nx-space-4);
+    font-size: var(--nx-text-sm);
     color: var(--nx-text-muted);
 }
 
 .profile-registration-extra a {
-    color: var(--nx-blue-dark);
+    color: var(--nx-primary-text);
     font-weight: 600;
     text-decoration: none;
-    margin-left: 5px;
+    margin-left: var(--nx-space-1);
 }
 
 .profile-registration-extra a:hover {
-    color: var(--nx-navy);
+    color: var(--nx-ink);
     text-decoration: underline;
 }
 
 /* LOGGED-IN STATE */
 .register-state-card {
     background: var(--nx-white);
-    padding: 40px;
+    padding: var(--nx-space-10);
     border: 1px solid var(--nx-border);
     border-radius: var(--nx-radius-lg);
     text-align: center;
@@ -129,27 +129,27 @@
 .register-avatar {
     width: 70px;
     height: 70px;
-    background: var(--nx-gradient);
+    background: var(--nx-primary);
     color: var(--nx-white);
-    font-size: 1.7rem;
+    font-size: var(--nx-text-2xl);
     font-weight: 800;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 15px;
+    margin: 0 auto var(--nx-space-4);
 }
 
 .register-state-card h2 {
-    margin: 0 0 6px;
-    color: var(--nx-navy);
+    margin: 0 0 var(--nx-space-2);
+    color: var(--nx-ink);
 }
 
 .register-state-card .btn-primary {
     display: inline-block;
-    margin-top: 18px;
-    padding: 11px 20px;
-    background: var(--nx-gradient);
+    margin-top: var(--nx-space-5);
+    padding: var(--nx-space-3) var(--nx-space-5);
+    background: var(--nx-primary);
     color: var(--nx-white);
     border-radius: var(--nx-radius-sm);
     text-decoration: none;
@@ -158,12 +158,12 @@
 
 @media (max-width: 600px) {
     .profile-registration-form {
-        padding: 24px;
+        padding: var(--nx-space-6);
     }
 
     .profile-registration-form-grid {
         grid-template-columns: 1fr;
-        gap: 14px;
+        gap: var(--nx-space-4);
     }
 
     .profile-registration-form-grid .full-width {

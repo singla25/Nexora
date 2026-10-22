@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dashboard Redesign: Report</title><style>
+:root{--bg:#fff;--fg:#171717;--mut:#5b5f6b;--bd:#dbe8f4;--tint:#eaf4fc;--navy:#14275c;--code:#f3f6fa}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1420;--fg:#e8ecf3;--mut:#a3adc2;--bd:#26304a;--tint:#16203a;--navy:#8fb8ff;--code:#1a2238}}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,"Segoe UI",Roboto,sans-serif;margin:0}
+main{max-width:980px;margin:0 auto;padding:32px 16px 64px}
+h1{color:var(--navy);font-size:2rem;margin:0 0 .5rem}h2{color:var(--navy);margin-top:2.4rem;border-bottom:1px solid var(--bd);padding-bottom:.3rem}h3{margin-top:1.6rem}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.88em;overflow-wrap:anywhere}
+.tw{overflow-x:auto;margin:1rem 0}table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--bd);padding:8px 10px;text-align:left;vertical-align:top}th{background:var(--tint)}
+li{margin:.3rem 0}p{overflow-wrap:anywhere}
+</style></head><body><main>
+<h1>Dashboard Redesign: Report</h1>
+<p>Date: 2026-10-18. Goal: make the whole UI follow the reference dashboard (flat app shell, left sidebar, white bordered cards on a grey canvas, one blue, pastel status pills, dense Inter type) and rebuild the design system around it.</p>
+<h2>What the reference gave us</h2>
+<div class="tw"><table><thead><tr><th>Reference trait</th><th>Design system answer</th></tr></thead><tbody>
+<tr><td>Left sidebar with icons, solid blue active item</td><td>Profile tabs become the sidebar nav (<code>--nx-sidebar</code> 220px), icons per tab, active item <code>--nx-primary</code></td></tr>
+<tr><td>Grey canvas, white cards with a hairline border</td><td><code>--nx-bg</code>, <code>--nx-surface</code>, <code>--nx-border</code>; shadows reduced to a faint 1px-style lift</td></tr>
+<tr><td>One blue for actions, near-black text</td><td><code>--nx-primary</code> #2563eb (5.2:1 under white), <code>--nx-ink</code> #111113; navy and gradients removed</td></tr>
+<tr><td>Flat buttons: blue primary, white outlined secondary</td><td><code>.nx-btn--primary</code> / <code>--secondary</code>; no gradient fills, no hover lift</td></tr>
+<tr><td>Pastel status pills (green, pink, blue)</td><td><code>.nx-badge</code> with success, accent (pink), info, warning, danger, neutral</td></tr>
+<tr><td>Shaded table header, hairline rows</td><td><code>.nx-table</code>, applied to order lines</td></tr>
+<tr><td>Rounded stat strip</td><td><code>.nx-stat-bar</code> component</td></tr>
+<tr><td>Small dense sans-serif</td><td>Inter, dashboard text at 14px, scale unchanged</td></tr>
+</tbody></table></div>
+<h2>Changes</h2>
+<ul>
+<li><strong>Tokens rewritten</strong> (<code>tokens.css</code>, copied to the theme): new <code>--nx-primary*</code>, <code>--nx-ink</code>, <code>--nx-bg</code>, <code>--nx-surface-muted</code>, accent status pair, softer shadows, 160ms motion, radii 4/8/12/16/20. The old navy/blue/tint/gradient tokens are gone and every stylesheet was migrated (property-aware: navy text became ink, navy fills became primary, blue text became <code>--nx-primary-text</code>).</li>
+<li><strong>Profile page is an app shell, CSS only</strong>: two-column grid, sidebar tabs with icons (CSS masks keyed on <code>data-tab</code>), compact header (avatar left, name beside it), cover hidden when no image is set, mobile layout turns the sidebar into a scrolling tab row. Section titles are left-aligned like the reference.</li>
+<li><strong>Components</strong>: flat buttons; new <code>.nx-table</code>, <code>.nx-stat-bar</code>, <code>.nx-badge--accent</code>, <code>.nx-btn--lg</code>; SweetAlert dialogs restyled (16px radius, flat blue confirm). The "Business" sub-tab no longer looks like an active tab.</li>
+<li><strong>Sales and Orders</strong>: totals are one summary card with rows, order status pills use the new palette (processing blue, completed green, pending pink, on hold amber, cancelled red), line-item table has a shaded header.</li>
+<li><strong>Public site</strong>: header and sections lose the dark-to-blue gradient rules for 1px hairlines; Elementor's green menu highlight is replaced by the primary blue; buttons, cards and the hero use the new tokens.</li>
+<li><strong>Logout button</strong>: its inline red style became <code>nx-btn nx-btn--danger</code> in a right-aligned <code>.profile-logout</code> row. This is the one markup change; the two golden snapshots that contain it (<code>profile-owner</code>, <code>profile-own-url</code>) were regenerated and only that block differs.</li>
+<li><strong>Font</strong>: Inter replaces Plus Jakarta Sans in the plugin and both theme enqueue sites.</li>
+<li><strong>Docs and tests</strong>: <code>docs/DESIGN-SYSTEM.md</code> rewritten for the new tokens and the dashboard layout; <code>tests/php/test-design-system.php</code> updated (111 checks, all pass), including 23 text-contrast pairs.</li>
+<li><strong>Versions</strong>: plugin 1.0.20, theme 1.0.4.</li>
+</ul>
+<h2>How it was checked</h2>
+<p>Playwright with headless Chrome against <code>http://localhost/nexora</code>, using session cookies for the existing <code>nexora</code> admin and the <code>vendor1</code> member:</p>
+<ul>
+<li>All 8 profile tabs at 1440px and 400px, home, login, registration (guest and member), the Add product dialog and the chat window: no horizontal overflow and no JavaScript errors from Nexora code. Dialog z-index 100000 above chat 99999.</li>
+<li>Full PHP suite via <code>tests/run.sh</code> with a small stand-in for WP-CLI (WP-CLI is not installed here). Baseline before the redesign: 3,670 passed, 77 failed. The failures are unrelated to styling: <code>test-api-import</code> (38) and <code>test-api-limit</code> (25) depend on the DummyJSON feed, <code>test-i18n</code> (2) needs <code>wp i18n make-pot</code>, three golden admin snapshots differ by environment details, and a few single checks. After the redesign: 3,843 passed, 91 failed. The extra 14 failures come from fixing the stand-in runner (the golden test used to stop halfway, now it runs all 48 snapshots): every one of the 23 golden failures is the snapshot host (<code>localhost83.local.com</code> in the repo versus <code>localhost</code> here) except the same three admin snapshots that already differed by environment. The design-system test went from 9 failures (baseline, old tokens) to 0 with 111 checks. No failure points at the new styling or markup. On a machine with the original host name, <code>tests/run.sh</code> should show only the feed-dependent, <code>make-pot</code> and environment cases.</li>
+</ul>
+<h2>Follow-up: welcome line and stat strip (added after the first pass)</h2>
+<p>The owner's dashboard now opens with "Welcome back, {first name}" and a <code>.nx-stat-bar</code> strip: Connections, Unread notifications and, for an approved seller, Products. It is shown to the owner only (other members and guests never get it). Built test-first: <code>tests/php/test-profile-stats.php</code> (7 checks) failed first for the missing behaviour, then passed. Data comes from <code>Profile\Page::owner_stats()</code>; markup is in <code>templates/profile/page.php</code>. The two owner golden snapshots were refreshed (only the new block differs), the <code>.pot</code> has the one new string (<code>Unread notifications</code>) added by hand because <code>wp i18n make-pot</code> is not available here, so regenerate it where WP-CLI exists. Plugin version 1.0.22.</p>
+<h2>Follow-up: identity moved to a right rail</h2>
+<p>The cover image and the avatar/name/contact block moved from the top of the main area into a right-hand panel (<code>--nx-rail</code> 280px), so the main column starts with the welcome line and the work. CSS only (grid areas), no markup change; plugin 1.0.23, theme 1.0.5. Checked at 1440, 1000 and 400px.</p>
+<h2>Follow-up: the right rail becomes a profile card</h2>
+<ul>
+<li>The welcome line and the stat strip moved into the right rail, inside the identity block (<code>.profile-header</code>), so the main column is only the work. The rail is now a card: tinted banner (or the cover image), 88px avatar overlapping it, centred name and contact, a divider, "Welcome back, {name}", and three tiles (icon chip, big number, label) for Connections, Unread notifications and Products (sellers only).</li>
+<li>Removed the bottom Logout button (the site header has Log out) and the Edit button on the Business Details card (the Business sub-tab of User Information opens the same edit popup; its template is still on the page). The unused <code>.logout-btn</code> click handler was removed from <code>profile-page.js</code>.</li>
+<li>Test-first: <code>test-profile-stats.php</code> (welcome and strip inside the panel, no logout button) and <code>test-vendor-profile-ui.php</code> (no Edit button on the card, popup template still present) were changed to fail first, then the templates were changed. The two owner golden snapshots were refreshed again. Plugin 1.0.25.</li>
+</ul>
+<h2>Not done / caveats</h2>
+<ul>
+<li>The reference's top bar (search box, "New Project" button, notification bell), schedule and notes cards have no equivalent data in Nexora. They would need new markup and features, so they were not invented. <code>.nx-stat-bar</code> is ready if you want a stat strip on the profile (for example connections, products, orders).</li>
+<li>Sidebar items for Settings and Help are not present for the same reason.</li>
+<li>Not verified in a browser: widths between 900 and 1440px, the OTP and forgot-password dialogs, the wp-admin chat screen, the customer (non-vendor) view, and Elementor-edited pages that override colours inside their own saved settings. If a saved Elementor template pins a colour, it will keep it until edited in Elementor.</li>
+<li><code>tests/golden/profile-owner.html</code> and <code>profile-own-url.html</code> were regenerated for the logout markup, with the snapshot host kept as <code>localhost83.local.com</code>; no other snapshot was changed.</li>
+<li><code>phpcs</code> was not run (Composer dependencies are not installed here).</li>
+<li>Nothing is committed (git has no author identity on this machine) and nothing was pushed.</li>
+</ul>
+</main></body></html>

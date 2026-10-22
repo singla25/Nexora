@@ -20,28 +20,28 @@
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 var(--nx-space-6);
 }
 
 .nx-section {
-    padding: 72px 0;
+    padding: var(--nx-space-20) 0;
 }
 
 .nx-section-title {
     font-size: clamp(1.5rem, 1.3rem + 1vw, 2rem);
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: var(--nx-navy);
-    margin: 0 0 28px;
+    color: var(--nx-ink);
+    margin: 0 0 var(--nx-space-8);
 }
 
 .nx-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    color: var(--nx-blue-dark);
+    gap: var(--nx-space-3);
+    color: var(--nx-primary-text);
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: var(--nx-text-sm);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin: 0 0 1em;
@@ -52,24 +52,24 @@
     flex: none;
     width: 22px;
     height: 3px;
-    border-radius: 2px;
-    background: var(--nx-gradient);
+    border-radius: var(--nx-radius-xs);
+    background: var(--nx-primary);
 }
 
 /* HERO */
 .nx-hero {
     position: relative;
     overflow: hidden;
-    padding: 72px 0;
-    background: linear-gradient(135deg, #ffffff 0%, var(--nx-bg-tint) 55%, #dbeefb 100%);
-    border-bottom: 3px solid var(--nx-blue);
-    border-image: linear-gradient(90deg, var(--nx-navy), var(--nx-blue)) 1;
+    padding: var(--nx-space-20) 0;
+    background: var(--nx-gradient-wash);
+    border-bottom: 3px solid var(--nx-primary);
+    border-color: var(--nx-border);
 }
 
 .nx-hero-inner {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: var(--nx-space-10);
     align-items: center;
 }
 
@@ -82,13 +82,13 @@
     font-weight: 800;
     letter-spacing: -0.02em;
     line-height: 1.12;
-    color: var(--nx-navy);
+    color: var(--nx-ink);
     margin: 0 0 0.4em;
 }
 
 .nx-subtitle {
-    margin: 0 0 28px;
-    font-size: 1.1rem;
+    margin: 0 0 var(--nx-space-8);
+    font-size: var(--nx-text-md);
     color: var(--nx-text-muted);
     max-width: 58ch;
 }
@@ -96,64 +96,14 @@
 .nx-cta {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-}
-
-/* BUTTONS */
-.nx-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 22px;
-    border-radius: var(--nx-radius-sm);
-    font-weight: 600;
-    font-size: 0.98rem;
-    text-decoration: none;
-    border: 1px solid transparent;
-    transition: transform 220ms, box-shadow 220ms, background 220ms, color 220ms;
-}
-
-.nx-primary {
-    background: var(--nx-gradient);
-    color: var(--nx-white);
-    box-shadow: 0 6px 16px -8px rgba(20, 39, 92, 0.5);
-}
-
-.nx-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px -10px rgba(20, 39, 92, 0.55);
-    color: var(--nx-white);
-}
-
-.nx-outline {
-    background: var(--nx-white);
-    color: var(--nx-navy);
-    border-color: var(--nx-border-strong);
-}
-
-.nx-outline:hover {
-    border-color: var(--nx-navy);
-    background: var(--nx-bg-tint);
-    transform: translateY(-2px);
-    color: var(--nx-navy);
-}
-
-.nx-btn--inverse {
-    background: transparent;
-    color: var(--nx-white);
-    border-color: rgba(255, 255, 255, 0.55);
-}
-
-.nx-btn--inverse:hover {
-    background: var(--nx-white);
-    color: var(--nx-navy);
+    gap: var(--nx-space-3);
 }
 
 /* HERO IMAGE */
 .nx-glass-card {
-    padding: 14px;
+    padding: var(--nx-space-4);
     border-radius: var(--nx-radius-lg);
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--nx-glass);
     border: 1px solid var(--nx-border);
     box-shadow: var(--nx-shadow-hover);
 }
@@ -167,20 +117,20 @@
 
 /* STATS */
 .nx-stats {
-    padding: 48px 0;
-    background: var(--nx-bg-tint);
+    padding: var(--nx-space-12) 0;
+    background: var(--nx-surface-muted);
     border-bottom: 1px solid var(--nx-border);
 }
 
 .nx-stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: var(--nx-space-5);
 }
 
 .nx-stat-box {
     text-align: center;
-    padding: 24px 16px;
+    padding: var(--nx-space-6) var(--nx-space-4);
     background: var(--nx-white);
     border: 1px solid var(--nx-border);
     border-radius: var(--nx-radius-md);
@@ -188,10 +138,10 @@
 }
 
 .nx-stat-box h3 {
-    margin: 0 0 4px;
-    font-size: 2.2rem;
+    margin: 0 0 var(--nx-space-1);
+    font-size: var(--nx-text-3xl);
     font-weight: 800;
-    color: var(--nx-navy);
+    color: var(--nx-ink);
 }
 
 .nx-stat-box p {
@@ -204,16 +154,16 @@
 .nx-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    gap: var(--nx-space-5);
 }
 
 .nx-card {
-    padding: 28px 24px;
+    padding: var(--nx-space-8) var(--nx-space-6);
     background: var(--nx-white);
     border: 1px solid var(--nx-border);
     border-radius: var(--nx-radius-md);
     box-shadow: var(--nx-shadow-card);
-    transition: transform 220ms, box-shadow 220ms;
+    transition: transform var(--nx-duration) var(--nx-ease), box-shadow var(--nx-duration) var(--nx-ease);
 }
 
 .nx-card:hover {
@@ -222,10 +172,10 @@
 }
 
 .nx-card h4 {
-    margin: 0 0 8px;
-    font-size: 1.1rem;
+    margin: 0 0 var(--nx-space-2);
+    font-size: var(--nx-text-md);
     font-weight: 800;
-    color: var(--nx-navy);
+    color: var(--nx-ink);
 }
 
 .nx-card p {
@@ -235,7 +185,7 @@
 
 /* STEPS */
 .nx-steps {
-    background: var(--nx-bg-tint);
+    background: var(--nx-surface-muted);
     border-top: 1px solid var(--nx-border);
     border-bottom: 1px solid var(--nx-border);
 }
@@ -243,7 +193,7 @@
 .nx-steps-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: var(--nx-space-5);
 }
 
 .nx-step {
@@ -257,24 +207,24 @@
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: var(--nx-gradient);
+    background: var(--nx-primary);
     color: var(--nx-white);
     font-weight: 800;
-    font-size: 1.2rem;
+    font-size: var(--nx-text-lg);
     box-shadow: var(--nx-shadow-card);
 }
 
 .nx-step p {
-    margin: 12px 0 0;
+    margin: var(--nx-space-3) 0 0;
     font-weight: 700;
-    color: var(--nx-navy);
+    color: var(--nx-ink);
 }
 
 /* PREVIEW */
 .nx-demo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
+    gap: var(--nx-space-5);
 }
 
 .nx-demo-card {
@@ -293,20 +243,20 @@
 
 .nx-demo-card p {
     margin: 0;
-    padding: 14px 18px;
+    padding: var(--nx-space-4) var(--nx-space-5);
     font-weight: 700;
-    color: var(--nx-navy);
+    color: var(--nx-ink);
 }
 
 /* TESTIMONIALS */
 .nx-test-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    gap: var(--nx-space-5);
 }
 
 .nx-test-card {
-    padding: 24px;
+    padding: var(--nx-space-6);
     background: var(--nx-white);
     border: 1px solid var(--nx-border);
     border-radius: var(--nx-radius-md);
@@ -314,8 +264,8 @@
 }
 
 .nx-quote {
-    margin: 0 0 16px;
-    font-size: 1.05rem;
+    margin: 0 0 var(--nx-space-4);
+    font-size: var(--nx-text-base);
     color: var(--nx-text);
 }
 
@@ -325,30 +275,30 @@
 }
 
 .nx-test-top strong {
-    color: var(--nx-navy);
+    color: var(--nx-ink);
 }
 
 .nx-test-top span {
     color: var(--nx-text-muted);
-    font-size: 0.9rem;
+    font-size: var(--nx-text-sm);
 }
 
 /* CTA */
 .nx-final-cta {
-    padding: 64px 24px;
+    padding: var(--nx-space-16) var(--nx-space-6);
     text-align: center;
-    background: var(--nx-gradient);
+    background: var(--nx-primary);
     color: var(--nx-white);
 }
 
 .nx-final-cta h2 {
-    margin: 0 0 20px;
+    margin: 0 0 var(--nx-space-5);
     font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem);
     font-weight: 800;
     color: var(--nx-white);
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
     .nx-hero-inner:has(.nx-hero-preview) {
         grid-template-columns: 1fr;
     }
@@ -359,7 +309,7 @@
     }
 
     .nx-section {
-        padding: 48px 0;
+        padding: var(--nx-space-12) 0;
     }
 }
 
@@ -370,8 +320,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin: 10px;
+    gap: var(--nx-space-3);
+    margin: var(--nx-space-3);
 }
 
 /* Switch container */
@@ -394,9 +344,9 @@
     position: absolute;
     cursor: pointer;
     inset: 0;
-    background-color: #ccc;
-    border-radius: 34px;
-    transition: 0.3s;
+    background-color: var(--nx-border-strong);
+    border-radius: var(--nx-radius-pill);
+    transition: all var(--nx-duration) var(--nx-ease);
 }
 
 /* Circle */
@@ -409,12 +359,12 @@
     bottom: 3px;
     background-color: white;
     border-radius: 50%;
-    transition: 0.3s;
+    transition: all var(--nx-duration) var(--nx-ease);
 }
 
 /* Active state */
 .switch input:checked + .slider {
-    background-color: var(--nx-blue);
+    background-color: var(--nx-primary);
 }
 
 .switch input:checked + .slider:before {
@@ -422,21 +372,21 @@
 }
 
 .toggle-label {
-    font-size: 14px;
-    color: #444;
+    font-size: var(--nx-text-sm);
+    color: var(--nx-text);
 }
 
 /* ---------- Shortcodes used inside Elementor ---------- */
 .nx-auth {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--nx-space-3);
     flex-wrap: wrap;
 }
 
 .nx-auth .nx-btn {
-    padding: 9px 16px;
-    font-size: 0.9rem;
+    padding: var(--nx-space-2) var(--nx-space-4);
+    font-size: var(--nx-text-sm);
 }
 
 .nx-contact-form {
@@ -444,32 +394,32 @@
     background: var(--nx-white);
     border: 1px solid var(--nx-border);
     border-radius: var(--nx-radius-lg);
-    padding: 28px;
+    padding: var(--nx-space-8);
     box-shadow: var(--nx-shadow-card);
 }
 
 .nx-contact-form .nx-form-row {
     display: flex;
     flex-direction: column;
-    margin-bottom: 16px;
+    margin-bottom: var(--nx-space-4);
 }
 
 .nx-contact-form label {
-    font-size: 0.82rem;
+    font-size: var(--nx-text-sm);
     font-weight: 700;
-    color: var(--nx-navy);
-    margin-bottom: 6px;
+    color: var(--nx-ink);
+    margin-bottom: var(--nx-space-2);
 }
 
 .nx-contact-form input[type="text"],
 .nx-contact-form input[type="email"],
 .nx-contact-form textarea {
     width: 100%;
-    padding: 12px 14px;
+    padding: var(--nx-space-3) var(--nx-space-4);
     border: 1px solid var(--nx-border-strong);
     border-radius: var(--nx-radius-sm);
     font: inherit;
-    font-size: 0.95rem;
+    font-size: var(--nx-text-base);
     background: var(--nx-white);
     box-sizing: border-box;
 }
@@ -477,8 +427,8 @@
 .nx-contact-form input:focus,
 .nx-contact-form textarea:focus {
     outline: none;
-    border-color: var(--nx-blue);
-    box-shadow: 0 0 0 3px rgba(44, 143, 209, 0.18);
+    border-color: var(--nx-primary-text);
+    box-shadow: var(--nx-focus-ring);
 }
 
 .nx-contact-form button.nx-btn {
@@ -497,19 +447,19 @@
 }
 
 .nx-form-notice {
-    margin: 0 0 18px;
-    padding: 12px 14px;
+    margin: 0 0 var(--nx-space-5);
+    padding: var(--nx-space-3) var(--nx-space-4);
     border-radius: var(--nx-radius-sm);
-    font-size: 0.92rem;
+    font-size: var(--nx-text-sm);
     font-weight: 600;
 }
 
 .nx-form-notice--ok {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--nx-success-bg);
+    color: var(--nx-success-text);
 }
 
 .nx-form-notice--error {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--nx-danger-bg);
+    color: var(--nx-danger-text);
 }

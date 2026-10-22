@@ -3,23 +3,23 @@
 .nx-account-choice {
     border: 1px solid var(--nx-border);
     border-radius: var(--nx-radius-md);
-    padding: 12px 16px;
-    margin: 16px 0;
+    padding: var(--nx-space-3) var(--nx-space-4);
+    margin: var(--nx-space-4) 0;
     display: flex;
-    gap: 24px;
+    gap: var(--nx-space-6);
     align-items: center;
     flex-wrap: wrap;
 }
 
 .nx-account-choice legend {
-    padding: 0 6px;
+    padding: 0 var(--nx-space-2);
     font-weight: 600;
-    color: var(--nx-navy);
+    color: var(--nx-ink);
 }
 
 .nx-account-choice label {
     display: inline-flex;
-    gap: 8px;
+    gap: var(--nx-space-2);
     align-items: center;
     cursor: pointer;
 }
@@ -31,21 +31,21 @@
 
 .nx-seller-fields h3,
 .nx-vendor-card h3 {
-    color: var(--nx-navy);
-    margin: 0 0 8px;
+    color: var(--nx-ink);
+    margin: 0 0 var(--nx-space-2);
 }
 
 .nx-vendor-fields {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 16px;
-    margin: 12px 0;
+    gap: var(--nx-space-4) var(--nx-space-4);
+    margin: var(--nx-space-3) 0;
 }
 
 .nx-vendor-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--nx-space-1);
     min-width: 0;
 }
 
@@ -54,7 +54,7 @@
 }
 
 .nx-vendor-field label {
-    font-size: 13px;
+    font-size: var(--nx-text-sm);
     font-weight: 600;
     color: var(--nx-text-muted);
 }
@@ -63,7 +63,7 @@
 .nx-vendor-field select {
     width: 100%;
     box-sizing: border-box;
-    padding: 10px 12px;
+    padding: var(--nx-space-3) var(--nx-space-3);
     border: 1px solid var(--nx-border-strong);
     border-radius: var(--nx-radius-sm);
     font: inherit;
@@ -74,7 +74,7 @@
 .nx-vendor-field select:focus-visible,
 .nx-vendor-open:focus-visible,
 .nx-vendor-submit:focus-visible {
-    outline: 2px solid var(--nx-blue);
+    outline: 2px solid var(--nx-primary);
     outline-offset: 2px;
 }
 
@@ -85,18 +85,18 @@
 
 .nx-field-error {
     min-height: 0;
-    font-size: 12px;
+    font-size: var(--nx-text-xs);
     color: var(--nx-danger);
 }
 
 .nx-vendor-open,
 .nx-vendor-submit {
-    background: var(--nx-gradient);
+    background: var(--nx-primary);
     color: var(--nx-white);
     border: 0;
     border-radius: var(--nx-radius-sm);
-    padding: 10px 20px;
-    font: inherit;
+    padding: var(--nx-space-3) var(--nx-space-5);
+    font-size: var(--nx-text-sm);
     font-weight: 600;
     cursor: pointer;
 }
@@ -107,20 +107,20 @@
 }
 
 .nx-vendor-status {
-    padding: 10px 14px;
+    padding: var(--nx-space-3) var(--nx-space-4);
     border-radius: var(--nx-radius-sm);
-    background: var(--nx-bg-tint);
-    color: var(--nx-navy);
+    background: var(--nx-surface-muted);
+    color: var(--nx-ink);
 }
 
 .nx-vendor-card[data-status="suspended"] .nx-vendor-status {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--nx-danger-bg);
+    color: var(--nx-danger-text);
 }
 
 .nx-vendor-form-message {
-    margin: 8px 0 0;
-    font-size: 14px;
+    margin: var(--nx-space-2) 0 0;
+    font-size: var(--nx-text-sm);
 }
 
 .nx-vendor-form-message.is-error {
@@ -139,11 +139,11 @@
 
 /* Business Details card and its popup */
 .nx-vendor-card .info-grid {
-    margin: 12px 0 16px;
+    margin: var(--nx-space-3) 0 var(--nx-space-4);
 }
 
 .nx-vendor-card .nx-vendor-open {
-    margin-top: 4px;
+    margin-top: var(--nx-space-1);
 }
 
 .swal2-popup .nx-vendor-form {
@@ -151,22 +151,29 @@
 }
 
 .swal2-popup .nx-vendor-submit {
-    margin-top: 8px;
+    margin-top: var(--nx-space-2);
 }
 
 .nx-vendor-locked-note {
-    margin: 0 0 12px;
-    padding: 10px 14px;
+    margin: 0 0 var(--nx-space-3);
+    padding: var(--nx-space-3) var(--nx-space-4);
     border-radius: var(--nx-radius-sm);
-    background: var(--nx-bg-tint);
-    color: var(--nx-navy);
-    font-size: 13px;
+    background: var(--nx-surface-muted);
+    color: var(--nx-ink);
+    font-size: var(--nx-text-sm);
     line-height: 1.4;
 }
 
 .nx-vendor-field input:disabled,
 .nx-vendor-field select:disabled {
-    background: var(--nx-bg-tint);
+    background: var(--nx-surface-muted);
     color: var(--nx-text-muted);
     cursor: not-allowed;
+}
+
+/* In the profile sub-tab row, "Business" opens a dialog like the other sub-tabs; it is not a call to action. */
+.user-edit-info.nx-vendor-open {
+    background: var(--nx-surface);
+    color: var(--nx-ink);
+    border: 1px solid var(--nx-border-strong);
 }

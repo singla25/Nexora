@@ -1,0 +1,291 @@
+/* Nexora shared components. Loaded with the tokens (handle `nexora-tokens`) on every Nexora page, before any feature stylesheet,
+   so a feature sheet only adds layout on top (padding, width, margin) and never re-declares colour, radius or focus.
+   Building blocks: .nx-btn, .nx-badge, .nx-input, .nx-card, .nx-table, .nx-stat-bar, .nx-swal (SweetAlert2 dialogs).
+   Older class names that predate this layer are listed next to the component they follow, so they look and behave the same. */
+
+/* ---- Buttons ---- */
+.nx-btn,
+.tab-btn,
+.conn-tab,
+.content-tab,
+.user-edit-info,
+.submit-btn,
+.upload-btn,
+.remove-btn,
+.connect-btn,
+.accept-btn,
+.reject-btn,
+.remove-connection-btn,
+.view-all-btn,
+.view-content-btn,
+.notification-view,
+.profile-registration-form-btn,
+.nx-product-add,
+.nx-product-edit,
+.nx-product-delete,
+.nx-product-image-pick,
+.nx-product-image-remove,
+.nx-market-search,
+.nx-market-page,
+.nx-import-csv,
+.nx-import-api,
+.nx-import-preview,
+.nx-import-confirm,
+.nx-api-test,
+.nx-api-save,
+.nx-api-edit,
+.nx-api-delete,
+.nx-vendor-open,
+.nx-vendor-submit,
+.nx-add-to-cart,
+.nx-sign-in-to-buy,
+.nx-sale-view,
+.nx-orders-page {
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: transform var(--nx-duration) var(--nx-ease), box-shadow var(--nx-duration) var(--nx-ease), background var(--nx-duration) var(--nx-ease), color var(--nx-duration) var(--nx-ease), border-color var(--nx-duration) var(--nx-ease);
+}
+
+.nx-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nx-space-2);
+    padding: var(--nx-space-2) var(--nx-space-4);
+    border: 1px solid transparent;
+    border-radius: var(--nx-radius-sm);
+    font-size: var(--nx-text-sm);
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+.nx-btn--primary,
+.nx-primary {
+    background: var(--nx-primary);
+    color: var(--nx-white);
+    box-shadow: var(--nx-shadow-button);
+}
+
+.nx-btn--primary:hover,
+.nx-primary:hover {
+    background: var(--nx-primary-dark);
+    box-shadow: var(--nx-shadow-button-hover);
+    color: var(--nx-white);
+}
+
+.nx-btn--secondary,
+.nx-outline {
+    background: var(--nx-surface);
+    color: var(--nx-ink);
+    border-color: var(--nx-border-strong);
+    box-shadow: var(--nx-shadow-xs);
+}
+
+.nx-btn--secondary:hover,
+.nx-outline:hover {
+    background: var(--nx-surface-muted);
+    border-color: var(--nx-text-faint);
+    color: var(--nx-ink);
+}
+
+.nx-btn--danger {
+    background: var(--nx-surface);
+    color: var(--nx-danger-text);
+    border-color: var(--nx-danger-border);
+}
+
+.nx-btn--danger:hover {
+    background: var(--nx-danger-bg);
+    border-color: var(--nx-danger);
+}
+
+.nx-btn--inverse {
+    background: transparent;
+    color: var(--nx-white);
+    border-color: var(--nx-on-dark-border);
+}
+
+.nx-btn--inverse:hover {
+    background: var(--nx-white);
+    color: var(--nx-ink);
+}
+
+.nx-btn--lg {
+    padding: var(--nx-space-3) var(--nx-space-6);
+    font-size: var(--nx-text-base);
+}
+
+.nx-btn--sm {
+    padding: var(--nx-space-1) var(--nx-space-3);
+    font-size: var(--nx-text-xs);
+}
+
+.nx-btn--block {
+    display: flex;
+    width: 100%;
+}
+
+/* Keyboard focus and disabled state are the same for every button. */
+.nx-btn:focus-visible,
+.tab-btn:focus-visible,
+.conn-tab:focus-visible,
+.content-tab:focus-visible,
+.user-edit-info:focus-visible,
+.submit-btn:focus-visible,
+.upload-btn:focus-visible,
+.remove-btn:focus-visible,
+.connect-btn:focus-visible,
+.accept-btn:focus-visible,
+.reject-btn:focus-visible,
+.remove-connection-btn:focus-visible,
+.view-all-btn:focus-visible,
+.view-content-btn:focus-visible,
+.notification-view:focus-visible,
+.profile-registration-form-btn:focus-visible,
+.nx-vendor-open:focus-visible,
+.nx-vendor-submit:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+    outline: 2px solid var(--nx-primary);
+    outline-offset: 2px;
+}
+
+.nx-btn:disabled,
+.nx-btn[aria-disabled="true"] {
+    background: var(--nx-disabled-bg);
+    color: var(--nx-white);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* ---- Badges (pastel status pills) ---- */
+.nx-badge {
+    display: inline-block;
+    padding: var(--nx-space-0) var(--nx-space-3);
+    border-radius: var(--nx-radius-pill);
+    background: var(--nx-neutral-bg);
+    color: var(--nx-neutral-text);
+    font-size: var(--nx-text-xs);
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.nx-badge--success { background: var(--nx-success-bg); color: var(--nx-success-text); }
+.nx-badge--warning { background: var(--nx-warning-bg); color: var(--nx-warning-text); }
+.nx-badge--danger { background: var(--nx-danger-bg); color: var(--nx-danger-text); }
+.nx-badge--info { background: var(--nx-info-bg); color: var(--nx-info-text); }
+.nx-badge--accent { background: var(--nx-accent-bg); color: var(--nx-accent-text); }
+.nx-badge--neutral { background: var(--nx-neutral-bg); color: var(--nx-neutral-text); }
+
+/* ---- Fields ---- */
+.nx-input {
+    width: 100%;
+    padding: var(--nx-space-2) var(--nx-space-3);
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    background: var(--nx-surface);
+    color: var(--nx-text);
+    font: inherit;
+    font-size: var(--nx-text-sm);
+}
+
+.nx-input::placeholder {
+    color: var(--nx-text-faint);
+}
+
+.nx-input:focus {
+    outline: none;
+    border-color: var(--nx-primary);
+    box-shadow: var(--nx-focus-ring);
+}
+
+/* ---- Cards ---- */
+.nx-card {
+    padding: var(--nx-space-5);
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-md);
+    background: var(--nx-surface);
+    box-shadow: var(--nx-shadow-card);
+}
+
+/* ---- Tables: a card with a shaded header row and hairline rows ---- */
+.nx-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-md);
+    background: var(--nx-surface);
+    font-size: var(--nx-text-sm);
+}
+
+.nx-table th {
+    padding: var(--nx-space-3) var(--nx-space-4);
+    background: var(--nx-surface-muted);
+    color: var(--nx-ink);
+    font-weight: 600;
+    text-align: left;
+}
+
+.nx-table td {
+    padding: var(--nx-space-3) var(--nx-space-4);
+    border-top: 1px solid var(--nx-border);
+    color: var(--nx-text);
+}
+
+/* ---- Stat bar: inline figures in one rounded strip ---- */
+.nx-stat-bar {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--nx-space-1) var(--nx-space-5);
+    padding: var(--nx-space-2) var(--nx-space-5);
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-lg);
+    background: var(--nx-surface-muted);
+    color: var(--nx-text-muted);
+    font-size: var(--nx-text-sm);
+}
+
+.nx-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--nx-space-1);
+}
+
+.nx-stat-bar strong {
+    color: var(--nx-ink);
+    font-weight: 700;
+}
+
+/* ---- SweetAlert2 dialogs ---- */
+/* The extra class in each selector beats SweetAlert's own rules, which it injects after this file, so no !important is needed. */
+.swal2-container {
+    z-index: var(--nx-z-modal);
+}
+
+.swal2-container .swal2-popup,
+.nx-swal {
+    padding: var(--nx-space-6);
+    border-radius: var(--nx-radius-lg);
+    font-family: var(--nx-font);
+}
+
+.swal2-container .swal2-title {
+    color: var(--nx-ink);
+    font-weight: 700;
+}
+
+.swal2-container .swal2-styled.swal2-confirm {
+    background: var(--nx-primary);
+    border-radius: var(--nx-radius-sm);
+    box-shadow: none;
+}
+
+.swal2-container .swal2-styled.swal2-cancel {
+    background: var(--nx-white);
+    color: var(--nx-ink);
+    border: 1px solid var(--nx-border-strong);
+    border-radius: var(--nx-radius-sm);
+    box-shadow: none;
+}

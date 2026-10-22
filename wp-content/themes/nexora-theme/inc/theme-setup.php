@@ -33,15 +33,29 @@ function nxt_setup() {
 }
 add_action( 'after_setup_theme', 'nxt_setup' );
 
+/**
+ * Design tokens (--nx-*). The Nexora plugin owns them when it is active; otherwise the theme's identical copy is used.
+ *
+ * @return string[] Style handles the theme stylesheets must depend on.
+ */
+function nxt_enqueue_tokens() {
+	if ( class_exists( '\\Nexora\\Core\\Assets' ) ) {
+		\Nexora\Core\Assets::enqueue_tokens();
+	} else {
+		wp_enqueue_style( 'nexora-tokens', NXT_URI . '/assets/css/tokens.css', array(), NXT_VERSION );
+	}
+	return array( 'nexora-tokens' );
+}
+
 function nxt_enqueue_assets() {
 	wp_enqueue_style(
 		'nxt-fonts',
-		'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap',
+		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
 		array(),
 		null
 	);
 
-	wp_enqueue_style( 'nxt-style', NXT_URI . '/assets/css/style.css', array( 'nxt-fonts' ), NXT_VERSION );
+	wp_enqueue_style( 'nxt-style', NXT_URI . '/assets/css/style.css', array_merge( array( 'nxt-fonts' ), nxt_enqueue_tokens() ), NXT_VERSION );
 
 	wp_enqueue_script( 'nxt-main', NXT_URI . '/assets/js/main.js', array(), NXT_VERSION, true );
 
