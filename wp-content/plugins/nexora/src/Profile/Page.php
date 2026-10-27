@@ -255,7 +255,7 @@ class Page {
 			'notifications'     => $is_owner ? $this->notification_rows( $current_user_id ) : array(),
 
 			// The welcome line and stat strip belong to the owner's own account.
-			'welcome_name'      => $is_owner ? ( $meta['first_name'] ?: get_post_meta( $profile_id, 'user_name', true ) ) : '',
+			'welcome_name'      => $is_owner ? ( ! empty( $meta['first_name'] ) ? $meta['first_name'] : get_post_meta( $profile_id, 'user_name', true ) ) : '',
 			'stats'             => $is_owner ? $this->owner_stats( $current_user_id, count( $established ), $unread ) : array(),
 
 			'feed'              => $feed['rows'],
