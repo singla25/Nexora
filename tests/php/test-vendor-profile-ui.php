@@ -56,7 +56,8 @@ foreach ( array( 'Popup Traders', '27AAPFU0939F1ZV', 'popup@example.test', '9876
 }
 nx_assert( false !== strpos( $vis, 'under review' ), 'pending: the status notice says the application is under review' );
 nx_assert( false === strpos( $vis, '<input' ) || 0 === preg_match( '/<input[^>]*name="(business_|gstin)/', $vis ), 'pending: no business input is visible on the page' );
-nx_assert( 1 === preg_match( '/<button[^>]*nx-vendor-open[^>]*data-template="nx-vendor-tpl-edit"[^>]*>\s*Edit/', $vis ), 'pending: an Edit button is on the card' );
+nx_assert( 1 !== preg_match( '/<button[^>]*nx-vendor-open[^>]*data-template="nx-vendor-tpl-edit"[^>]*>\s*Edit/', $vis ), 'pending: no Edit button on the card (the Business sub-tab opens the popup)' );
+nx_assert( false !== strpos( $template( $html, 'nx-vendor-tpl-edit' ), 'nexora_vendor_update' ), 'pending: the edit popup template is still on the page for the Business sub-tab' );
 $tpl = $template( $html, 'nx-vendor-tpl-edit' );
 nx_assert( false !== strpos( $tpl, 'data-action="nexora_vendor_update"' ), 'pending: the popup template posts to vendor_update' );
 nx_assert( 0 === preg_match( '/<(input|select)[^>]*\b(disabled|readonly)\b/', $tpl ), 'pending: every field is editable in the popup' );

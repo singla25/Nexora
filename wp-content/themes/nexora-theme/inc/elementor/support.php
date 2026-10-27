@@ -28,8 +28,8 @@ function nxt_enqueue_elementor_css() {
 add_action( 'wp_enqueue_scripts', 'nxt_enqueue_elementor_css', 20 );
 
 function nxt_enqueue_elementor_editor_css() {
-	wp_enqueue_style( 'nxt-fonts', 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap', array(), null );
-	wp_enqueue_style( 'nxt-style', NXT_URI . '/assets/css/style.css', array( 'nxt-fonts' ), NXT_VERSION );
+	wp_enqueue_style( 'nxt-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap', array(), null );
+	wp_enqueue_style( 'nxt-style', NXT_URI . '/assets/css/style.css', array_merge( array( 'nxt-fonts' ), nxt_enqueue_tokens() ), NXT_VERSION );
 	wp_enqueue_style( 'nxt-elementor', NXT_URI . '/assets/css/elementor.css', array( 'nxt-style' ), NXT_VERSION );
 }
 add_action( 'elementor/editor/after_enqueue_styles', 'nxt_enqueue_elementor_editor_css' );

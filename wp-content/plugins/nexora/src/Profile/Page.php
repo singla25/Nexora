@@ -254,6 +254,10 @@ class Page {
 
 			'notifications'     => $is_owner ? $this->notification_rows( $current_user_id ) : array(),
 
+			// The welcome line and stat strip belong to the owner's own account.
+			'welcome_name'      => $is_owner ? ( ! empty( $meta['first_name'] ) ? $meta['first_name'] : get_post_meta( $profile_id, 'user_name', true ) ) : '',
+			'stats'             => $is_owner ? $this->owner_stats( $current_user_id, count( $established ), $unread ) : array(),
+
 			'feed'              => $feed['rows'],
 			'any_posts'         => $feed['any_exist'],
 
@@ -278,6 +282,40 @@ class Page {
 			: array( 'user-info', 'connections' );
 
 		return array_values( (array) apply_filters( 'nexora_profile_tabs', $tabs, $current_user_id, $is_owner ) );
+	}
+
+	/**
+	 * The figures of the owner's stat strip, as label => number. Products appear only for a seller who may list.
+	 *
+	 * @param int $user_id     The owner.
+	 * @param int $connections Established connections.
+	 * @param int $unread      Unread notifications.
+	 * @return array[] Each item has `key`, `label` and `value`.
+	 */
+	private function owner_stats( $user_id, $connections, $unread ) {
+
+		$stats = array(
+			array(
+				'key'   => 'connections',
+				'label' => __( 'Connections', 'nexora' ),
+				'value' => (int) $connections,
+			),
+			array(
+				'key'   => 'notifications',
+				'label' => __( 'Unread notifications', 'nexora' ),
+				'value' => (int) $unread,
+			),
+		);
+
+		if ( \Nexora\Accounts\Account_Types::can_sell( $user_id ) ) {
+			$stats[] = array(
+				'key'   => 'products',
+				'label' => __( 'Products', 'nexora' ),
+				'value' => \Nexora\Products\Repository::count_for_vendor( \Nexora\Vendors\Repository::id_for_user( $user_id ) ),
+			);
+		}
+
+		return $stats;
 	}
 
 	/**

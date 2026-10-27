@@ -8,9 +8,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 48px 16px;
+    padding: var(--nx-space-12) var(--nx-space-4);
     font-family: var(--nx-font);
-    background: linear-gradient(135deg, #ffffff 0%, var(--nx-bg-tint) 60%, #dbeefb 100%);
+    background: var(--nx-gradient-wash);
 }
 
 /* CARD */
@@ -19,7 +19,7 @@
     width: 100%;
     max-width: 440px;
     background: var(--nx-white);
-    padding: 36px;
+    padding: var(--nx-space-10);
     border: 1px solid var(--nx-border);
     border-radius: var(--nx-radius-lg);
     box-shadow: var(--nx-shadow-hover);
@@ -29,11 +29,11 @@
 
 .profile-login-card h2,
 .login-state-card h2 {
-    margin: 0 0 22px;
-    font-size: 1.6rem;
+    margin: 0 0 var(--nx-space-6);
+    font-size: var(--nx-text-xl);
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: var(--nx-navy);
+    color: var(--nx-ink);
 }
 
 /* INPUTS */
@@ -41,64 +41,64 @@
 .profile-login-card input[type="password"],
 .profile-login-card input[type="email"] {
     width: 100%;
-    padding: 13px 14px;
-    margin: 0 0 14px;
+    padding: var(--nx-space-3) var(--nx-space-4);
+    margin: 0 0 var(--nx-space-4);
     border-radius: var(--nx-radius-sm);
     border: 1px solid var(--nx-border-strong);
     background: var(--nx-white);
     color: var(--nx-text);
     font: inherit;
-    font-size: 0.95rem;
+    font-size: var(--nx-text-base);
     box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color var(--nx-duration) var(--nx-ease), box-shadow var(--nx-duration) var(--nx-ease);
 }
 
 .profile-login-card input:focus {
-    border-color: var(--nx-blue);
-    box-shadow: 0 0 0 3px rgba(44, 143, 209, 0.18);
+    border-color: var(--nx-primary-text);
+    box-shadow: var(--nx-focus-ring);
     outline: none;
 }
 
 /* SUBMIT */
 .profile-login-card button[type="submit"] {
     width: 100%;
-    padding: 13px;
+    padding: var(--nx-space-3);
     border-radius: var(--nx-radius-sm);
-    background: var(--nx-gradient);
+    background: var(--nx-primary);
     color: var(--nx-white);
     border: 0;
     font: inherit;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 6px 16px -8px rgba(20, 39, 92, 0.5);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: var(--nx-shadow-button);
+    transition: transform var(--nx-duration) var(--nx-ease), box-shadow var(--nx-duration) var(--nx-ease);
 }
 
 .profile-login-card button[type="submit"]:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 24px -10px rgba(20, 39, 92, 0.55);
+    box-shadow: var(--nx-shadow-button-hover);
 }
 
 .profile-login-extra {
-    margin-top: 16px;
-    font-size: 0.9rem;
+    margin-top: var(--nx-space-4);
+    font-size: var(--nx-text-sm);
     color: var(--nx-text-muted);
 }
 
 .profile-login-extra a {
-    color: var(--nx-blue-dark);
+    color: var(--nx-primary-text);
     text-decoration: none;
     font-weight: 600;
 }
 
 .profile-login-extra a:hover {
-    color: var(--nx-navy);
+    color: var(--nx-ink);
     text-decoration: underline;
 }
 
 /* FORGOT PASSWORD (plain link button) */
 .profile-login-password {
-    margin-top: 10px;
+    margin-top: var(--nx-space-3);
 }
 
 .profile-login-password .forgot-password-btn {
@@ -106,16 +106,16 @@
     padding: 0;
     background: none;
     border: 0;
-    color: var(--nx-blue-dark);
+    color: var(--nx-primary-text);
     font: inherit;
-    font-size: 0.9rem;
+    font-size: var(--nx-text-sm);
     font-weight: 600;
     cursor: pointer;
     box-shadow: none;
 }
 
 .profile-login-password .forgot-password-btn:hover {
-    color: var(--nx-navy);
+    color: var(--nx-ink);
     text-decoration: underline;
     transform: none;
     box-shadow: none;
@@ -125,59 +125,59 @@
 .login-avatar {
     width: 70px;
     height: 70px;
-    background: var(--nx-gradient);
+    background: var(--nx-primary);
     color: var(--nx-white);
-    font-size: 1.7rem;
+    font-size: var(--nx-text-2xl);
     font-weight: 800;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 15px;
+    margin: 0 auto var(--nx-space-4);
 }
 
 .login-state-card h2 {
-    margin-bottom: 6px;
-    font-size: 1.3rem;
+    margin-bottom: var(--nx-space-2);
+    font-size: var(--nx-text-lg);
 }
 
 .login-state-card p {
     color: var(--nx-text-muted);
-    font-size: 0.92rem;
+    font-size: var(--nx-text-sm);
 }
 
 .login-actions {
-    margin-top: 22px;
+    margin-top: var(--nx-space-6);
     display: flex;
-    gap: 10px;
+    gap: var(--nx-space-3);
     justify-content: center;
     flex-wrap: wrap;
 }
 
 .login-actions .btn-primary,
 .login-actions .btn-danger {
-    padding: 11px 20px;
+    padding: var(--nx-space-3) var(--nx-space-5);
     border-radius: var(--nx-radius-sm);
     text-decoration: none;
-    font-size: 0.92rem;
+    font-size: var(--nx-text-sm);
     font-weight: 600;
     border: 1px solid transparent;
 }
 
 .login-actions .btn-primary {
-    background: var(--nx-gradient);
+    background: var(--nx-primary);
     color: var(--nx-white);
 }
 
 .login-actions .btn-danger {
     background: var(--nx-white);
-    color: var(--nx-navy);
+    color: var(--nx-ink);
     border-color: var(--nx-border-strong);
 }
 
 .login-actions .btn-danger:hover {
-    background: var(--nx-bg-tint);
-    border-color: var(--nx-navy);
+    background: var(--nx-surface-muted);
+    border-color: var(--nx-text-faint);
 }
 
 /* SHOW PASSWORD SWITCH */
@@ -185,9 +185,9 @@
 .password-toggle-wrapper {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin: 4px 0 14px;
-    font-size: 0.85rem;
+    gap: var(--nx-space-3);
+    margin: var(--nx-space-1) 0 var(--nx-space-4);
+    font-size: var(--nx-text-sm);
     color: var(--nx-text-muted);
     justify-content: center;
 }
@@ -210,8 +210,8 @@
     cursor: pointer;
     inset: 0;
     background-color: var(--nx-border-strong);
-    border-radius: 50px;
-    transition: 0.3s;
+    border-radius: var(--nx-radius-pill);
+    transition: all var(--nx-duration) var(--nx-ease);
 }
 
 .slider::before {
@@ -223,12 +223,12 @@
     top: 3px;
     background: var(--nx-white);
     border-radius: 50%;
-    transition: 0.3s;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all var(--nx-duration) var(--nx-ease);
+    box-shadow: var(--nx-shadow-xs);
 }
 
 .switch input:checked + .slider {
-    background: var(--nx-gradient);
+    background: var(--nx-primary);
 }
 
 .switch input:checked + .slider::before {
@@ -241,9 +241,9 @@
     user-select: none;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 600px) {
     .profile-login-card,
     .login-state-card {
-        padding: 24px;
+        padding: var(--nx-space-6);
     }
 }

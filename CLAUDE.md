@@ -59,10 +59,12 @@ The suite runs inside WordPress against the real DB, so a careless test can dest
 - Third-party `vendor/` folders (Elementor, ACF) are not in git, so those plugins fatal on activation from a fresh clone; install/update third-party plugins through wp-admin. Elementor Pro is a licensed product committed to a public repo.
 - Header/Footer Theme Builder templates use Elementor Pro Nav Menu widgets bound to the menu slugs `nexora-main`, `nexora-footer-company`, `nexora-footer-legal`; those menus exist only after the sample-content installer has run.
 - Home-page numbers (`[nexora_home]`, `[nexora_stat]`) come from `Shortcodes\Home::get_stats()`, cached in the `nexora_home_stats` transient and flushed by `save_post_user_*` hooks.
-- CSS prefixes: plugin `nx-*` (tokens in `assets/css/tokens.css`), theme chrome `nxt-*` (`NXT_VERSION` in `nexora-theme/functions.php` busts theme asset caches), Elementor sections `nxe-*`.
+- CSS prefixes: plugin `nx-*`, theme chrome `nxt-*` (`NXT_VERSION` in `nexora-theme/functions.php` busts theme asset caches), Elementor sections `nxe-*`. Design tokens are one `--nx-*` vocabulary in `assets/css/tokens.css` (the theme keeps a byte-identical copy); shared components in `components.css`. Rules and the token list: `docs/DESIGN-SYSTEM.md`, enforced by `php tests/php/test-design-system.php` (no WordPress needed): no raw colours, `!important`, px spacing/font sizes or off-scale breakpoints outside tokens.
 
 ## Conventions
 
+- **Reports are HTML, opened in the browser.** Any report, audit or review the user asks for is written as a self-contained `.html` file (inline CSS, no external assets) and opened with `open <file>`; don't deliver it as Markdown only. Put it in `docs/` for lasting reports or `skill-outputs/` (git-ignored) for throwaway ones.
+- **Git: commit locally, never push without explicit consent.** Commit finished work locally as you go; never `git push` (or open/merge a PR, which pushes) unless the user has explicitly said to in that message. Earlier approval does not carry over to later pushes.
 - Bump `NEXORA_VERSION` in `nexora.php` (header and constant) whenever plugin PHP/CSS/JS ships, and regenerate the `.pot` if strings changed. Shared design tokens are enqueued via `Core\Assets::enqueue_tokens()`.
 - Commit messages end with the `Co-Authored-By` line given by the harness; commits are made by explicit path; pushing is the user's call.
 - New tests must be run and shown failing before the code is written (red first), then the code, then green.
