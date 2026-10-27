@@ -1,0 +1,37 @@
+# Local development stack for Nexora (an alternative to XAMPP). Start: docker compose up -d --build
+# Site: http://localhost:${NEXORA_PORT:-8080}/nexora/   Details: docker/README.md
+services:
+  web:
+    build: ./docker
+    ports:
+      - "${NEXORA_PORT:-8080}:8080"
+    environment:
+      NEXORA_PORT: "${NEXORA_PORT:-8080}"
+    volumes:
+      - .:/var/www/html/nexora
+      - ./docker/wp-config.docker.php:/var/www/html/nexora/wp-config.php:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    # Apache starts as root and serves as www-data; run WP-CLI/Composer with `docker compose exec -u www-data web ...`.
+
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: nexora
+      MARIADB_USER: nexora
+      MARIADB_PASSWORD: nexora
+    ports:
+      - "127.0.0.1:${NEXORA_DB_PORT:-3307}:3306"
+    volumes:
+      - nexora-db:/var/lib/mysql
+      - ./docker/db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  nexora-db:
