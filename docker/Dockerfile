@@ -1,6 +1,6 @@
-# Local development image for Nexora: Apache + PHP 8.2 with what WordPress, WooCommerce, Elementor and the test harness need,
+# Local development image for Nexora: Apache + PHP 8.3 with what WordPress, WooCommerce, Elementor and the test harness need,
 # plus WP-CLI and Composer (for PHPCS). The code is bind-mounted, never copied in. Local use only.
-FROM php:8.2-apache
+FROM php:8.3-apache
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \

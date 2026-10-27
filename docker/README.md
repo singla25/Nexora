@@ -1,6 +1,6 @@
 # Docker setup (alternative to XAMPP)
 
-Apache + PHP 8.2 + MariaDB 10.11, with WP-CLI and Composer in the web image. The repository is bind-mounted, so edits show up at once.
+Apache + PHP 8.3 + MariaDB 10.11, with WP-CLI and Composer in the web image. The repository is bind-mounted, so edits show up at once.
 The host's `wp-config.php` (XAMPP) is not touched: `docker/wp-config.docker.php` is mounted over it inside the container only.
 
 Site: http://localhost:8080/nexora/ (change with `NEXORA_PORT`). Database from the host: `127.0.0.1:3307`, user/password/db `nexora`.
