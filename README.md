@@ -1,126 +1,104 @@
 # Nexora
 
-A WordPress site (WordPress 7.1) built around a custom **Nexora** plugin that provides a small social/networking platform: front-end registration and login, user profile dashboards, user-to-user connections, notifications, and direct messaging.
+**A social network and multi-vendor marketplace in one WordPress site.**
 
-## Repository layout
+Members create a profile, connect with people they trust, chat in organised conversations, and buy from or sell to each other. Anyone can apply to become a seller. Once approved, a seller lists products (by hand, CSV, or from an API), receives orders, ships them, and watches their earnings, with the platform's commission worked out and recorded on every order.
 
-| Path | Purpose |
-| --- | --- |
-| `wp-content/plugins/nexora/` | **The custom code.** All project-specific features live here. |
-| `wp-content/themes/nexora-theme/` | **The custom theme** (FST design: navy / blue, Plus Jakarta Sans). Includes the Elementor sample content installer. |
-| `wp-content/plugins/` (others) | Third-party plugins: Elementor, Elementor Pro, Advanced Custom Fields, Akismet, All-in-One WP Migration, Hostinger, Hostinger Reach, LiteSpeed Cache, UpdraftPlus, WP Mail SMTP. Elementor Pro is a licensed product: keep your own licence active. |
-| `wp-content/themes/` (others) | Stock themes: Twenty Twenty-Three, Twenty Twenty-Four, Twenty Twenty-Five. |
-| `wp-content/mu-plugins/` | Hostinger must-use plugins. |
-| `wp-config.php` | **Not tracked** (contains secrets). Create it from `wp-config-sample.php`. |
+Nexora is a custom plugin and theme for WordPress and WooCommerce. WooCommerce handles checkout and payments, and Nexora supplies the social layer, the seller side, and the rules that tie them together.
 
-Everything else is WordPress core.
+## What you can do with it
 
-## Nexora plugin
+### As a member
 
-```
-nexora/
-├── nexora.php                       # Constants, PSR-4 autoloader, activation hook, Plugin::boot()
-├── src/                             # Namespace Nexora\ (one class per file)
-│   ├── Core/                        # Plugin, Assets, Access_Control, Urls, View, I18n, Autoloader, legacy-aliases
-│   ├── Http/                        # Ajax registrar + guard, Member_Ajax, Rate_Limiter
-│   ├── Auth/                        # Login ([profile_login]), Registration, Otp, Recaptcha
-│   ├── Profile/                     # Page ([profile_dashboard], /profile-page/<username>), Privacy, Ajax, Fields,
-│   │                                #   Repository, Private_Documents, Upload_Policy, Documents_Migration
-│   ├── Connections/                 # Ajax, Service, Repository, Cache
-│   ├── Notifications/               # Repository (table), Ajax
-│   ├── Content/                     # Ajax, Repository
-│   ├── Chat/                        # Module (popup + assets), Ajax, Repository (tables)
-│   ├── Admin/                       # Menu, Settings, Pages, Meta_Boxes, List_Columns ("Nexora System")
-│   ├── PostTypes/                   # Registrar (user_profile, user_connections, user_content)
-│   ├── Shortcodes/                  # Home, Stats, Contact_Form
-│   ├── Integrations/                # Woo_Routes (closes WooCommerce's own front doors)
-│   └── Database/                    # Installer, Migrations, Uninstaller
-├── templates/                       # HTML only (auth, profile, chat, admin, mail, shortcodes)
-├── languages/                       # nexora.pot (text domain `nexora`)
-└── assets/                          # css/, js/ (incl. chat), lib/ (SweetAlert2)
-```
+- **Sign up and log in** on pages that match the site, with optional Google reCAPTCHA and email one-time codes for password reset.
+- **Build a profile**: personal, address and work details, a profile photo and cover image, and identity documents. Your email, phone, address and documents stay private to you; other members see your name, photo and bio.
+- **Connect** with other members: search, send, accept or decline requests, see your connections and your mutual connections.
+- **Chat** with your connections in threads that each start with a subject, so a conversation is easy to find again.
+- **Share content** in a personal feed, and get **notifications** for requests and orders.
 
-### Features
+### As a buyer
 
-- **Registration & login** on front-end pages, with optional Google reCAPTCHA, email OTP, and password reset.
-- **Profile dashboard** with personal, address, work and document sections, a password change form, and a user content feed.
-- **Connections**: search users, send/accept/decline requests, view history, all connections and mutual connections.
-- **Notifications** stored in a dedicated table and markable as read.
-- **Chat**: threads, subjects, and messages, loaded as a popup for logged-in members.
-- **Admin settings** under *Nexora System* for default images, admin email, and reCAPTCHA keys, plus Notifications and Chat views.
+- Browse the marketplace, add products from several sellers to **one cart** (grouped by seller), and check out with cash on delivery or bank transfer.
+- Follow your orders in **My Orders**: status, payment, items, seller, and shipping.
+- Prices, names and stock are always read from the product on the server, so nothing a browser sends can change what you pay.
 
-### Shortcodes
+### As a seller
+
+- **Apply** when you sign up or later with "Become a seller", giving your business details (GSTIN is required and format-checked). An administrator approves, rejects or suspends the application.
+- **List products** with the form, or **import** them from a CSV file (up to 500 rows) or an API (DummyJSON, Fake Store, the Nexora format, or your own API connection). Every import starts with a **dry-run preview** that writes nothing, and only then applies exactly what you previewed.
+- **Fulfil orders**: see only your own lines of an order, mark them shipped, and get e-mail and in-app alerts for new orders and low stock.
+- **Track earnings** in the Sales tab: totals for 7, 30 or 90 days or all time, a daily earnings chart, best sellers, and an order table. Commission is calculated per order line in whole cents and frozen at checkout, so changing the rate later never rewrites history. Refunds reverse the seller's share automatically.
+
+### As an administrator
+
+- Approve, reject, suspend or reactivate sellers, and edit records from the **Nexora System** menu.
+- Set the commission rate (10% by default), product categories, the low-stock threshold, default images, the admin e-mail and reCAPTCHA keys.
+- See a **marketplace overview** with total sales, commission, seller earnings and a per-seller table.
+
+## Built to be trusted
+
+- **Server-side everything.** Roles, prices, stock and ownership are decided on the server; hiding a button is never the security.
+- **Private by design.** Identity documents are stored in a private folder and served only to their owner or an administrator. A seller never sees a buyer's billing details, email or phone.
+- **Safe imports.** API imports only reach public https addresses, never follow redirects, and cap time and size; API keys are stored encrypted and never shown back.
+- **Abuse limits.** Login, registration, imports, cart and other sensitive actions are rate-limited.
+- **Tested.** A large automated test suite and the WordPress coding standards run on every push (see `.github/workflows/tests.yml`).
+
+## The theme
+
+The **Nexora theme** (`wp-content/themes/nexora-theme`) gives the site its navy-and-blue look. Its header, footer and 404 page can be replaced by Elementor Pro Theme Builder templates, and it can create a full set of sample pages for you.
+
+1. Activate Elementor, Elementor Pro and the **Nexora** theme.
+2. Go to **Appearance → Sample Content** and press **Install sample content**.
+
+It creates the Home (front page), About, Contact, FAQs, Privacy Policy, Terms of Use and Community Guidelines pages, plus Login, Registration and Profile if missing. It also creates Elementor library templates for each page layout, the Header, Footer and 404 templates, and the menus. It is safe to run again: pages you made yourself are never changed, and pages it created are replaced only if you tick "Replace".
+
+The logo, tagline, email, phone, address and social links come from **Appearance → Nexora Settings**, and the live numbers (members, connections, posts, conversations) are calculated from your data, so the templates never need editing when the site grows. Images use one sample image; replace it in the Elementor editor.
+
+## Shortcodes
 
 | Shortcode | Use on page |
 | --- | --- |
 | `[nexora_home]` | Landing page (live numbers, text editable under Nexora > Settings) |
 | `[profile_registration]` | Registration page |
 | `[profile_login]` | `/login-page` |
+| `[profile_dashboard]` | `/profile-page` (also served at `/profile-page/<username>` via a rewrite rule) |
 | `[nexora_stat type="members\|connections\|posts\|chats"]` | Any Elementor Shortcode widget: live platform number |
 | `[nexora_auth_buttons]` | Header: Log in / Sign up, or profile / Log out when logged in |
 | `[nexora_contact_form]` | Contact page: spam-protected form that emails the admin |
-| `[profile_dashboard]` | `/profile-page` (also served at `/profile-page/<username>` via a rewrite rule) |
 
-### Access control
+## Get it running
 
-- Non-admins never see the admin bar and are redirected away from `wp-admin` and `wp-login.php` to their profile page.
-- Logged-out visitors hitting `wp-admin` or `wp-login.php` are sent to `/login-page`.
-- Administrators keep full access. AJAX, REST, cron, and `admin-post.php` requests are left alone.
-
-### Custom post types and tables
-
-- Post types: `user_profile`, `user_connections`, `user_content`.
-- Tables (created and kept current by `Database\Migrations`, with the site's table prefix): `nexora_notifications`, `nexora_threads`, `nexora_thread_participants`, `nexora_messages`, `nexora_message_meta`.
-
-## Nexora theme and Elementor templates
-
-The theme (`wp-content/themes/nexora-theme`) is a classic PHP theme. Header, footer and 404 can be replaced by Elementor Pro Theme Builder templates; the theme's own markup is the fallback.
-
-**Install the sample pages**
-
-1. Activate Elementor, Elementor Pro and the **Nexora** theme.
-2. Go to **Appearance > Sample Content** and press **Install sample content**.
-
-It creates (using Elementor's own API, safe to run again):
-
-- Pages: Home (set as front page), About, Contact, FAQs, Privacy Policy, Terms of Use, Community Guidelines, plus Login / Registration / Profile if missing.
-- Elementor library templates, one per page layout (Templates > Saved Templates), to insert into any page.
-- Theme Builder templates: Header, Footer and 404 (Elementor Pro).
-- Menus: Nexora Main, Nexora Footer Company, Nexora Footer Legal.
-
-Existing pages are never changed unless this installer created them and "Replace" is ticked.
-
-**Dynamic data in the templates**: numbers come from `[nexora_stat]`, the header buttons from `[nexora_auth_buttons]`, and the logo, tagline, email, phone and address from `[nxt_logo]` and `[nxt_setting]` (set them under **Appearance > Nexora Settings**). Images use one sample image (`assets/images/sample.webp`, also added to the Media Library): replace it in the Elementor editor.
-
-Sections are styled by CSS classes (`nxe-*`, `assets/css/elementor.css`), so layout stays editable in Elementor.
-
-## Setup
-
-**Requirements:** PHP and MySQL/MariaDB as required by WordPress 7.1, plus Apache with `mod_rewrite` (the `.htaccess` assumes the site is served from `/nexora/`; change `RewriteBase` if you host it elsewhere).
+**Requirements:** WordPress 6.4 or newer (the repository ships 7.1), PHP 8.0 or newer (tested on 8.3), MySQL or MariaDB, Apache with `mod_rewrite` (the `.htaccess` assumes the site is served from `/nexora/`; change `RewriteBase` if you host it elsewhere), and **WooCommerce** (both of its order-storage modes work). The free **Advanced Custom Fields** plugin is needed for the administrator edit screens, and **Elementor Pro** for the Theme Builder templates. Plan for working outgoing e-mail (WP Mail SMTP): one-time codes and order e-mails depend on it.
 
 1. Place the project in your web root (for example `/var/www/html/83/nexora`).
-2. Create a database, then copy `wp-config-sample.php` to `wp-config.php` and fill in the DB credentials and salts.
-3. Run the WordPress installer at `/nexora/wp-admin/install.php`, or import a backup (see below).
-4. Activate the **Nexora** plugin. Activation creates the notification and chat tables (`Database\Migrations` keeps them current afterwards).
-5. Create pages with slugs `login-page`, `registration-page` and `profile-page` and the matching shortcodes, plus a home page (or use *Appearance → Sample Content*, which creates missing ones). Then go to *Settings → Permalinks* and click Save to flush the rewrite rules.
-6. Under *Nexora System → Settings*, set the default images, admin email, and (optionally) reCAPTCHA keys.
-7. Make sure outgoing email works (the repo includes WP Mail SMTP). OTP and password reset depend on it.
+2. Create a database, copy `wp-config-sample.php` to `wp-config.php`, and fill in the credentials and salts.
+3. Run the WordPress installer at `/nexora/wp-admin/install.php`, or import a backup.
+4. Activate WooCommerce and the **Nexora** plugin (activation creates the notification and chat tables).
+5. Create the pages `login-page`, `registration-page` and `profile-page` with the matching shortcodes, or use *Appearance → Sample Content*, which creates the missing ones. Then save *Settings → Permalinks* once.
+6. Under *Nexora System → Settings*, set the default images, admin e-mail, commission, categories and (optionally) reCAPTCHA keys.
+7. Turn WooCommerce "Coming soon" mode **off**; while it is on, customers cannot reach the cart or checkout.
 
-## Development notes
+Prefer containers? `docker compose up -d --build` starts the site at http://localhost:8080/nexora/ (details in [`docker/README.md`](docker/README.md)). Before you go live, work through [`docs/LAUNCH-CHECKLIST.md`](docs/LAUNCH-CHECKLIST.md).
 
-- Bump `NEXORA_VERSION` in `nexora.php` when changing CSS or JS, because it is used for cache busting.
-- Register AJAX handlers with `Http\Ajax::register()` (creates `wp_ajax_nexora_<name>`; the old un-prefixed action is a deprecated alias). Member handlers extend `Http\Member_Ajax`; keep nonce and login checks in place and rate-limit abusable actions.
-- Set `WP_DEBUG` to `true` in `wp-config.php` locally to surface PHP notices.
-- Wrap user-facing strings in `__()` with the `nexora` text domain and regenerate `languages/nexora.pot` (see the plugin README).
+## For developers
 
-### Tests and coding standards
+The plugin is plain PHP with a PSR-4 layout (`wp-content/plugins/nexora/src`, namespace `Nexora\`), HTML in `templates/`, and CSS/JS in `assets/`. There is no build step.
 
-- Tests (WP-CLI, self-cleaning fixtures): `tests/run.sh` for all, or `tests/run.sh tests/php/test-foo.php` for one. Golden markup snapshots live in `tests/golden/`; regenerate on purpose with `NX_UPDATE_GOLDEN=1 tests/run.sh tests/php/test-golden-output.php`.
-- Coding standards: `cd wp-content/plugins/nexora && composer install && vendor/bin/phpcs` (auto-fix with `vendor/bin/phpcbf`).
+| Path | Purpose |
+| --- | --- |
+| `wp-content/plugins/nexora/` | The custom plugin: social features, marketplace, orders and reports. Notes in its own [README](wp-content/plugins/nexora/README.md). |
+| `wp-content/themes/nexora-theme/` | The custom theme and the Elementor sample-content installer. |
+| `tests/` | WP-CLI test suite, golden markup snapshots and CI helpers. |
+| `docs/` | Specification, architecture and reference documents (below). |
+| Everything else | WordPress core and third-party plugins and themes: install and update them through wp-admin. |
 
-### Further documentation
+- **Tests** run only on a scratch copy of the database: `NX_TEST_DB=<scratch db> tests/run.sh`, or add a single file such as `tests/php/test-foo.php`.
+- **Coding standards:** `cd wp-content/plugins/nexora && composer install && vendor/bin/phpcs` (auto-fix with `vendor/bin/phpcbf`).
+- **Strings** go through `__()` with the `nexora` text domain; regenerate `languages/nexora.pot` after changing them.
+- **Cache busting:** bump `NEXORA_VERSION` in `nexora.php` when plugin PHP, CSS or JS ships.
+- Set `WP_DEBUG` to `true` locally to surface PHP notices.
 
-Deeper references are in [`docs/`](docs/): `ARCHITECTURE.md`, `AJAX-API.md`, `AUTHENTICATION.md`, `DATABASE.md`, `THEME.md`, `DEVELOPMENT-WORKFLOW.md`, `TROUBLESHOOTING.md`, `CODE-REFERENCE.md` and `NEXORA-DEVELOPER-GUIDE.md`.
+Start with [`docs/SPEC.md`](docs/SPEC.md) (the marketplace rules and which order statuses count as earnings) and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). The rest of [`docs/`](docs/) covers the AJAX API, authentication, the database, the theme, the development workflow, the security matrix, the design system, the roadmap and troubleshooting.
 
 ## What is not in git
 
